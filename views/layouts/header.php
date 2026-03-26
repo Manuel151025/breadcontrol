@@ -109,72 +109,142 @@ function navActive($path) {
     @media (max-width: 768px) {
       nav {
         height:auto !important;
-        min-height:58px;
-        padding:.45rem .8rem;
+        min-height:56px;
+        padding:.4rem .7rem;
         flex-wrap:wrap;
         align-items:center;
         gap:0;
       }
-      nav.nav-open { padding-bottom:.55rem; }
+      nav.nav-open { padding-bottom:.5rem; }
 
-      /* Logo: izquierda */
-      .n-logo { flex-shrink:0; margin-right:0; padding:.1rem .4rem .1rem .1rem; }
-      .n-logo-img { width:34px; height:34px; }
-      .n-logo-name { font-size:.88rem; }
+      /* Logo: siempre visible con nombre */
+      .n-logo { flex-shrink:0; margin-right:0; padding:.1rem .35rem .1rem .1rem; }
+      .n-logo-img { width:32px; height:32px; }
+      .n-logo-name { font-size:.92rem; display:block !important; }
       .n-logo-sub { display:none; }
       .n-sep { display:none; }
 
-      /* Derecha: compacta — solo user + hamburguesa */
-      .n-right { margin-left:auto; order:2; gap:.3rem; flex-shrink:0; }
+      /* Derecha: avatar + hamburguesa */
+      .n-right { margin-left:auto; order:2; gap:.35rem; flex-shrink:0; }
       .n-clock       { display:none; }
-      .n-ciudad-btn  { display:none; }   /* oculto — acceso desde menú */
-      .n-logout      { display:none; }   /* oculto — acceso desde menú */
+      .n-ciudad-btn  { display:none; }
+      .n-logout      { display:none; }
       .n-urole       { display:none; }
-      .n-uname       { font-size:.75rem; }
-      .n-hamburger   { display:flex; }
+      .n-user        { padding:.2rem .5rem .2rem .2rem; border-radius:18px; }
+      .n-uname       { font-size:.72rem; max-width:70px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .n-avatar      { width:28px; height:28px; font-size:.7rem; }
+      .n-hamburger   { display:flex; width:36px; height:36px; border-radius:9px; font-size:1.15rem; }
 
-      /* Menú desplegable */
+      /* Menú desplegable — rediseñado */
       .n-menu {
         display:none;
         flex-direction:column;
         align-items:stretch;
         width:100%;
         flex-basis:100%;
-        gap:.2rem;
+        gap:.25rem;
         order:3;
-        padding-top:.45rem;
-        border-top:1px solid rgba(255,255,255,.15);
-        margin-top:.3rem;
+        padding:.5rem 0 .2rem;
+        border-top:1px solid rgba(255,255,255,.12);
+        margin-top:.35rem;
       }
       .n-menu.open { display:flex; }
 
-      /* Ítems de módulo */
-      .n-item {
-        height:46px !important;
-        max-width:100% !important;
-        padding:0 1rem !important;
-        gap:.65rem !important;
-        background:rgba(255,255,255,.08);
-        border-radius:10px;
-        font-size:.88rem;
-        -webkit-tap-highlight-color:transparent;
+      /* Header del menú mobile — subtítulo */
+      .n-menu::before {
+        content:'Módulos';
+        display:block;
+        font-size:.58rem;
+        text-transform:uppercase;
+        letter-spacing:.18em;
+        color:rgba(255,255,255,.4);
+        padding:0 .8rem .3rem;
+        font-weight:700;
       }
-      .n-item .n-lbl { opacity:1 !important; max-width:200px !important; }
-      .n-item.on { background:rgba(255,255,255,.22); }
 
-      /* Separador + acciones extra al final del menú */
-      .n-menu-sep    { display:block; }
-      .n-menu-logout { display:flex; align-items:center; gap:.65rem; height:46px; padding:0 1rem; border-radius:10px; background:rgba(220,53,69,.12); color:rgba(255,220,220,.9); text-decoration:none; font-size:.88rem; font-weight:600; -webkit-tap-highlight-color:transparent; transition:background .2s; }
-      .n-menu-logout:hover { background:rgba(220,53,69,.25); }
-      .n-menu-ciudad { display:flex; align-items:center; gap:.65rem; height:46px; padding:0 1rem; border-radius:10px; background:rgba(255,255,255,.08); color:rgba(255,255,255,.85); font-size:.88rem; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; border:none; font-family:inherit; width:100%; transition:background .2s; }
-      .n-menu-ciudad:hover { background:rgba(255,255,255,.15); }
+      /* Ítems de módulo en grid 2 columnas */
+      .n-menu {
+        display:none;
+        flex-wrap:wrap;
+        flex-direction:row;
+        gap:.3rem;
+        padding:.5rem .2rem .2rem;
+      }
+      .n-menu.open { display:flex; }
+
+      .n-item {
+        height:44px !important;
+        max-width:100% !important;
+        flex:1 1 calc(50% - .15rem);
+        padding:0 .7rem !important;
+        gap:.5rem !important;
+        background:rgba(255,255,255,.07);
+        border:1px solid rgba(255,255,255,.06);
+        border-radius:10px;
+        font-size:.8rem;
+        -webkit-tap-highlight-color:transparent;
+        transition:background .15s;
+      }
+      .n-item:active { background:rgba(255,255,255,.18); }
+      .n-item .n-lbl { opacity:1 !important; max-width:200px !important; font-size:.78rem; }
+      .n-item i { font-size:1.05rem; }
+      .n-item.on {
+        background:rgba(255,255,255,.2);
+        border-color:rgba(255,255,255,.15);
+        box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+      }
+
+      /* Separador + acciones extra */
+      .n-menu-sep {
+        display:block;
+        flex-basis:100%;
+        height:1px;
+        background:rgba(255,255,255,.1);
+        margin:.3rem 0;
+      }
+
+      /* Acciones inferiores en fila completa */
+      .n-menu-ciudad {
+        display:flex; align-items:center; gap:.55rem;
+        height:42px; padding:0 .8rem;
+        border-radius:10px; background:rgba(255,255,255,.06);
+        color:rgba(255,255,255,.8); font-size:.82rem; font-weight:600;
+        cursor:pointer; -webkit-tap-highlight-color:transparent;
+        border:1px solid rgba(255,255,255,.06);
+        font-family:inherit; width:100%;
+        transition:background .15s; flex-basis:100%;
+      }
+      .n-menu-ciudad:active { background:rgba(255,255,255,.15); }
+
+      .n-menu-logout {
+        display:flex; align-items:center; gap:.55rem;
+        height:42px; padding:0 .8rem;
+        border-radius:10px; background:rgba(220,53,69,.1);
+        border:1px solid rgba(220,53,69,.15);
+        color:rgba(255,200,200,.9); text-decoration:none;
+        font-size:.82rem; font-weight:600;
+        -webkit-tap-highlight-color:transparent;
+        transition:background .15s; flex-basis:100%;
+      }
+      .n-menu-logout:active { background:rgba(220,53,69,.25); }
     }
 
-    @media (max-width: 480px) {
-      nav { padding:.4rem .7rem; }
-      .n-logo-name { display:none; }
-      .n-uname { font-size:.72rem; }
-      .n-avatar { width:28px; height:28px; font-size:.72rem; }
+    @media (max-width: 420px) {
+      nav { padding:.35rem .6rem; }
+      .n-logo-img { width:30px; height:30px; }
+      .n-logo-name { font-size:.84rem; display:block !important; }
+      .n-avatar { width:26px; height:26px; font-size:.65rem; }
+      .n-uname { display:none; }
+      .n-user { padding:.18rem .35rem; }
+      .n-hamburger { width:34px; height:34px; font-size:1.1rem; }
+
+      .n-item {
+        height:42px !important;
+        padding:0 .6rem !important;
+        font-size:.76rem;
+      }
+      .n-item .n-lbl { font-size:.74rem; }
+      .n-item i { font-size:.95rem; }
     }
 
     /* ══ MODAL CIUDAD ══ */
