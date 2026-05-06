@@ -89,9 +89,13 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   .cat-opt input:checked + .cat-lbl{border-color:var(--c3);background:rgba(198,113,36,.07);color:var(--c1);box-shadow:0 0 0 3px rgba(198,113,36,.1);}
   .btn-guardar{width:100%;background:linear-gradient(135deg,var(--c3),var(--c1));color:#fff;border:none;border-radius:10px;padding:.72rem;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(198,113,36,.3);display:flex;align-items:center;justify-content:center;gap:.4rem;transition:all .2s;margin-top:.4rem;}
   .btn-guardar:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(198,113,36,.4);}
-  .msg-ok{background:#e8f5e9;border:1px solid #a5d6a7;border-left:3px solid #2e7d32;border-radius:10px;padding:.6rem .9rem;font-size:.82rem;color:#1b5e20;font-weight:600;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem;}
-  .msg-err{background:#ffebee;border:1px solid #ef9a9a;border-left:3px solid #c62828;border-radius:10px;padding:.6rem .9rem;font-size:.82rem;color:#c62828;margin-bottom:.75rem;}
-  .msg-err ul{margin:.25rem 0 0 1.1rem;padding:0;}
+  .msg-ok{background:#e8f5e9;border:1px solid #a5d6a7;border-left:4px solid #2e7d32;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#1b5e20;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+  .msg-ok i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}
+  .msg-ok span{flex:1;}
+  .msg-err{background:#ffebee;border:1px solid #ef9a9a;border-left:4px solid #c62828;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#c62828;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+  .msg-err i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}
+  .msg-err span{flex:1;}
+  .msg-err ul{margin:.15rem 0 0 1rem;padding:0;}
   .btn-ir-receta{display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.55rem;border:1.5px dashed rgba(103,58,183,.3);border-radius:10px;color:#673ab7;font-size:.82rem;font-weight:700;text-decoration:none;background:rgba(103,58,183,.04);margin-top:.5rem;transition:all .2s;}
   .btn-ir-receta:hover{background:rgba(103,58,183,.1);border-color:#673ab7;}
   @media(max-width:768px){.page{height:auto;overflow:visible;margin-top:60px;}}
@@ -101,7 +105,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   <div class="wc-banner">
     <div class="wc-left">
       <div>
-        <div class="wc-greeting">Panadería BreakControl</div>
+        <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Editar <em>Producto</em></div>
         <div class="wc-sub"><?= htmlspecialchars($producto['nombre']) ?></div>
       </div>
@@ -135,9 +139,9 @@ require_once __DIR__ . '/../../views/layouts/header.php';
         <span class="ch-title">Datos del producto</span>
       </div>
       <div class="form-body">
-        <?php if ($msg_ok): ?><div class="msg-ok"><i class="bi bi-check-circle-fill"></i><?= $msg_ok ?></div><?php endif; ?>
+        <?php if ($msg_ok): ?><div class="msg-ok"><i class="bi bi-check-circle-fill"></i><span><?= $msg_ok ?></span></div><?php endif; ?>
         <?php if (!empty($errores)): ?>
-        <div class="msg-err"><ul><?php foreach ($errores as $e): ?><li><?= $e ?></li><?php endforeach; ?></ul></div>
+        <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i><span><ul><?php foreach ($errores as $e): ?><li><?= $e ?></li><?php endforeach; ?></ul></span></div>
         <?php endif; ?>
 
         <form method="post">

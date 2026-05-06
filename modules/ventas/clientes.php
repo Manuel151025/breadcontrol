@@ -164,7 +164,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   <div class="wc-banner">
     <div class="wc-left">
       <div>
-        <div class="wc-greeting">Panadería BreakControl</div>
+        <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Clientes <em>Tiendas</em></div>
         <div class="wc-sub">Tiendas con bonificación del 20% en producto</div>
       </div>

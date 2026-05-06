@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 25-03-2026 a las 01:12:49
+-- Tiempo de generación: 08-04-2026 a las 07:12:19
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -25,7 +25,7 @@ DELIMITER $$
 --
 -- Procedimientos
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_consumo_promedio` (IN `p_id_insumo` INT)   BEGIN
+CREATE PROCEDURE `sp_actualizar_consumo_promedio` (IN `p_id_insumo` INT)   BEGIN
   DECLARE v_promedio DECIMAL(12,4);
 
   SELECT COALESCE(SUM(cl.cantidad_con_merma) / 7, 0)
@@ -41,7 +41,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_consumo_promedio` (IN
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_descontar_fifo` (IN `p_id_insumo` INT, IN `p_cantidad_total` DECIMAL(12,4), IN `p_id_produccion` INT)   BEGIN
+CREATE PROCEDURE `sp_descontar_fifo` (IN `p_id_insumo` INT, IN `p_cantidad_total` DECIMAL(12,4), IN `p_id_produccion` INT)   BEGIN
   DECLARE v_lote_id         INT;
   DECLARE v_lote_disponible DECIMAL(12,4);
   DECLARE v_lote_precio     DECIMAL(12,4);
@@ -103,7 +103,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_descontar_fifo` (IN `p_id_insumo
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_revision_stock_diaria` (IN `p_id_usuario` INT)   BEGIN
+CREATE PROCEDURE `sp_revision_stock_diaria` (IN `p_id_usuario` INT)   BEGIN
   DECLARE v_dia_semana INT;
   SET v_dia_semana = DAYOFWEEK(CURDATE()); -- 1=Domingo, 7=Sábado
 
@@ -246,7 +246,8 @@ INSERT INTO `compra` (`id_compra`, `id_insumo`, `id_proveedor`, `id_usuario`, `c
 (7, 15, 3, 1, 1200.000, 21.6667, 26000.00, '2026-03-24 00:00:00', 0.00),
 (8, 6, 1, 1, 12500.000, 3.6000, 45000.00, '2026-03-24 00:00:00', 0.00),
 (9, 1, 2, 1, 50.000, 2600.0000, 130000.00, '2026-03-24 00:00:00', 0.00),
-(10, 3, 2, 1, 1000.000, 2.5000, 2500.00, '2026-03-24 00:00:00', 0.00);
+(10, 3, 2, 1, 1000.000, 2.5000, 2500.00, '2026-03-24 00:00:00', 0.00),
+(11, 21, 2, 1, 7500.000, 5.2000, 39000.00, '2026-03-30 00:00:00', 0.00);
 
 -- --------------------------------------------------------
 
@@ -371,7 +372,17 @@ INSERT INTO `consumo_lote` (`id_consumo`, `id_lote`, `id_produccion`, `cantidad_
 (77, 3, 9, 90.0000, 90.0000, 0.00, '2026-03-24 12:59:34'),
 (78, 20, 9, 70.0000, 70.0000, 175.00, '2026-03-24 12:59:34'),
 (79, 9, 9, 850.0000, 850.0000, 0.00, '2026-03-24 12:59:34'),
-(80, 12, 9, 450.0000, 450.0000, 5850.00, '2026-03-24 12:59:34');
+(80, 12, 9, 450.0000, 450.0000, 5850.00, '2026-03-24 12:59:34'),
+(81, 19, 10, 5.0000, 5.0000, 13000.00, '2026-04-06 18:00:39'),
+(82, 10, 10, 70.0000, 70.0000, 0.00, '2026-04-06 18:00:39'),
+(83, 4, 10, 750.0000, 750.0000, 0.00, '2026-04-06 18:00:39'),
+(84, 20, 10, 150.0000, 150.0000, 375.00, '2026-04-06 18:00:39'),
+(85, 21, 10, 2000.0000, 2000.0000, 10400.00, '2026-04-06 18:00:39'),
+(86, 19, 11, 5.0000, 5.0000, 13000.00, '2026-04-06 18:09:36'),
+(87, 10, 11, 70.0000, 70.0000, 0.00, '2026-04-06 18:09:36'),
+(88, 4, 11, 750.0000, 750.0000, 0.00, '2026-04-06 18:09:36'),
+(89, 20, 11, 150.0000, 150.0000, 375.00, '2026-04-06 18:09:36'),
+(90, 21, 11, 2000.0000, 2000.0000, 10400.00, '2026-04-06 18:09:36');
 
 -- --------------------------------------------------------
 
@@ -437,13 +448,13 @@ CREATE TABLE `insumo` (
 --
 
 INSERT INTO `insumo` (`id_insumo`, `nombre`, `unidad_medida`, `es_harina`, `stock_actual`, `punto_reposicion`, `consumo_promedio_diario`, `activo`, `fecha_creacion`) VALUES
-(1, 'Harina de trigo', 'kg', 1, 40.500, 10.000, 0.000, 1, '2026-03-20 22:11:46'),
-(2, 'Azúcar', 'g', 0, 6100.000, 1000.000, 0.000, 1, '2026-03-20 22:12:36'),
-(3, 'Sal', 'g', 0, 930.000, 1000.000, 0.000, 1, '2026-03-20 22:12:59'),
-(4, 'Mantequilla', 'g', 0, 1700.000, 5.000, 0.000, 1, '2026-03-20 22:13:19'),
+(1, 'Harina de trigo', 'kg', 1, 30.500, 10.000, 0.000, 1, '2026-03-20 22:11:46'),
+(2, 'Azúcar', 'g', 0, 4852.000, 1000.000, 0.000, 1, '2026-03-20 22:12:36'),
+(3, 'Sal', 'g', 0, 630.000, 1000.000, 0.000, 1, '2026-03-20 22:12:59'),
+(4, 'Mantequilla', 'g', 0, 200.000, 5.000, 0.000, 1, '2026-03-20 22:13:19'),
 (5, 'Huevos', 'unidad', 0, 5.000, 45.000, 0.000, 1, '2026-03-20 22:14:07'),
 (6, 'Fecula de Maiz', 'g', 0, 12400.000, 2.500, 0.000, 1, '2026-03-20 22:14:26'),
-(7, 'Esencia Mantequilla', 'ml', 0, 500.000, 1500.000, 0.000, 1, '2026-03-20 22:14:51'),
+(7, 'Esencia Mantequilla', 'ml', 0, 260.000, 1500.000, 0.000, 1, '2026-03-20 22:14:51'),
 (8, 'Leche en polvo', 'g', 0, 5460.000, 2000.000, 0.000, 1, '2026-03-20 22:14:59'),
 (9, 'Esencia Vainilla Caramelo', 'ml', 0, 380.000, 500.000, 0.000, 1, '2026-03-20 22:15:31'),
 (10, 'Manjar Blanco', 'g', 0, 2190.000, 0.000, 0.000, 1, '2026-03-20 22:15:57'),
@@ -454,9 +465,10 @@ INSERT INTO `insumo` (`id_insumo`, `nombre`, `unidad_medida`, `es_harina`, `stoc
 (15, 'Esencia Piña', 'ml', 0, 1186.000, 500.000, 0.000, 1, '2026-03-20 22:17:38'),
 (16, 'Esencia Banano', 'ml', 0, 1186.000, 500.000, 0.000, 1, '2026-03-20 22:17:45'),
 (17, 'Esencia Coco', 'ml', 0, 1186.000, 500.000, 0.000, 1, '2026-03-20 22:17:51'),
-(18, 'Levadura', 'g', 0, 800.000, 500.000, 0.000, 1, '2026-03-20 22:25:09'),
+(18, 'Levadura', 'g', 0, 660.000, 500.000, 0.000, 1, '2026-03-20 22:25:09'),
 (19, 'Coco', 'g', 0, 2420.000, 1000.000, 0.000, 1, '2026-03-20 22:28:00'),
-(21, 'Hojaldre', 'g', 0, 500.000, 2500.000, 0.000, 1, '2026-03-23 11:19:18');
+(21, 'Hojaldre', 'g', 0, 4000.000, 2500.000, 0.000, 1, '2026-03-23 11:19:18'),
+(26, 'Almidon', 'g', 0, 2000.000, 1000.000, 0.000, 0, '2026-03-30 19:13:40');
 
 -- --------------------------------------------------------
 
@@ -484,13 +496,13 @@ INSERT INTO `lote` (`id_lote`, `id_insumo`, `id_compra`, `numero_lote`, `cantida
 (1, 1, NULL, 'INI-2026-03-21-001', 50.000, 0.000, 0.0000, '2026-03-21 05:58:27', 'agotado'),
 (2, 2, NULL, 'INI-2026-03-21-002', 5000.000, 0.000, 0.0000, '2026-03-21 05:58:27', 'agotado'),
 (3, 3, NULL, 'INI-2026-03-21-003', 1000.000, 0.000, 0.0000, '2026-03-21 05:58:27', 'agotado'),
-(4, 4, NULL, 'INI-2026-03-21-004', 15000.000, 1700.000, 0.0000, '2026-03-21 05:58:27', 'activo'),
+(4, 4, NULL, 'INI-2026-03-21-004', 15000.000, 200.000, 0.0000, '2026-03-21 05:58:27', 'activo'),
 (5, 5, NULL, 'INI-2026-03-21-005', 60.000, 0.000, 0.0000, '2026-03-21 05:58:27', 'agotado'),
 (6, 6, NULL, 'INI-2026-03-21-006', 1000.000, 0.000, 0.0000, '2026-03-21 05:58:27', 'agotado'),
 (7, 7, NULL, 'INI-2026-03-21-007', 200.000, 0.000, 0.0000, '2026-03-21 05:58:27', 'agotado'),
 (8, 9, NULL, 'INI-2026-03-21-008', 300.000, 120.000, 0.0000, '2026-03-21 05:58:27', 'activo'),
 (9, 11, NULL, 'INI-2026-03-21-009', 2000.000, 784.000, 0.0000, '2026-03-21 05:58:27', 'activo'),
-(10, 18, NULL, 'INI-2026-03-21-010', 1500.000, 800.000, 0.0000, '2026-03-21 05:58:27', 'activo'),
+(10, 18, NULL, 'INI-2026-03-21-010', 1500.000, 660.000, 0.0000, '2026-03-21 05:58:27', 'activo'),
 (11, 8, 1, 'LEC-2026-03-23-001', 5000.000, 4460.000, 9.0000, '2026-03-23 00:00:00', 'activo'),
 (12, 10, 2, 'MAN-2026-03-23-002', 3000.000, 2190.000, 13.0000, '2026-03-23 00:00:00', 'activo'),
 (13, 19, 3, 'COC-2026-03-24-001', 2500.000, 2420.000, 9.2000, '2026-03-24 00:00:00', 'activo'),
@@ -499,8 +511,9 @@ INSERT INTO `lote` (`id_lote`, `id_insumo`, `id_compra`, `numero_lote`, `cantida
 (16, 16, 6, 'ESE-2026-03-24-004', 1200.000, 1186.000, 21.6667, '2026-03-24 00:00:00', 'activo'),
 (17, 15, 7, 'ESE-2026-03-24-005', 1200.000, 1186.000, 21.6667, '2026-03-24 00:00:00', 'activo'),
 (18, 6, 8, 'FEC-2026-03-24-006', 12500.000, 12400.000, 3.6000, '2026-03-24 00:00:00', 'activo'),
-(19, 1, 9, 'HAR-2026-03-24-007', 50.000, 40.500, 2600.0000, '2026-03-24 00:00:00', 'activo'),
-(20, 3, 10, 'SAL-2026-03-24-008', 1000.000, 930.000, 2.5000, '2026-03-24 00:00:00', 'activo');
+(19, 1, 9, 'HAR-2026-03-24-007', 50.000, 30.500, 2600.0000, '2026-03-24 00:00:00', 'activo'),
+(20, 3, 10, 'SAL-2026-03-24-008', 1000.000, 630.000, 2.5000, '2026-03-24 00:00:00', 'activo'),
+(21, 21, 11, 'HOJ-2026-03-30-001', 7500.000, 3500.000, 5.2000, '2026-03-30 00:00:00', 'activo');
 
 -- --------------------------------------------------------
 
@@ -534,7 +547,9 @@ INSERT INTO `produccion` (`id_produccion`, `id_producto`, `id_receta`, `id_usuar
 (6, 5, 5, 1, 1.0, '', 84, 1039.33, 12.3730, '2026-03-24 12:55:53'),
 (7, 1, 1, 1, 1.0, '', 350, 2280.00, 6.5143, '2026-03-24 12:56:00'),
 (8, 4, 4, 1, 1.0, '', 182, 909.99, 4.9999, '2026-03-24 12:57:14'),
-(9, 2, 2, 1, 1.0, '', 82, 24635.00, 300.4268, '2026-03-24 12:59:34');
+(9, 2, 2, 1, 1.0, '', 82, 24635.00, 300.4268, '2026-03-24 12:59:34'),
+(10, 3, 3, 1, 1.0, '', 288, 23775.00, 82.5521, '2026-04-06 18:00:39'),
+(11, 3, 3, 1, 1.0, '', 288, 23775.00, 82.5521, '2026-04-06 18:09:36');
 
 -- --------------------------------------------------------
 
@@ -562,7 +577,8 @@ INSERT INTO `producto` (`id_producto`, `nombre`, `categoria`, `precio_venta`, `a
 (2, 'Pan Grande', 'sal', 0.00, 1, '2026-03-20 22:21:38', 'unidad', 82.00),
 (3, 'Croissant', 'especial', 500.00, 1, '2026-03-20 22:23:57', 'unidad', 288.00),
 (4, 'Pan Dulce', 'dulce', 500.00, 1, '2026-03-20 22:26:18', 'unidad', 182.00),
-(5, 'Pan Coco', 'especial', 500.00, 1, '2026-03-20 22:27:04', 'unidad', 84.00);
+(5, 'Pan Coco', 'especial', 500.00, 1, '2026-03-20 22:27:04', 'unidad', 84.00),
+(6, 'Pan Caleño', 'especial', 500.00, 1, '2026-03-30 19:22:19', 'unidad', 100.00);
 
 -- --------------------------------------------------------
 
@@ -633,7 +649,8 @@ INSERT INTO `receta` (`id_receta`, `id_producto`, `id_usuario`, `version`, `es_v
 (2, 2, 1, 1, 1, 0, NULL, '2026-03-20 22:23:17', NULL),
 (3, 3, 1, 1, 1, 0, NULL, '2026-03-20 22:24:03', NULL),
 (4, 4, 1, 1, 1, 0, NULL, '2026-03-20 22:26:47', NULL),
-(5, 5, 1, 1, 1, 0, NULL, '2026-03-20 22:27:42', NULL);
+(5, 5, 1, 1, 1, 0, NULL, '2026-03-20 22:27:42', NULL),
+(6, 6, 1, 1, 1, 0, NULL, '2026-03-30 19:22:50', NULL);
 
 -- --------------------------------------------------------
 
@@ -702,7 +719,9 @@ INSERT INTO `receta_ingrediente` (`id_receta_ing`, `id_receta`, `id_insumo`, `ca
 (146, 2, 13, 500.0000, '', 0, ''),
 (147, 2, 3, 160.0000, '', 0, ''),
 (148, 2, 11, 850.0000, '', 0, ''),
-(149, 2, 10, 450.0000, '', 0, '');
+(149, 2, 10, 450.0000, '', 0, ''),
+(150, 6, 1, 1.5000, '', 0, ''),
+(151, 6, 2, 200.0000, '', 0, '');
 
 -- --------------------------------------------------------
 
@@ -715,6 +734,7 @@ CREATE TABLE `usuario` (
   `nombre_usuario` varchar(50) NOT NULL,
   `nombre_completo` varchar(100) NOT NULL,
   `contrasena_hash` varchar(255) NOT NULL,
+  `pin_recuperacion` varchar(255) DEFAULT NULL,
   `rol` enum('propietario','empleado') NOT NULL DEFAULT 'empleado',
   `activo` tinyint(1) NOT NULL DEFAULT 1,
   `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp()
@@ -724,8 +744,8 @@ CREATE TABLE `usuario` (
 -- Volcado de datos para la tabla `usuario`
 --
 
-INSERT INTO `usuario` (`id_usuario`, `nombre_usuario`, `nombre_completo`, `contrasena_hash`, `rol`, `activo`, `fecha_creacion`) VALUES
-(1, 'propietario', 'Andres', '$2y$10$l84njpk3R83VoAMK/PvZZOZSUqQGrdMk3tSv39biBujvMqNmJ3Xvm', 'propietario', 1, '2026-02-25 22:06:40');
+INSERT INTO `usuario` (`id_usuario`, `nombre_usuario`, `nombre_completo`, `contrasena_hash`, `pin_recuperacion`, `rol`, `activo`, `fecha_creacion`) VALUES
+(1, 'propietario', 'Andres', '$2y$10$poLkC5aUU95i6MNk7YzV2eLLGqdRvA/LZPIl7w2SN1mJrThEt9r8.', '$2y$10$JW/ANBi0zuxwwv.U3xSm2.JE3kdirJoTWzrhM1B9His48r6eYBBc2', 'propietario', 1, '2026-02-25 22:06:40');
 
 -- --------------------------------------------------------
 
@@ -831,7 +851,7 @@ CREATE TABLE `v_resumen_financiero_30d` (
 --
 DROP TABLE IF EXISTS `v_inventario_actual`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_inventario_actual`  AS SELECT `i`.`id_insumo` AS `id_insumo`, `i`.`nombre` AS `nombre`, `i`.`unidad_medida` AS `unidad_medida`, `i`.`es_harina` AS `es_harina`, `i`.`stock_actual` AS `stock_actual`, `i`.`punto_reposicion` AS `punto_reposicion`, `i`.`consumo_promedio_diario` AS `consumo_promedio_diario`, CASE WHEN `i`.`consumo_promedio_diario` > 0 THEN round(`i`.`stock_actual` / `i`.`consumo_promedio_diario`,1) ELSE NULL END AS `dias_restantes`, CASE WHEN `i`.`stock_actual` <= `i`.`punto_reposicion` THEN 'critico' WHEN `i`.`stock_actual` <= `i`.`punto_reposicion` * 1.5 THEN 'alerta' ELSE 'normal' END AS `semaforo` FROM `insumo` AS `i` WHERE `i`.`activo` = 1 ;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_inventario_actual`  AS SELECT `i`.`id_insumo` AS `id_insumo`, `i`.`nombre` AS `nombre`, `i`.`unidad_medida` AS `unidad_medida`, `i`.`es_harina` AS `es_harina`, `i`.`stock_actual` AS `stock_actual`, `i`.`punto_reposicion` AS `punto_reposicion`, `i`.`consumo_promedio_diario` AS `consumo_promedio_diario`, CASE WHEN `i`.`consumo_promedio_diario` > 0 THEN round(`i`.`stock_actual` / `i`.`consumo_promedio_diario`,1) ELSE NULL END AS `dias_restantes`, CASE WHEN `i`.`stock_actual` <= `i`.`punto_reposicion` THEN 'critico' WHEN `i`.`stock_actual` <= `i`.`punto_reposicion` * 1.5 THEN 'alerta' ELSE 'normal' END AS `semaforo` FROM `insumo` AS `i` WHERE `i`.`activo` = 1 ;
 
 -- --------------------------------------------------------
 
@@ -840,7 +860,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `v_lotes_fifo`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_lotes_fifo`  AS SELECT `l`.`id_lote` AS `id_lote`, `l`.`id_insumo` AS `id_insumo`, `i`.`nombre` AS `nombre_insumo`, `l`.`numero_lote` AS `numero_lote`, `l`.`cantidad_disponible` AS `cantidad_disponible`, `l`.`precio_unitario` AS `precio_unitario`, `l`.`fecha_ingreso` AS `fecha_ingreso` FROM (`lote` `l` join `insumo` `i` on(`i`.`id_insumo` = `l`.`id_insumo`)) WHERE `l`.`estado` = 'activo' AND `l`.`cantidad_disponible` > 0 ORDER BY `l`.`id_insumo` ASC, `l`.`fecha_ingreso` ASC ;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_lotes_fifo`  AS SELECT `l`.`id_lote` AS `id_lote`, `l`.`id_insumo` AS `id_insumo`, `i`.`nombre` AS `nombre_insumo`, `l`.`numero_lote` AS `numero_lote`, `l`.`cantidad_disponible` AS `cantidad_disponible`, `l`.`precio_unitario` AS `precio_unitario`, `l`.`fecha_ingreso` AS `fecha_ingreso` FROM (`lote` `l` join `insumo` `i` on(`i`.`id_insumo` = `l`.`id_insumo`)) WHERE `l`.`estado` = 'activo' AND `l`.`cantidad_disponible` > 0 ORDER BY `l`.`id_insumo` ASC, `l`.`fecha_ingreso` ASC ;
 
 -- --------------------------------------------------------
 
@@ -849,7 +869,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `v_margen_productos`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_margen_productos`  AS SELECT `p`.`id_producto` AS `id_producto`, `p`.`nombre` AS `nombre`, `p`.`categoria` AS `categoria`, `p`.`precio_venta` AS `precio_venta`, coalesce((select `pr2`.`costo_unitario` from `produccion` `pr2` where `pr2`.`id_producto` = `p`.`id_producto` order by `pr2`.`fecha_produccion` desc limit 1),0) AS `costo_unitario`, CASE WHEN `p`.`precio_venta` > 0 AND coalesce((select `pr2`.`costo_unitario` from `produccion` `pr2` where `pr2`.`id_producto` = `p`.`id_producto` order by `pr2`.`fecha_produccion` desc limit 1),0) > 0 THEN round((`p`.`precio_venta` - (select `pr2`.`costo_unitario` from `produccion` `pr2` where `pr2`.`id_producto` = `p`.`id_producto` order by `pr2`.`fecha_produccion` desc limit 1)) / `p`.`precio_venta` * 100,2) ELSE NULL END AS `margen_pct` FROM `producto` AS `p` WHERE `p`.`activo` = 1 ;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_margen_productos`  AS SELECT `p`.`id_producto` AS `id_producto`, `p`.`nombre` AS `nombre`, `p`.`categoria` AS `categoria`, `p`.`precio_venta` AS `precio_venta`, coalesce((select `pr2`.`costo_unitario` from `produccion` `pr2` where `pr2`.`id_producto` = `p`.`id_producto` order by `pr2`.`fecha_produccion` desc limit 1),0) AS `costo_unitario`, CASE WHEN `p`.`precio_venta` > 0 AND coalesce((select `pr2`.`costo_unitario` from `produccion` `pr2` where `pr2`.`id_producto` = `p`.`id_producto` order by `pr2`.`fecha_produccion` desc limit 1),0) > 0 THEN round((`p`.`precio_venta` - (select `pr2`.`costo_unitario` from `produccion` `pr2` where `pr2`.`id_producto` = `p`.`id_producto` order by `pr2`.`fecha_produccion` desc limit 1)) / `p`.`precio_venta` * 100,2) ELSE NULL END AS `margen_pct` FROM `producto` AS `p` WHERE `p`.`activo` = 1 ;
 
 -- --------------------------------------------------------
 
@@ -858,7 +878,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `v_resumen_financiero_30d`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_resumen_financiero_30d`  AS SELECT `cd`.`fecha` AS `fecha`, `cd`.`total_ingresos` AS `total_ingresos`, `cd`.`costo_produccion` AS `costo_produccion`, `cd`.`total_gastos` AS `total_gastos`, `cd`.`utilidad_bruta` AS `utilidad_bruta`, `cd`.`utilidad_neta` AS `utilidad_neta` FROM `cierre_dia` AS `cd` WHERE `cd`.`fecha` >= curdate() - interval 30 day ORDER BY `cd`.`fecha` DESC ;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v_resumen_financiero_30d`  AS SELECT `cd`.`fecha` AS `fecha`, `cd`.`total_ingresos` AS `total_ingresos`, `cd`.`costo_produccion` AS `costo_produccion`, `cd`.`total_gastos` AS `total_gastos`, `cd`.`utilidad_bruta` AS `utilidad_bruta`, `cd`.`utilidad_neta` AS `utilidad_neta` FROM `cierre_dia` AS `cd` WHERE `cd`.`fecha` >= curdate() - interval 30 day ORDER BY `cd`.`fecha` DESC ;
 
 --
 -- Índices para tablas volcadas
@@ -1047,7 +1067,7 @@ ALTER TABLE `cliente`
 -- AUTO_INCREMENT de la tabla `compra`
 --
 ALTER TABLE `compra`
-  MODIFY `id_compra` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id_compra` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de la tabla `configuracion`
@@ -1059,7 +1079,7 @@ ALTER TABLE `configuracion`
 -- AUTO_INCREMENT de la tabla `consumo_lote`
 --
 ALTER TABLE `consumo_lote`
-  MODIFY `id_consumo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `id_consumo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
 
 --
 -- AUTO_INCREMENT de la tabla `gasto`
@@ -1077,25 +1097,25 @@ ALTER TABLE `historial_precio`
 -- AUTO_INCREMENT de la tabla `insumo`
 --
 ALTER TABLE `insumo`
-  MODIFY `id_insumo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id_insumo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT de la tabla `lote`
 --
 ALTER TABLE `lote`
-  MODIFY `id_lote` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id_lote` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT de la tabla `produccion`
 --
 ALTER TABLE `produccion`
-  MODIFY `id_produccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_produccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de la tabla `producto`
 --
 ALTER TABLE `producto`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedor`
@@ -1113,13 +1133,13 @@ ALTER TABLE `proyeccion_caja`
 -- AUTO_INCREMENT de la tabla `receta`
 --
 ALTER TABLE `receta`
-  MODIFY `id_receta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_receta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `receta_ingrediente`
 --
 ALTER TABLE `receta_ingrediente`
-  MODIFY `id_receta_ing` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=150;
+  MODIFY `id_receta_ing` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=152;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario`

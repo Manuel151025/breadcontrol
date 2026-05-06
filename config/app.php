@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('America/Bogota');
 // ============================================================
 //  CONFIGURACIÓN GENERAL DE LA APLICACIÓN
 //  Archivo: config/app.php
@@ -6,10 +7,16 @@
 
 define('APP_NOMBRE',   'Sistema Inventario Panadería');
 define('APP_VERSION',  '1.0');
-define('APP_URL',      'http://localhost/panaderia');
+
+// Detectar automáticamente si estamos en local o en hosting
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+if ($host === 'localhost' || $host === '127.0.0.1') {
+    define('APP_URL', 'http://localhost/panaderia');
+} else {
+    define('APP_URL', 'https://' . $host);
+}
 
 // Zona horaria (Colombia)
-date_default_timezone_set('America/Bogota');
 
 // Sesión
 define('SESSION_NOMBRE',   'panaderia_session');

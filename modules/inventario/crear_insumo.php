@@ -57,13 +57,11 @@ include __DIR__ . '/../../views/layouts/header.php';
     </div>
 
     <?php if (!empty($errores)): ?>
-    <div class="alert alert-danger">
-      <ul class="mb-0">
+    <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i><span><ul>
         <?php foreach ($errores as $e): ?>
           <li><?= $e ?></li>
         <?php endforeach; ?>
-      </ul>
-    </div>
+      </ul></span></div>
     <?php endif; ?>
 
     <div class="card">

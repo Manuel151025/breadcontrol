@@ -9,7 +9,7 @@ $pdo  = getConexion();
 $user = usuarioActual();
 
 // ── Filtros ────────────────────────────────────────────────────────────────
-$modo   = in_array($_GET['modo'] ?? 'mes', ['mes','semana','rango']) ? $_GET['modo'] : 'mes';
+$modo   = in_array($_GET['modo'] ?? 'mes', ['mes','semana','rango']) ? ($_GET['modo'] ?? 'mes') : 'mes';
 $anio   = (int)($_GET['anio']   ?? date('Y'));
 $mes    = max(1, min(12, (int)($_GET['mes'] ?? date('m'))));
 $semana = max(1, min(53, (int)($_GET['semana'] ?? date('W'))));
@@ -32,7 +32,7 @@ if ($modo === 'mes') {
 }
 
 // ── Totales del período ────────────────────────────────────────────────────
-$stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE DATE(fecha_hora) BETWEEN :d AND :h");
+$stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) BETWEEN :d AND :h");
 $stmt->execute([':d' => $desde, ':h' => $hasta]);
 $ingresos = (float)$stmt->fetchColumn();
 
@@ -48,7 +48,7 @@ $utilidad_bruta = $ingresos - $compras;
 $utilidad_neta  = $ingresos - $compras - $gastos_op;
 $margen_bruto   = $ingresos > 0 ? round(($utilidad_bruta / $ingresos) * 100, 1) : 0;
 
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM venta WHERE DATE(fecha_hora) BETWEEN :d AND :h");
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) BETWEEN :d AND :h");
 $stmt->execute([':d' => $desde, ':h' => $hasta]);
 $num_ventas = (int)$stmt->fetchColumn();
 
@@ -57,7 +57,7 @@ $stmt->execute([':d' => $desde, ':h' => $hasta]);
 $num_compras = (int)$stmt->fetchColumn();
 
 // ── Ventas y compras por día (gráfico) ────────────────────────────────────
-$stmt = $pdo->prepare("SELECT DATE(fecha_hora) AS dia, SUM(total_venta) AS total FROM venta WHERE DATE(fecha_hora) BETWEEN :d AND :h GROUP BY DATE(fecha_hora)");
+$stmt = $pdo->prepare("SELECT DATE(fecha_hora) AS dia, SUM(total_venta) AS total FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) BETWEEN :d AND :h GROUP BY DATE(fecha_hora)");
 $stmt->execute([':d' => $desde, ':h' => $hasta]);
 $ventas_dia = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
@@ -82,10 +82,10 @@ $chart_max = max(array_merge(array_column($dias_chart, 'v'), array_column($dias_
 
 // ── Top productos vendidos ─────────────────────────────────────────────────
 $stmt = $pdo->prepare("
-    SELECT p.nombre, SUM(v.unidades_vendidas) AS unidades, SUM(v.total_venta) AS total
-    FROM venta v INNER JOIN producto p ON p.id_producto = v.id_producto
+    SELECT COALESCE(cp.nombre, p.nombre) AS nombre, SUM(v.unidades_vendidas) AS unidades, SUM(v.total_venta) AS total
+    FROM venta v LEFT JOIN categoria_precio cp ON cp.id_categoria = v.id_categoria_precio LEFT JOIN producto p ON p.id_producto = v.id_producto
     WHERE DATE(v.fecha_hora) BETWEEN :d AND :h
-    GROUP BY v.id_producto ORDER BY total DESC LIMIT 6
+    GROUP BY nombre ORDER BY total DESC LIMIT 6
 ");
 $stmt->execute([':d' => $desde, ':h' => $hasta]);
 $top_productos = $stmt->fetchAll();
@@ -95,7 +95,7 @@ $stmt = $pdo->prepare("
     SELECT COALESCE(c.nombre,'Mostrador') AS cliente, c.tipo,
            SUM(v.total_venta) AS total, COUNT(*) AS transacciones
     FROM venta v LEFT JOIN cliente c ON c.id_cliente = v.id_cliente
-    WHERE DATE(v.fecha_hora) BETWEEN :d AND :h
+    WHERE v.tipo_salida='venta' AND DATE(v.fecha_hora) BETWEEN :d AND :h
     GROUP BY v.id_cliente ORDER BY total DESC LIMIT 5
 ");
 $stmt->execute([':d' => $desde, ':h' => $hasta]);
@@ -125,7 +125,7 @@ $dias_periodo = max(1, (strtotime($hasta) - strtotime($desde)) / 86400 + 1);
 $desde_ant    = date('Y-m-d', strtotime($desde) - $dias_periodo * 86400);
 $hasta_ant    = date('Y-m-d', strtotime($desde) - 86400);
 
-$stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE DATE(fecha_hora) BETWEEN :d AND :h");
+$stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) BETWEEN :d AND :h");
 $stmt->execute([':d' => $desde_ant, ':h' => $hasta_ant]);
 $ingresos_ant = (float)$stmt->fetchColumn();
 
@@ -139,7 +139,7 @@ $diff_compras  = $compras_ant   > 0 ? round((($compras        - $compras_ant)   
 $diff_utilidad = $utilidad_ant != 0  ? round((($utilidad_bruta - $utilidad_ant) / abs($utilidad_ant)) * 100, 1) : null;
 
 // Años disponibles
-$anios = $pdo->query("SELECT DISTINCT YEAR(fecha_hora) AS y FROM venta ORDER BY y DESC")->fetchAll(PDO::FETCH_COLUMN);
+$anios = $pdo->query("SELECT DISTINCT YEAR(fecha_hora) AS y FROM venta WHERE tipo_salida='venta' ORDER BY y DESC")->fetchAll(PDO::FETCH_COLUMN);
 if (empty($anios)) $anios = [date('Y')];
 
 // Consumo de ingredientes en el período
@@ -192,7 +192,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   @keyframes gradAnim{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
   /* ── PAGE layout idéntico al resto de módulos ── */
-  .page{margin-top:var(--nav-h);height:calc(100vh - var(--nav-h));overflow:hidden;display:grid;grid-template-rows:auto auto 1fr;gap:.7rem;padding:.75rem;}
+  .page{margin-top:var(--nav-h);min-height:calc(100vh - var(--nav-h));overflow-y:auto;display:grid;grid-template-rows:auto auto 1fr;gap:.7rem;padding:.75rem;}
 
   /* ── BANNER ── */
   .wc-banner{background:linear-gradient(125deg,#6b3211 0%,#945b35 18%,#c67124 35%,#e4a565 50%,#c67124 65%,#945b35 80%,#6b3211 100%);background-size:300% 300%;animation:gradAnim 8s ease infinite;border-radius:14px;padding:.9rem 1.4rem;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow2);gap:1rem;flex-wrap:wrap;}
@@ -228,12 +228,26 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   .btn-exportar:hover{background:rgba(25,135,84,.18);}
 
   /* ── CUERPO: dos columnas como resto de módulos ── */
-  .g-body{display:grid;grid-template-columns:1fr 280px;gap:.7rem;min-height:0;}
-  .right-col{display:flex;flex-direction:column;gap:.7rem;min-height:0;}
+  .g-body{display:flex;flex-direction:column;gap:.7rem;min-height:0;}
 
-  /* ── CARD base ── */
+  /* Card base */
   .card{background:var(--ccard);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;min-height:0;animation:fadeUp .45s ease both;}
-  .card:nth-child(1){animation-delay:.25s}.card:nth-child(2){animation-delay:.30s}
+  .card:nth-child(1){animation-delay:.15s}.card:nth-child(2){animation-delay:.20s}.card:nth-child(3){animation-delay:.25s}.card:nth-child(4){animation-delay:.30s}.card:nth-child(5){animation-delay:.35s}.card:nth-child(6){animation-delay:.40s}
+
+  /* Cards grid 3 columnas tipo tablero */
+  .cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;}
+  .cards-grid .card{height:240px;}
+  .card-scroll{overflow-y:auto;flex:1;min-height:0;padding:.5rem .85rem;}
+  .card-scroll::-webkit-scrollbar{width:4px;} .card-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  .fila-item{display:flex;align-items:center;gap:.4rem;padding:.35rem 0;border-bottom:1px solid rgba(148,91,53,.05);}
+  .fila-item:last-child{border-bottom:none;}
+  .fi-nombre{font-size:.75rem;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);}
+  .fi-sub{font-size:.62rem;color:var(--ink3);white-space:nowrap;}
+  .barra-m-w{width:36px;height:5px;background:var(--clight);border-radius:3px;overflow:hidden;flex-shrink:0;}
+  .barra-m-f{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--c3),var(--c5));}
+  .barra-m-f.roja{background:linear-gradient(90deg,#c62828,#ef9a9a);}
+  .barra-m-f.verde{background:linear-gradient(90deg,#2e7d32,#81c784);}
+  .fi-val{font-size:.72rem;font-weight:700;min-width:52px;text-align:right;white-space:nowrap;}
   .ch{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1.1rem;flex-shrink:0;border-bottom:1px solid var(--border);}
   .ch-left{display:flex;align-items:center;gap:.5rem;}
   .ch-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;}
@@ -244,13 +258,15 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   .ch-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.17em;color:var(--ink3);}
   .badge{display:inline-flex;align-items:center;font-size:.62rem;font-weight:700;padding:.15rem .5rem;border-radius:20px;}
   .b-neu{background:var(--clight);color:var(--c1);border:1px solid var(--border);}
+  .b-ok{background:#e8f5e9;color:#2e7d32;}.b-bad{background:#ffebee;color:#c62828;}
 
-  /* KPIs 2×2 dentro de card izquierda */
-  .kpi-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.5rem;padding:.7rem 1.1rem;border-bottom:1px solid var(--border);flex-shrink:0;}
-  .kpi{background:var(--clight);border:1px solid var(--border);border-radius:10px;padding:.55rem .75rem;}
-  .kpi-lbl{font-size:.56rem;text-transform:uppercase;letter-spacing:.15em;color:var(--ink3);margin-bottom:.2rem;display:flex;align-items:center;gap:.25rem;}
-  .kpi-lbl i{font-size:.78rem;}
-  .kpi-val{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:800;line-height:1;color:var(--ink);}
+  /* KPIs estilo cierre del día — tarjetas individuales */
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;}
+  .kpi{background:var(--ccard);border:1px solid var(--border);border-radius:14px;padding:.85rem 1.1rem;box-shadow:var(--shadow);animation:fadeUp .4s ease both;}
+  .kpi:nth-child(1){animation-delay:.05s}.kpi:nth-child(2){animation-delay:.10s}.kpi:nth-child(3){animation-delay:.15s}.kpi:nth-child(4){animation-delay:.20s}
+  .kpi-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.18em;color:var(--ink3);font-weight:700;display:flex;align-items:center;gap:.35rem;margin-bottom:.3rem;}
+  .kpi-lbl i{font-size:.9rem;}
+  .kpi-val{font-family:'Fraunces',serif;font-size:1.7rem;font-weight:800;line-height:1;color:var(--ink);}
   .kpi-val.grn{color:#2e7d32;} .kpi-val.red{color:#c62828;} .kpi-val.nar{color:var(--c3);} .kpi-val.azul{color:#1565c0;}
   .kpi-badge{margin-top:.25rem;font-size:.62rem;font-weight:600;}
   .tag-sube{color:#2e7d32;background:#e8f5e9;padding:.08rem .38rem;border-radius:20px;}
@@ -273,47 +289,48 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   .ley-dot{width:10px;height:10px;border-radius:3px;}
   .ley-dot.v{background:#4caf50;} .ley-dot.c{background:#ef9a9a;}
 
-  /* Scroll area con las listas */
-  .card-left-scroll{overflow-y:auto;flex:1;min-height:0;}
-  .lista-zona{padding:.7rem 1.1rem;border-bottom:1px solid var(--border);}
-  .lista-zona:last-child{border-bottom:none;}
-  .fila-item{display:flex;align-items:center;gap:.5rem;padding:.38rem 0;border-bottom:1px solid rgba(148,91,53,.05);}
-  .fila-item:last-child{border-bottom:none;}
-  .fi-nombre{font-size:.8rem;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);}
-  .fi-sub{font-size:.68rem;color:var(--ink3);white-space:nowrap;}
-  .barra-m-w{width:42px;height:5px;background:var(--clight);border-radius:3px;overflow:hidden;flex-shrink:0;}
-  .barra-m-f{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--c3),var(--c5));}
-  .barra-m-f.roja{background:linear-gradient(90deg,#c62828,#ef9a9a);}
-  .barra-m-f.verde{background:linear-gradient(90deg,#2e7d32,#81c784);}
-  .fi-val{font-size:.78rem;font-weight:700;min-width:68px;text-align:right;white-space:nowrap;}
-
-  /* Card derecha */
-  .card-right-scroll{overflow-y:auto;flex:1;min-height:0;}
-  .comp-zona{padding:.85rem 1.1rem;border-bottom:1px solid var(--border);}
-  .comp-fila{padding:.52rem 0;border-bottom:1px solid rgba(148,91,53,.06);}
+  /* Scroll area dentro de cards */
+  .comp-zona{padding:.5rem 0;}
+  .comp-fila{padding:.4rem 0;border-bottom:1px solid rgba(148,91,53,.06);}
   .comp-fila:last-of-type{border-bottom:none;}
-  .comp-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.13em;color:var(--ink3);margin-bottom:.18rem;}
-  .comp-nums{display:flex;align-items:baseline;gap:.52rem;flex-wrap:wrap;}
-  .comp-actual{font-family:'Fraunces',serif;font-size:1rem;font-weight:800;color:var(--ink);}
-  .comp-ant{font-size:.68rem;color:var(--ink3);}
-  .comp-diff{font-size:.69rem;font-weight:700;margin-left:auto;}
-  .info-box{background:var(--clight);border:1px solid var(--border);border-radius:9px;padding:.6rem .8rem;font-size:.72rem;color:var(--ink2);margin-top:.65rem;line-height:1.5;}
-  .cat-zona{padding:.75rem 1.1rem;}
-  .cat-fila{display:flex;align-items:center;gap:.52rem;padding:.42rem 0;border-bottom:1px solid rgba(148,91,53,.05);}
+  .comp-lbl{font-size:.56rem;text-transform:uppercase;letter-spacing:.13em;color:var(--ink3);margin-bottom:.12rem;}
+  .comp-nums{display:flex;align-items:baseline;gap:.45rem;flex-wrap:wrap;}
+  .comp-actual{font-family:'Fraunces',serif;font-size:.95rem;font-weight:800;color:var(--ink);}
+  .comp-ant{font-size:.65rem;color:var(--ink3);}
+  .comp-diff{font-size:.65rem;font-weight:700;margin-left:auto;}
+  .info-box{background:var(--clight);border:1px solid var(--border);border-radius:9px;padding:.5rem .7rem;font-size:.68rem;color:var(--ink2);margin-top:.5rem;line-height:1.4;}
+
+  /* Gastos */
+  .cat-zona{padding:.5rem 0;}
+  .cat-fila{display:flex;align-items:center;gap:.45rem;padding:.35rem 0;border-bottom:1px solid rgba(148,91,53,.05);}
   .cat-fila:last-child{border-bottom:none;}
-  .cat-ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0;}
-  .cat-nombre{font-size:.8rem;font-weight:600;flex:1;color:var(--ink);}
-  .cat-cnt{font-size:.68rem;color:var(--ink3);}
-  .cat-val{font-size:.78rem;font-weight:700;}
-  .util-neta{margin:.2rem .85rem .85rem;border-radius:10px;padding:.7rem .9rem;}
+  .cat-ico{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.78rem;flex-shrink:0;}
+  .cat-nombre{font-size:.78rem;font-weight:600;flex:1;color:var(--ink);}
+  .cat-cnt{font-size:.65rem;color:var(--ink3);}
+  .cat-val{font-size:.75rem;font-weight:700;}
+  .util-neta{margin:.3rem 0;border-radius:10px;padding:.6rem .75rem;}
 
   /* Empty */
-  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.45rem;padding:1.5rem 1rem;color:var(--ink3);font-size:.8rem;text-align:center;}
-  .empty i{font-size:2rem;opacity:.3;}
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;padding:1.2rem .8rem;color:var(--ink3);font-size:.78rem;text-align:center;}
+  .empty i{font-size:1.8rem;opacity:.3;}
 
-  .card-ing{flex-shrink:0;}
-  @media(max-width:1100px){.g-body{grid-template-columns:1fr;}}
-  @media(max-width:768px){.page{height:auto;overflow:visible;margin-top:60px;}.kpi-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:1100px){
+    .cards-grid{grid-template-columns:1fr 1fr;}
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+  }
+  @media(max-width:768px){
+    .page{margin-top:60px;padding:.5rem;}
+    .kpi-row{grid-template-columns:1fr 1fr;}
+    .cards-grid{grid-template-columns:1fr;}
+    .cards-grid .card{height:auto;}
+    .topbar{flex-direction:column;align-items:center;text-align:center;}
+    .top-actions{width:100%;}
+    .top-actions form{flex-direction:column !important;align-items:center !important;width:100%;gap:.4rem !important;}
+    .fin-filtro-grupo{width:100%;align-items:center;}
+    .modo-btns{justify-content:center;}
+    .fin-select,.fin-date{width:100%;}
+    .btn-ver,.btn-exportar{width:100%;justify-content:center;}
+  }
 </style>
 
 <div class="page">
@@ -322,7 +339,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   <div class="wc-banner">
     <div class="wc-left">
       <div>
-        <div class="wc-greeting">Panadería BreakControl</div>
+        <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Finanzas <em>& Resultados</em></div>
         <div class="wc-sub"><?= $titulo_periodo ?></div>
       </div>
@@ -424,54 +441,49 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   <!-- ══ CUERPO ══ -->
   <div class="g-body">
 
-    <!-- ── CARD IZQUIERDA ── -->
-    <div class="card">
-
-      <!-- KPIs 2×2 -->
-      <div class="kpi-grid">
-        <div class="kpi">
-          <div class="kpi-lbl"><i class="bi bi-arrow-up-circle-fill" style="color:#2e7d32"></i>Ingresos</div>
-          <div class="kpi-val grn">$<?= number_format($ingresos, 0, ',', '.') ?></div>
-          <div class="kpi-badge">
-            <?php if ($diff_ingresos !== null): ?>
-            <span class="<?= $diff_ingresos >= 0 ? 'tag-sube' : 'tag-baja' ?>"><?= $diff_ingresos >= 0 ? '+' : '' ?><?= $diff_ingresos ?>%</span>
-            <span style="color:var(--ink3);margin-left:.25rem">vs ant.</span>
-            <?php else: ?><span class="tag-neu"><?= $num_ventas ?> ventas</span><?php endif; ?>
-          </div>
-        </div>
-
-        <div class="kpi">
-          <div class="kpi-lbl"><i class="bi bi-arrow-down-circle-fill" style="color:#c62828"></i>Compras</div>
-          <div class="kpi-val red">$<?= number_format($compras, 0, ',', '.') ?></div>
-          <div class="kpi-badge">
-            <?php if ($diff_compras !== null): ?>
-            <span class="<?= $diff_compras <= 0 ? 'tag-sube' : 'tag-baja' ?>"><?= $diff_compras >= 0 ? '+' : '' ?><?= $diff_compras ?>%</span>
-            <span style="color:var(--ink3);margin-left:.25rem">vs ant.</span>
-            <?php else: ?><span class="tag-neu"><?= $num_compras ?> compras</span><?php endif; ?>
-          </div>
-        </div>
-
-        <div class="kpi">
-          <div class="kpi-lbl"><i class="bi bi-calculator" style="color:var(--c3)"></i>Utilidad bruta</div>
-          <div class="kpi-val <?= $utilidad_bruta >= 0 ? 'grn' : 'red' ?>">$<?= number_format(abs($utilidad_bruta), 0, ',', '.') ?></div>
-          <div class="kpi-badge">
-            <?php if ($diff_utilidad !== null): ?>
-            <span class="<?= $diff_utilidad >= 0 ? 'tag-sube' : 'tag-baja' ?>"><?= $diff_utilidad >= 0 ? '+' : '' ?><?= $diff_utilidad ?>%</span>
-            <span style="color:var(--ink3);margin-left:.25rem">vs ant.</span>
-            <?php else: ?><span class="tag-neu"><?= $utilidad_bruta >= 0 ? 'Positiva' : 'Negativa' ?></span><?php endif; ?>
-          </div>
-        </div>
-
-        <div class="kpi">
-          <div class="kpi-lbl"><i class="bi bi-percent" style="color:#1565c0"></i>Margen bruto</div>
-          <div class="kpi-val <?= $margen_bruto >= 30 ? 'grn' : ($margen_bruto >= 10 ? 'nar' : 'red') ?>"><?= $margen_bruto ?>%</div>
-          <div class="kpi-badge">
-            <span class="tag-neu"><?= $margen_bruto >= 30 ? '✓ Saludable' : ($margen_bruto >= 10 ? '⚠ Ajustado' : '✗ Bajo') ?></span>
-          </div>
+    <!-- ══ KPIs — tarjetas individuales estilo cierre ══ -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-lbl"><i class="bi bi-arrow-up-circle-fill" style="color:#2e7d32"></i>Ingresos</div>
+        <div class="kpi-val grn">$<?= number_format($ingresos, 0, ',', '.') ?></div>
+        <div class="kpi-badge">
+          <?php if ($diff_ingresos !== null): ?>
+          <span class="<?= $diff_ingresos >= 0 ? 'tag-sube' : 'tag-baja' ?>"><?= $diff_ingresos >= 0 ? '+' : '' ?><?= $diff_ingresos ?>%</span>
+          <span style="color:var(--ink3);margin-left:.25rem">vs ant.</span>
+          <?php else: ?><span class="tag-neu"><?= $num_ventas ?> ventas</span><?php endif; ?>
         </div>
       </div>
+      <div class="kpi">
+        <div class="kpi-lbl"><i class="bi bi-arrow-down-circle-fill" style="color:#c62828"></i>Compras</div>
+        <div class="kpi-val red">$<?= number_format($compras, 0, ',', '.') ?></div>
+        <div class="kpi-badge">
+          <?php if ($diff_compras !== null): ?>
+          <span class="<?= $diff_compras <= 0 ? 'tag-sube' : 'tag-baja' ?>"><?= $diff_compras >= 0 ? '+' : '' ?><?= $diff_compras ?>%</span>
+          <span style="color:var(--ink3);margin-left:.25rem">vs ant.</span>
+          <?php else: ?><span class="tag-neu"><?= $num_compras ?> compras</span><?php endif; ?>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl"><i class="bi bi-calculator" style="color:var(--c3)"></i>Utilidad bruta</div>
+        <div class="kpi-val <?= $utilidad_bruta >= 0 ? 'grn' : 'red' ?>">$<?= number_format(abs($utilidad_bruta), 0, ',', '.') ?></div>
+        <div class="kpi-badge">
+          <?php if ($diff_utilidad !== null): ?>
+          <span class="<?= $diff_utilidad >= 0 ? 'tag-sube' : 'tag-baja' ?>"><?= $diff_utilidad >= 0 ? '+' : '' ?><?= $diff_utilidad ?>%</span>
+          <span style="color:var(--ink3);margin-left:.25rem">vs ant.</span>
+          <?php else: ?><span class="tag-neu"><?= $utilidad_bruta >= 0 ? 'Positiva' : 'Negativa' ?></span><?php endif; ?>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl"><i class="bi bi-percent" style="color:#1565c0"></i>Margen bruto</div>
+        <div class="kpi-val <?= $margen_bruto >= 30 ? 'grn' : ($margen_bruto >= 10 ? 'nar' : 'red') ?>"><?= $margen_bruto ?>%</div>
+        <div class="kpi-badge">
+          <span class="tag-neu"><?= $margen_bruto >= 30 ? '✓ Saludable' : ($margen_bruto >= 10 ? '⚠ Ajustado' : '✗ Bajo') ?></span>
+        </div>
+      </div>
+    </div>
 
-      <!-- Gráfico -->
+    <!-- ══ GRÁFICA (card independiente) ══ -->
+    <div class="card">
       <div class="grafico-zona">
         <div class="zona-titulo"><i class="bi bi-bar-chart-fill"></i>Ingresos vs Compras por día</div>
         <?php if (($ingresos + $compras) == 0): ?>
@@ -497,22 +509,29 @@ require_once __DIR__ . '/../../views/layouts/header.php';
         </div>
         <?php endif; ?>
       </div>
+    </div><!-- /card gráfica -->
 
-      <!-- Listas con scroll -->
-      <div class="card-left-scroll">
+    <!-- ══ GRID DE CARDS 3×2 ══ -->
+    <div class="cards-grid">
 
-        <!-- Top clientes -->
-        <div class="lista-zona">
-          <div class="zona-titulo"><i class="bi bi-people-fill"></i>Top clientes</div>
+      <!-- 1. Top Clientes -->
+      <div class="card">
+        <div class="ch">
+          <div class="ch-left">
+            <div class="ch-ico ico-nar"><i class="bi bi-people-fill"></i></div>
+            <span class="ch-title">Top clientes</span>
+          </div>
+        </div>
+        <div class="card-scroll">
           <?php if (empty($top_clientes)): ?>
-          <div class="empty" style="padding:.8rem"><i class="bi bi-people"></i>Sin ventas en el período</div>
+          <div class="empty"><i class="bi bi-people"></i>Sin ventas en el período</div>
           <?php else:
             $max_cli = max(array_column($top_clientes,'total') ?: [1]);
             foreach ($top_clientes as $cl):
               $pct = round(($cl['total'] / $max_cli) * 100);
           ?>
           <div class="fila-item">
-            <span style="font-size:.88rem"><?= ($cl['tipo'] ?? '') === 'tienda' ? '🏪' : '🧑' ?></span>
+            <span style="font-size:.82rem"><?= ($cl['tipo'] ?? '') === 'tienda' ? '🏪' : '🧑' ?></span>
             <span class="fi-nombre"><?= htmlspecialchars($cl['cliente']) ?></span>
             <span class="fi-sub"><?= $cl['transacciones'] ?> tx</span>
             <div class="barra-m-w"><div class="barra-m-f" style="width:<?= $pct ?>%"></div></div>
@@ -520,12 +539,19 @@ require_once __DIR__ . '/../../views/layouts/header.php';
           </div>
           <?php endforeach; endif; ?>
         </div>
+      </div>
 
-        <!-- Top insumos comprados -->
-        <div class="lista-zona">
-          <div class="zona-titulo"><i class="bi bi-cart-fill"></i>Principales compras</div>
+      <!-- 2. Principales Compras -->
+      <div class="card">
+        <div class="ch">
+          <div class="ch-left">
+            <div class="ch-ico ico-red"><i class="bi bi-cart-fill"></i></div>
+            <span class="ch-title">Principales compras</span>
+          </div>
+        </div>
+        <div class="card-scroll">
           <?php if (empty($top_insumos)): ?>
-          <div class="empty" style="padding:.8rem"><i class="bi bi-cart"></i>Sin compras en el período</div>
+          <div class="empty"><i class="bi bi-cart"></i>Sin compras en el período</div>
           <?php else:
             $max_i = max(array_column($top_insumos,'total') ?: [1]);
             foreach ($top_insumos as $ti):
@@ -539,146 +565,83 @@ require_once __DIR__ . '/../../views/layouts/header.php';
           </div>
           <?php endforeach; endif; ?>
         </div>
+      </div>
 
-        <!-- ══ Consumo de ingredientes en producción ══ -->
-        <div class="lista-zona">
-          <div class="zona-titulo">
-            <i class="bi bi-boxes"></i>Consumo de ingredientes en producción
-            <?php if ($es_estimado_consumo): ?>
-            <span style="font-size:.6rem;font-weight:400;color:var(--ink3);margin-left:.4rem">(estimado)</span>
-            <?php elseif ($costo_prod_total > 0): ?>
-            <span style="font-size:.6rem;font-weight:400;color:#2e7d32;margin-left:.4rem">(FIFO real)</span>
-            <?php endif; ?>
+      <!-- 3. Productos más vendidos -->
+      <div class="card">
+        <div class="ch">
+          <div class="ch-left">
+            <div class="ch-ico ico-grn"><i class="bi bi-box-seam-fill"></i></div>
+            <span class="ch-title">Productos más vendidos</span>
           </div>
-
-          <?php if (empty($consumo_ingredientes)): ?>
-          <div class="empty" style="padding:.8rem"><i class="bi bi-boxes"></i>Sin producción en el período</div>
-
-          <?php else: ?>
-            <?php if ($costo_prod_total > 0): ?>
-            <div style="background:var(--clight);border:1px solid var(--border);border-radius:9px;padding:.55rem .75rem;font-size:.72rem;color:var(--ink2);margin-bottom:.5rem;line-height:1.5;">
-              💡 <strong><?= htmlspecialchars($consumo_ingredientes[0]['nombre']) ?></strong>
-              es el insumo de mayor costo —
-              <strong><?= round($consumo_ingredientes[0]['total_costo'] / $costo_prod_total * 100, 1) ?>%</strong>
-              del total de producción ($<?= number_format($costo_prod_total, 0, ',', '.') ?>).
+          <span class="badge b-neu" style="font-size:.58rem"><?= count($top_productos) ?> prod.</span>
+        </div>
+        <div class="card-scroll">
+          <?php if (empty($top_productos)): ?>
+          <div class="empty"><i class="bi bi-box-seam"></i>Sin ventas</div>
+          <?php else:
+            $max_p = max(array_column($top_productos,'total') ?: [1]);
+            foreach ($top_productos as $pp):
+              $pct = round(($pp['total'] / $max_p) * 100);
+          ?>
+          <div class="fila-item">
+            <span class="fi-nombre"><?= htmlspecialchars($pp['nombre']) ?></span>
+            <span class="fi-sub"><?= $pp['unidades'] ?> und</span>
+            <div class="barra-m-w" style="width:42px">
+              <div class="barra-m-f verde" style="width:<?= $pct ?>%"></div>
             </div>
-            <?php endif; ?>
+            <span class="fi-val" style="color:#2e7d32">$<?= number_format($pp['total'],0,',','.') ?></span>
+          </div>
+          <?php endforeach; endif; ?>
+        </div>
+      </div>
 
+      <!-- 4. Comparativo -->
+      <div class="card">
+        <div class="ch">
+          <div class="ch-left">
+            <div class="ch-ico ico-azul"><i class="bi bi-arrow-left-right"></i></div>
+            <span class="ch-title">Comparativo</span>
+          </div>
+        </div>
+        <div class="card-scroll">
+          <div class="comp-zona">
             <?php
-            $use_cost = $costo_prod_total > 0;
-            $max_bar  = $use_cost ? $max_ing_costo : $max_ing_cant;
-            foreach ($consumo_ingredientes as $ci):
-              $bar_val = $use_cost ? $ci['total_costo'] : $ci['total_cant'];
-              $pct     = $max_bar > 0 ? max(4, round(($bar_val / $max_bar) * 100)) : 4;
-              $color   = $use_cost ? 'roja' : '';
+            $filas_comp = [
+              ['Ingresos',       $ingresos,       $ingresos_ant,  true,  'grn'],
+              ['Compras',        $compras,        $compras_ant,   false, 'red'],
+              ['Utilidad bruta', $utilidad_bruta, $utilidad_ant,  true,  $utilidad_bruta >= 0 ? 'grn' : 'red'],
+            ];
+            foreach ($filas_comp as [$lbl, $actual, $anterior, $mayor_mejor, $colorKey]):
+              $diff = $anterior != 0 ? round((($actual - $anterior) / abs($anterior)) * 100, 1) : null;
+              $sube = $actual >= $anterior;
+              $bien = $mayor_mejor ? $sube : !$sube;
+              $col  = $diff === null ? 'var(--ink3)' : ($bien ? '#2e7d32' : '#c62828');
+              $ico  = $diff === null ? '' : ($sube ? '▲' : '▼');
+              $colorVal = $colorKey === 'grn' ? '#2e7d32' : ($colorKey === 'red' ? '#c62828' : 'var(--ink)');
             ?>
-            <div class="fila-item">
-              <span class="fi-nombre" title="<?= htmlspecialchars($ci['nombre']) ?>">
-                <?= htmlspecialchars($ci['nombre']) ?>
-                <?php if (!empty($ci['productos'])): ?>
-                <span class="fi-sub" style="display:block"><?= htmlspecialchars($ci['productos']) ?></span>
+            <div class="comp-fila">
+              <div class="comp-lbl"><?= $lbl ?></div>
+              <div class="comp-nums">
+                <span class="comp-actual" style="color:<?= $colorVal ?>">$<?= number_format(abs($actual), 0, ',', '.') ?></span>
+                <span class="comp-ant">ant: $<?= number_format(abs($anterior), 0, ',', '.') ?></span>
+                <?php if ($diff !== null): ?>
+                <span class="comp-diff" style="color:<?= $col ?>"><?= $ico ?> <?= abs($diff) ?>%</span>
                 <?php endif; ?>
-              </span>
-              <span class="fi-sub"><?= formatoInteligente((float)$ci['total_cant']) ?> <?= $ci['unidad_medida'] ?></span>
-              <div class="barra-m-w" style="width:52px">
-                <div class="barra-m-f <?= $color ?>" style="width:<?= $pct ?>%"></div>
               </div>
-              <span class="fi-val" style="color:<?= $use_cost ? '#c62828' : 'var(--c1)' ?>">
-                <?php if ($use_cost): ?>
-                $<?= number_format($ci['total_costo'], 0, ',', '.') ?>
-                <?php else: ?>
-                <?= formatoInteligente((float)$ci['total_cant']) ?> <?= $ci['unidad_medida'] ?>
-                <?php endif; ?>
-              </span>
             </div>
             <?php endforeach; ?>
-
-          <?php endif; ?>
-        </div>
-
-      </div><!-- /card-left-scroll -->
-    </div><!-- /card izquierda -->
-
-    <!-- ── COLUMNA DERECHA ── -->
-    <div class="right-col">
-
-    <!-- Card productos más vendidos -->
-    <div class="card card-ing">
-      <div class="ch">
-        <div class="ch-left">
-          <div class="ch-ico ico-grn"><i class="bi bi-box-seam-fill"></i></div>
-          <span class="ch-title">Productos más vendidos</span>
-        </div>
-        <span class="badge b-neu" style="font-size:.58rem"><?= count($top_productos) ?> prod.</span>
-      </div>
-      <?php if (empty($top_productos)): ?>
-      <div class="empty" style="padding:1rem"><i class="bi bi-box-seam"></i>Sin ventas</div>
-      <?php else: ?>
-      <div style="padding:.5rem .85rem;overflow-y:auto;max-height:280px">
-        <?php
-        $max_p = max(array_column($top_productos,'total') ?: [1]);
-        foreach ($top_productos as $pp):
-          $pct = round(($pp['total'] / $max_p) * 100);
-        ?>
-        <div class="fila-item">
-          <span class="fi-nombre"><?= htmlspecialchars($pp['nombre']) ?></span>
-          <span class="fi-sub"><?= $pp['unidades'] ?> und</span>
-          <div class="barra-m-w" style="width:48px">
-            <div class="barra-m-f verde" style="width:<?= $pct ?>%"></div>
-          </div>
-          <span class="fi-val" style="color:#2e7d32;min-width:55px">$<?= number_format($pp['total'],0,',','.') ?></span>
-        </div>
-        <?php endforeach; ?>
-      </div>
-      <?php endif; ?>
-    </div>
-
-    <!-- ── CARD DERECHA: comparativo + gastos ── -->
-    <div class="card">
-      <div class="ch">
-        <div class="ch-left">
-          <div class="ch-ico ico-azul"><i class="bi bi-arrow-left-right"></i></div>
-          <span class="ch-title">Comparativo</span>
-        </div>
-      </div>
-
-      <div class="card-right-scroll">
-        <!-- Comparativo vs período anterior -->
-        <div class="comp-zona">
-          <?php
-          $filas_comp = [
-            ['Ingresos',       $ingresos,       $ingresos_ant,  true,  'grn'],
-            ['Compras',        $compras,        $compras_ant,   false, 'red'],
-            ['Utilidad bruta', $utilidad_bruta, $utilidad_ant,  true,  $utilidad_bruta >= 0 ? 'grn' : 'red'],
-          ];
-          foreach ($filas_comp as [$lbl, $actual, $anterior, $mayor_mejor, $colorKey]):
-            $diff = $anterior != 0 ? round((($actual - $anterior) / abs($anterior)) * 100, 1) : null;
-            $sube = $actual >= $anterior;
-            $bien = $mayor_mejor ? $sube : !$sube;
-            $col  = $diff === null ? 'var(--ink3)' : ($bien ? '#2e7d32' : '#c62828');
-            $ico  = $diff === null ? '' : ($sube ? '▲' : '▼');
-            $colorVal = $colorKey === 'grn' ? '#2e7d32' : ($colorKey === 'red' ? '#c62828' : 'var(--ink)');
-          ?>
-          <div class="comp-fila">
-            <div class="comp-lbl"><?= $lbl ?></div>
-            <div class="comp-nums">
-              <span class="comp-actual" style="color:<?= $colorVal ?>">$<?= number_format(abs($actual), 0, ',', '.') ?></span>
-              <span class="comp-ant">ant: $<?= number_format(abs($anterior), 0, ',', '.') ?></span>
-              <?php if ($diff !== null): ?>
-              <span class="comp-diff" style="color:<?= $col ?>"><?= $ico ?> <?= abs($diff) ?>%</span>
-              <?php endif; ?>
+            <div class="info-box">
+              <strong>Período anterior:</strong><br>
+              <?= date('d/m/Y', strtotime($desde_ant)) ?> — <?= date('d/m/Y', strtotime($hasta_ant)) ?>
             </div>
           </div>
-          <?php endforeach; ?>
-
-          <div class="info-box">
-            <strong>Período anterior:</strong><br>
-            <?= date('d/m/Y', strtotime($desde_ant)) ?> — <?= date('d/m/Y', strtotime($hasta_ant)) ?>
-          </div>
         </div>
+      </div>
 
-        <!-- Gastos operativos -->
-        <div class="ch" style="border-top:none;border-bottom:1px solid var(--border);padding:.75rem 1.1rem;">
+      <!-- 5. Gastos operativos -->
+      <div class="card">
+        <div class="ch">
           <div class="ch-left">
             <div class="ch-ico ico-red"><i class="bi bi-receipt-cutoff"></i></div>
             <span class="ch-title">Gastos operativos</span>
@@ -687,53 +650,80 @@ require_once __DIR__ . '/../../views/layouts/header.php';
           <span class="badge b-neu">$<?= number_format($gastos_op,0,',','.') ?></span>
           <?php endif; ?>
         </div>
-
-        <div class="cat-zona">
-          <?php if (empty($gastos_cat)): ?>
-          <div class="empty" style="padding:1rem">
-            <i class="bi bi-receipt"></i>Sin gastos en el período
-            <a href="<?= APP_URL ?>/modules/gastos/index.php"
-               style="font-size:.73rem;color:var(--c3);text-decoration:none;margin-top:.2rem;display:block">
-              → Ir a Gastos
-            </a>
+        <div class="card-scroll">
+          <div class="cat-zona">
+            <?php if (empty($gastos_cat)): ?>
+            <div class="empty">
+              <i class="bi bi-receipt"></i>Sin gastos en el período
+              <a href="<?= APP_URL ?>/modules/gastos/index.php" style="font-size:.7rem;color:var(--c3);text-decoration:none">→ Ir a Gastos</a>
+            </div>
+            <?php else:
+              $cat_conf = [
+                'compra'   => ['🛒', 'rgba(198,40,40,.1)',   '#c62828'],
+                'servicio' => ['🔧', 'rgba(21,101,192,.1)',  '#1565c0'],
+                'otro'     => ['📌', 'rgba(148,91,53,.1)',   'var(--c1)'],
+              ];
+              foreach ($gastos_cat as $gc):
+                [$ic, $bg, $col] = $cat_conf[$gc['categoria']] ?? ['📌','rgba(148,91,53,.1)','var(--c1)'];
+            ?>
+            <div class="cat-fila">
+              <div class="cat-ico" style="background:<?= $bg ?>"><?= $ic ?></div>
+              <span class="cat-nombre"><?= ucfirst($gc['categoria']) ?></span>
+              <span class="cat-cnt"><?= $gc['cantidad'] ?> reg.</span>
+              <span class="cat-val" style="color:<?= $col ?>">$<?= number_format($gc['total'],0,',','.') ?></span>
+            </div>
+            <?php endforeach; endif; ?>
           </div>
+          <?php if ($gastos_op > 0): ?>
+          <div class="util-neta" style="background:<?= $utilidad_neta >= 0 ? '#f1f8f2' : '#fef2f2' ?>;border:1px solid <?= $utilidad_neta >= 0 ? '#a5d6a7' : '#ef9a9a' ?>;">
+            <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:.2rem;">Utilidad neta</div>
+            <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:800;color:<?= $utilidad_neta >= 0 ? '#2e7d32' : '#c62828' ?>">
+              $<?= number_format(abs($utilidad_neta),0,',','.') ?>
+            </div>
+            <div style="font-size:.62rem;color:var(--ink3);margin-top:.15rem;">Ingresos − Compras − Gastos</div>
+          </div>
+          <?php endif; ?>
+        </div>
+      </div>
+
+      <!-- 6. Consumo de ingredientes -->
+      <div class="card">
+        <div class="ch">
+          <div class="ch-left">
+            <div class="ch-ico ico-nar"><i class="bi bi-boxes"></i></div>
+            <span class="ch-title">Consumo ingredientes</span>
+          </div>
+          <?php if ($costo_prod_total > 0): ?>
+          <span class="badge b-neu" style="font-size:.55rem"><?= $es_estimado_consumo ? 'estimado' : 'FIFO real' ?></span>
+          <?php endif; ?>
+        </div>
+        <div class="card-scroll">
+          <?php if (empty($consumo_ingredientes)): ?>
+          <div class="empty"><i class="bi bi-boxes"></i>Sin producción en el período</div>
           <?php else:
-            $cat_conf = [
-              'compra'   => ['🛒', 'rgba(198,40,40,.1)',   '#c62828'],
-              'servicio' => ['🔧', 'rgba(21,101,192,.1)',  '#1565c0'],
-              'otro'     => ['📌', 'rgba(148,91,53,.1)',   'var(--c1)'],
-            ];
-            foreach ($gastos_cat as $gc):
-              [$ic, $bg, $col] = $cat_conf[$gc['categoria']] ?? ['📌','rgba(148,91,53,.1)','var(--c1)'];
+            $use_cost = $costo_prod_total > 0;
+            $max_bar  = $use_cost ? $max_ing_costo : $max_ing_cant;
+            foreach ($consumo_ingredientes as $ci):
+              $bar_val = $use_cost ? $ci['total_costo'] : $ci['total_cant'];
+              $pct     = $max_bar > 0 ? max(4, round(($bar_val / $max_bar) * 100)) : 4;
+              $color   = $use_cost ? 'roja' : '';
           ?>
-          <div class="cat-fila">
-            <div class="cat-ico" style="background:<?= $bg ?>"><?= $ic ?></div>
-            <span class="cat-nombre"><?= ucfirst($gc['categoria']) ?></span>
-            <span class="cat-cnt"><?= $gc['cantidad'] ?> reg.</span>
-            <span class="cat-val" style="color:<?= $col ?>">$<?= number_format($gc['total'],0,',','.') ?></span>
+          <div class="fila-item">
+            <span class="fi-nombre" title="<?= htmlspecialchars($ci['nombre']) ?>"><?= htmlspecialchars($ci['nombre']) ?></span>
+            <span class="fi-sub"><?= formatoInteligente((float)$ci['total_cant']) ?> <?= $ci['unidad_medida'] ?></span>
+            <div class="barra-m-w" style="width:42px">
+              <div class="barra-m-f <?= $color ?>" style="width:<?= $pct ?>%"></div>
+            </div>
+            <span class="fi-val" style="color:<?= $use_cost ? '#c62828' : 'var(--c1)' ?>">
+              <?php if ($use_cost): ?>$<?= number_format($ci['total_costo'], 0, ',', '.') ?>
+              <?php else: ?><?= formatoInteligente((float)$ci['total_cant']) ?> <?= $ci['unidad_medida'] ?><?php endif; ?>
+            </span>
           </div>
           <?php endforeach; endif; ?>
         </div>
+      </div>
 
-        <!-- Utilidad neta si hay gastos -->
-        <?php if ($gastos_op > 0): ?>
-        <div class="util-neta" style="background:<?= $utilidad_neta >= 0 ? '#f1f8f2' : '#fef2f2' ?>;border:1px solid <?= $utilidad_neta >= 0 ? '#a5d6a7' : '#ef9a9a' ?>;">
-          <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.15em;color:var(--ink3);margin-bottom:.28rem;">
-            Utilidad neta
-          </div>
-          <div style="font-family:'Fraunces',serif;font-size:1.25rem;font-weight:800;color:<?= $utilidad_neta >= 0 ? '#2e7d32' : '#c62828' ?>">
-            $<?= number_format(abs($utilidad_neta),0,',','.') ?>
-          </div>
-          <div style="font-size:.68rem;color:var(--ink3);margin-top:.22rem;">
-            Ingresos − Compras − Gastos
-          </div>
-        </div>
-        <?php endif; ?>
-
-      </div><!-- /card-right-scroll -->
-    </div><!-- /card derecha -->
-
-    </div><!-- /right-col -->
+    </div><!-- /cards-grid -->
   </div><!-- /g-body -->
 </div><!-- /page -->
 

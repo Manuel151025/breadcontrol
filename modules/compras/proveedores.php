@@ -117,7 +117,13 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   .btn-cancel{width:100%;background:var(--clight);color:var(--ink2);border:1px solid var(--border);border-radius:10px;padding:.55rem;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:.4rem;transition:all .2s;text-align:center;display:block;text-decoration:none;}
   .btn-cancel:hover{border-color:var(--c3);color:var(--c3);}
   .edit-banner{background:rgba(21,101,192,.08);border:1px solid rgba(21,101,192,.2);border-radius:10px;padding:.6rem .9rem;font-size:.8rem;color:#1565c0;font-weight:600;margin-bottom:.7rem;display:flex;align-items:center;gap:.4rem;}
-  .msg-err{background:#ffebee;border:1px solid #ef9a9a;border-left:3px solid #c62828;border-radius:10px;padding:.6rem .9rem;font-size:.82rem;color:#c62828;margin-bottom:.6rem;}
+  .msg-ok{background:#e8f5e9;border:1px solid #a5d6a7;border-left:4px solid #2e7d32;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#1b5e20;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+  .msg-ok i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}
+  .msg-ok span{flex:1;}
+  .msg-err{background:#ffebee;border:1px solid #ef9a9a;border-left:4px solid #c62828;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#c62828;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+  .msg-err i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}
+  .msg-err span{flex:1;}
+  .msg-err ul{margin:.15rem 0 0 1rem;padding:0;}
   .tbl-wrap{overflow-y:auto;overflow-x:auto;flex:1;min-height:0;}
   .gt{width:100%;border-collapse:collapse;}
   .gt th{font-size:.61rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);font-weight:700;padding:.5rem .85rem;background:var(--clight);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1;white-space:nowrap;}
@@ -142,7 +148,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   <div class="wc-banner">
     <div class="wc-left">
       <div>
-        <div class="wc-greeting">Panadería BreakControl</div>
+        <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Gestión de <em>Proveedores</em></div>
         <div class="wc-sub">Proveedores de insumos activos</div>
       </div>

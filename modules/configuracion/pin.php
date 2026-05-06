@@ -65,8 +65,13 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   .btn-guardar:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(198,113,36,.45);}
   .btn-volver{display:block;text-align:center;margin-top:1rem;font-size:.82rem;color:var(--c3);font-weight:600;text-decoration:none;}
   .btn-volver:hover{text-decoration:underline;}
-  .msg-ok{background:#e8f5e9;border:1px solid #a5d6a7;border-left:3px solid #2e7d32;border-radius:10px;padding:.6rem .9rem;font-size:.82rem;color:#1b5e20;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:.4rem;}
-  .msg-err{background:#ffebee;border:1px solid #ef9a9a;border-left:3px solid #c62828;border-radius:10px;padding:.6rem .9rem;font-size:.82rem;color:#c62828;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:.4rem;}
+  .msg-ok{background:#e8f5e9;border:1px solid #a5d6a7;border-left:4px solid #2e7d32;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#1b5e20;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+  .msg-ok i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}
+  .msg-ok span{flex:1;}
+  .msg-err{background:#ffebee;border:1px solid #ef9a9a;border-left:4px solid #c62828;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#c62828;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+  .msg-err i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}
+  .msg-err span{flex:1;}
+  .msg-err ul{margin:.15rem 0 0 1rem;padding:0;}
   .estado-pin{display:flex;align-items:center;gap:.5rem;padding:.65rem .9rem;border-radius:10px;font-size:.82rem;font-weight:600;margin-bottom:1.2rem;}
   .estado-pin.activo{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
   .estado-pin.pendiente{background:#fff3e0;color:#e65100;border:1px solid #ffcc80;}
@@ -82,10 +87,10 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
     <div class="card-pin-body">
       <?php if ($msg_ok): ?>
-      <div class="msg-ok">✅ <?= $msg_ok ?></div>
+      <div class="msg-ok"><i class="bi bi-check-circle-fill"></i><span><?= $msg_ok ?></span></div>
       <?php endif; ?>
       <?php if ($msg_err): ?>
-      <div class="msg-err">⚠️ <?= htmlspecialchars($msg_err) ?></div>
+      <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i><span><?= htmlspecialchars($msg_err) ?></span></div>
       <?php endif; ?>
 
       <div class="estado-pin <?= $tiene_pin ? 'activo' : 'pendiente' ?>">

@@ -244,7 +244,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   <div class="wc-banner">
     <div class="wc-left">
       <div>
-        <div class="wc-greeting">Panadería BreakControl</div>
+        <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Editar <em>Receta</em></div>
         <div class="wc-sub"><?= htmlspecialchars($producto['nombre']) ?> · <?= $producto['unidad_produccion'] ?></div>
       </div>

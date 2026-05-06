@@ -71,7 +71,7 @@ $titulo_sub = $total_etq === 1
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Etiquetas de Lote &mdash; BreakControl</title>
+<title>Etiquetas de Lote &mdash; BreadControl</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -175,7 +175,7 @@ $titulo_sub = $total_etq === 1
       <div class="stk-brand">
         <img src="<?= APP_URL ?>/assets/img/logo.png" alt="Logo"
              style="width:14px;height:14px;object-fit:contain;border-radius:2px;background:rgba(255,255,255,.2);">
-        <span>BreakControl</span><div class="stk-brand-dot"></div><span>Panader&iacute;a</span>
+        <span>BreadControl</span><div class="stk-brand-dot"></div><span>Panader&iacute;a</span>
       </div>
       <div class="stk-lote"><?= $e['lote_num'] ?></div>
     </div>

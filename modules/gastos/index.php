@@ -44,6 +44,27 @@ if (!empty($_GET['del'])) {
     header('Location: index.php?fecha=' . $redir_fecha); exit;
 }
 
+
+// ── Editar gasto ──────────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_gasto'])) {
+    $id_g  = (int)$_POST['id_gasto'];
+    $cat_e = $_POST['cat_edit'] ?? '';
+    $desc_e = trim($_POST['desc_edit'] ?? '');
+    $val_e  = (float)str_replace(['.', '$', ' '], '', $_POST['val_edit'] ?? 0);
+    if (!in_array($cat_e, ['compra','servicio','otro'])) $cat_e = '';
+    if ($cat_e && $desc_e && $val_e > 0) {
+        try {
+            $pdo->prepare("UPDATE gasto SET categoria=?, descripcion=?, valor=? WHERE id_gasto=? AND DATE(fecha_gasto)=CURDATE()")
+                ->execute([$cat_e, $desc_e, $val_e, $id_g]);
+            $msg_ok = 'Gasto actualizado correctamente.';
+        } catch (Exception $e) {
+            $msg_err = 'Error al actualizar el gasto.';
+        }
+    } else {
+        $msg_err = 'Completa todos los campos correctamente.';
+    }
+}
+
 // ── Filtro por fecha ───────────────────────────────────────────────────────
 $fecha_fil = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha'] ?? '') ? $_GET['fecha'] : $hoy;
 
@@ -193,8 +214,12 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   .cat-val{font-size:.73rem;font-weight:700;color:var(--ink2);min-width:68px;text-align:right;}
 
   /* Mensajes */
-  .msg-ok{background:#e8f5e9;border:1px solid #a5d6a7;border-left:3px solid #2e7d32;border-radius:10px;padding:.6rem .9rem;font-size:.82rem;color:#1b5e20;font-weight:600;margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem;}
-  .msg-err{background:#ffebee;border:1px solid #ef9a9a;border-left:3px solid #c62828;border-radius:10px;padding:.6rem .9rem;font-size:.82rem;color:#c62828;margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem;}
+  .msg-ok{background:#e8f5e9;border:1px solid #a5d6a7;border-left:4px solid #2e7d32;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#1b5e20;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+  .msg-ok i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}
+  .msg-ok span{flex:1;}
+  .msg-err{background:#ffebee;border:1px solid #ef9a9a;border-left:4px solid #c62828;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#c62828;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+  .msg-err i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}
+  .msg-err span{flex:1;}
 
   /* ── TABLA ── */
   .tbl-wrap{overflow-y:auto;overflow-x:auto;flex:1;min-height:0;}
@@ -205,6 +230,8 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   .gt tr:hover td{background:rgba(250,243,234,.5);}
   .cat-tag{font-size:.6rem;font-weight:700;padding:.13rem .45rem;border-radius:20px;white-space:nowrap;display:inline-flex;align-items:center;gap:.22rem;}
   .btn-act{width:28px;height:28px;border-radius:7px;border:1px solid;display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;text-decoration:none;transition:all .2s;cursor:pointer;background:transparent;}
+  .btn-edit{color:#1565c0;background:rgba(21,101,192,.08);}
+  .btn-edit:hover{background:rgba(21,101,192,.18);}
   .btn-del{border-color:rgba(198,40,40,.2);color:#c62828;}.btn-del:hover{background:rgba(198,40,40,.1);}
   .gt tfoot td{background:var(--clight);padding:.55rem .85rem;font-weight:800;border-top:1.5px solid var(--border);}
   .tot-lbl{font-size:.72rem;color:var(--ink2);text-transform:uppercase;letter-spacing:.1em;text-align:right;}
@@ -225,6 +252,13 @@ require_once __DIR__ . '/../../views/layouts/header.php';
     .g-body{grid-template-columns:1fr;}
     .tbl-wrap{max-height:350px;}
   }
+
+  @media(min-width:400px) and (max-width:680px){
+    .wc-name{font-size:1.15rem;}
+    .wc-pill-num{font-size:.1rem;}
+    .wc-pill{padding:.35rem .85rem;}
+    .mod-titulo{font-size:1.25rem;}
+  }
 </style>
 
 <div class="page">
@@ -233,7 +267,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   <div class="wc-banner">
     <div class="wc-left">
       <div>
-        <div class="wc-greeting">Panadería BreakControl</div>
+        <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Gastos <em>Operativos</em></div>
         <div class="wc-sub"><?= date('l, d \d\e F \d\e Y', strtotime($fecha_fil)) ?></div>
       </div>
@@ -287,10 +321,10 @@ require_once __DIR__ . '/../../views/layouts/header.php';
 
       <div class="form-body">
         <?php if ($msg_ok): ?>
-        <div class="msg-ok"><i class="bi bi-check-circle-fill"></i><?= $msg_ok ?></div>
+        <div class="msg-ok"><i class="bi bi-check-circle-fill"></i><span><?= $msg_ok ?></span></div>
         <?php endif; ?>
         <?php if ($msg_err): ?>
-        <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i><?= $msg_err ?></div>
+        <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i><span><?= $msg_err ?></span></div>
         <?php endif; ?>
 
         <form method="POST">
@@ -418,11 +452,21 @@ require_once __DIR__ . '/../../views/layouts/header.php';
                 $<?= number_format($g['valor'], 0, ',', '.') ?>
               </td>
               <td style="text-align:center">
+                <div style="display:flex;gap:.25rem;">
+                <?php if ($fecha_fil === $hoy): ?>
+                <button type="button" class="btn-act btn-edit" title="Editar"
+                  onclick="abrirEditGasto(<?= $g['id_gasto'] ?>, '<?= $g['categoria'] ?>', '<?= htmlspecialchars(addslashes($g['descripcion']),ENT_QUOTES) ?>', <?= (int)$g['valor'] ?>)">
+                  <i class="bi bi-pencil"></i>
+                </button>
                 <a href="?del=<?= $g['id_gasto'] ?>&fecha=<?= $fecha_fil ?>"
                    class="btn-act btn-del" title="Eliminar"
                    onclick="return confirm('¿Eliminar este gasto?')">
                   <i class="bi bi-trash3"></i>
                 </a>
+                <?php else: ?>
+                <span style="font-size:.7rem;color:var(--ink3)">—</span>
+                <?php endif; ?>
+                </div>
               </td>
             </tr>
             <?php endforeach; ?>
@@ -465,6 +509,56 @@ function selCat(k) {
   document.getElementById('cat-' + k).classList.add('sel');
   document.getElementById('inp-cat').value = k;
 }
+</script>
+
+
+<!-- Modal editar gasto -->
+<div id="modal-edit-gasto" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:1.4rem;width:90%;max-width:400px;box-shadow:0 12px 40px rgba(0,0,0,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="font-size:.9rem;"><i class="bi bi-pencil-square" style="color:var(--c3);"></i> Editar gasto</strong>
+      <button onclick="cerrarEditGasto()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--ink3);">&times;</button>
+    </div>
+    <form method="POST">
+      <input type="hidden" name="id_gasto" id="eg-id">
+      <div style="margin-bottom:.7rem;">
+        <label style="font-size:.75rem;font-weight:700;color:var(--ink2);display:block;margin-bottom:.3rem;">Categoría</label>
+        <select name="cat_edit" id="eg-cat" style="width:100%;padding:.45rem;border:1px solid var(--border);border-radius:8px;font-size:.82rem;">
+          <option value="compra">🛒 Compras</option>
+          <option value="servicio">💡 Servicios</option>
+          <option value="otro">📝 Otros</option>
+        </select>
+      </div>
+      <div style="margin-bottom:.7rem;">
+        <label style="font-size:.75rem;font-weight:700;color:var(--ink2);display:block;margin-bottom:.3rem;">Descripción</label>
+        <input type="text" name="desc_edit" id="eg-desc" required style="width:100%;padding:.45rem;border:1px solid var(--border);border-radius:8px;font-size:.82rem;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:.9rem;">
+        <label style="font-size:.75rem;font-weight:700;color:var(--ink2);display:block;margin-bottom:.3rem;">Valor ($)</label>
+        <input type="number" name="val_edit" id="eg-val" min="1" step="1" required style="width:100%;padding:.45rem;border:1px solid var(--border);border-radius:8px;font-size:.82rem;box-sizing:border-box;">
+      </div>
+      <button type="submit" name="editar_gasto" style="width:100%;padding:.55rem;background:var(--c3);color:#fff;border:none;border-radius:9px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">
+        <i class="bi bi-check-lg"></i> Guardar cambios
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+function abrirEditGasto(id, cat, desc, val){
+  document.getElementById('eg-id').value = id;
+  document.getElementById('eg-cat').value = cat;
+  document.getElementById('eg-desc').value = desc;
+  document.getElementById('eg-val').value = val;
+  var m = document.getElementById('modal-edit-gasto');
+  m.style.display = 'flex';
+}
+function cerrarEditGasto(){
+  document.getElementById('modal-edit-gasto').style.display = 'none';
+}
+document.getElementById('modal-edit-gasto').addEventListener('click', function(e){
+  if(e.target === this) cerrarEditGasto();
+});
 </script>
 
 <?php include __DIR__ . '/../../views/layouts/footer.php'; ?>

@@ -105,7 +105,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   <div class="wc-banner">
     <div class="wc-left">
       <div>
-        <div class="wc-greeting">Panadería BreakControl</div>
+        <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Detalle de <em>Producción</em></div>
         <div class="wc-sub"><?= date('l, d \d\e F \d\e Y', strtotime($produccion['fecha_produccion'])) ?></div>
       </div>

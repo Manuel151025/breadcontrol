@@ -19,13 +19,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($unidad))  $errores[] = 'La unidad de producción es obligatoria.';
 
     if (empty($errores)) {
-        try {
-            $pdo->prepare("INSERT INTO producto (nombre,categoria,unidad_produccion,cantidad_por_tanda,precio_venta,activo,fecha_creacion) VALUES (?,?,?,?,?,1,NOW())")
-                ->execute([$nombre, $categoria, $unidad, $cantidad_tanda, $precio_venta]);
-            $id_nuevo = $pdo->lastInsertId();
-            header('Location: editar_receta.php?id=' . $id_nuevo); exit;
-        } catch (PDOException $e) {
-            $errores[] = 'Error al guardar el producto. Intenta de nuevo.';
+        // Verificar si existe un producto inactivo con ese nombre → reactivar
+        $check = $pdo->prepare("SELECT id_producto, activo FROM producto WHERE nombre = ?");
+        $check->execute([$nombre]);
+        $existe = $check->fetch();
+
+        if ($existe && $existe['activo'] == 0) {
+            // Reactivar producto eliminado
+            $pdo->prepare("UPDATE producto SET activo=1, categoria=?, unidad_produccion=?, cantidad_por_tanda=?, precio_venta=? WHERE id_producto=?")
+                ->execute([$categoria, $unidad, $cantidad_tanda, $precio_venta, $existe['id_producto']]);
+            header('Location: editar_receta.php?id=' . $existe['id_producto']); exit;
+        } elseif ($existe && $existe['activo'] == 1) {
+            $errores[] = 'Ya existe un producto activo con el nombre "' . htmlspecialchars($nombre) . '".';
+        } else {
+            try {
+                $pdo->prepare("INSERT INTO producto (nombre,categoria,unidad_produccion,cantidad_por_tanda,precio_venta,activo,fecha_creacion) VALUES (?,?,?,?,?,1,NOW())")
+                    ->execute([$nombre, $categoria, $unidad, $cantidad_tanda, $precio_venta]);
+                $id_nuevo = $pdo->lastInsertId();
+                header('Location: editar_receta.php?id=' . $id_nuevo); exit;
+            } catch (PDOException $e) {
+                $errores[] = 'Error al guardar el producto. Intenta de nuevo.';
+            }
         }
     }
 }
@@ -80,7 +94,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   <div class="wc-banner">
     <div class="wc-left">
       <div>
-        <div class="wc-greeting">Panadería BreakControl</div>
+        <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Nuevo <em>Producto</em></div>
         <div class="wc-sub">Luego definirás los ingredientes de la receta</div>
       </div>

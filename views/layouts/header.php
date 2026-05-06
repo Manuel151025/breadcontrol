@@ -14,7 +14,8 @@ function navActive($path) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title><?= $page_title ?? 'BreakControl' ?> — BreakControl</title>
+  <title><?= $page_title ?? 'BreadControl' ?> — BreadControl</title>
+  <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="<?= APP_URL ?>/assets/css/responsive.css" rel="stylesheet">
@@ -130,7 +131,7 @@ function navActive($path) {
       .n-ciudad-btn  { display:none; }
       .n-logout      { display:none; }
       .n-urole       { display:none; }
-      .n-user        { padding:.2rem .5rem .2rem .2rem; border-radius:18px; }
+      .n-user        { padding:.2rem .5rem .2rem .2rem; border-radius:18px; min-width:0; }
       .n-uname       { font-size:.72rem; max-width:70px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
       .n-avatar      { width:28px; height:28px; font-size:.7rem; }
       .n-hamburger   { display:flex; width:36px; height:36px; border-radius:9px; font-size:1.15rem; }
@@ -235,7 +236,7 @@ function navActive($path) {
       .n-logo-name { font-size:.84rem; display:block !important; }
       .n-avatar { width:26px; height:26px; font-size:.65rem; }
       .n-uname { display:none; }
-      .n-user { padding:.18rem .35rem; }
+      .n-user { padding:.18rem .35rem; gap:.2rem; }
       .n-hamburger { width:34px; height:34px; font-size:1.1rem; }
 
       .n-item {
@@ -315,7 +316,32 @@ function navActive($path) {
     .modal-ciudad-item i { color:var(--c5); font-size:.85rem; flex-shrink:0; transition:color .15s; }
     .modal-ciudad-item:hover i { color:var(--c3); }
     .modal-ciudad-item.activa i { color:var(--c3); }
-  </style>
+  
+  /* ── MANUAL BUTTON ── */
+  .btn-manual{
+    position:fixed;bottom:1.5rem;right:1.5rem;z-index:90;
+    width:52px;height:52px;border-radius:50%;
+    background:linear-gradient(135deg,hsl(27,72%,47%),hsl(30,67%,65%));
+    border:none;box-shadow:0 4px 20px rgba(148,91,53,.4);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:1.35rem;cursor:pointer;
+    text-decoration:none;transition:all .3s ease;
+  }
+  .btn-manual:hover{transform:translateY(-3px) scale(1.05);box-shadow:0 8px 30px rgba(148,91,53,.5);}
+  .btn-manual .manual-tooltip{
+    position:absolute;right:62px;top:50%;transform:translateY(-50%);
+    background:hsla(24,40%,10%,.9);backdrop-filter:blur(10px);
+    color:#fff;padding:.4rem .75rem;border-radius:8px;
+    font-size:.72rem;font-weight:600;white-space:nowrap;
+    opacity:0;pointer-events:none;transition:opacity .25s;
+    font-family:'DM Sans',sans-serif;
+  }
+  .btn-manual:hover .manual-tooltip{opacity:1;}
+  @media(max-width:768px){
+    .btn-manual{width:44px;height:44px;bottom:1rem;right:1rem;font-size:1.15rem;}
+    .btn-manual .manual-tooltip{display:none;}
+  }
+</style>
 </head>
 <body>
 
@@ -324,9 +350,9 @@ function navActive($path) {
   <a href="<?= APP_URL ?>/modules/tablero/index.php" class="n-logo">
     <img src="<?= APP_URL ?>/assets/img/logo.png"
          onerror="this.style.display='none'"
-         alt="BreakControl" class="n-logo-img">
+         alt="BreadControl" class="n-logo-img">
     <div>
-      <div class="n-logo-name">BreakControl</div>
+      <div class="n-logo-name">BreadControl</div>
       <div class="n-logo-sub">Sistema de gestión</div>
     </div>
   </a>
@@ -367,8 +393,8 @@ function navActive($path) {
       <span id="ciudad-lbl">Florencia</span>
     </button>
 
-    <!-- Usuario (click va a config PIN) -->
-    <a href="<?= APP_URL ?>/modules/configuracion/pin.php" class="n-user" style="text-decoration:none;cursor:pointer;" title="Configurar PIN de recuperación">
+    <!-- Usuario (click va a perfil) -->
+    <a href="<?= APP_URL ?>/modules/configuracion/perfil.php" class="n-user" style="text-decoration:none;cursor:pointer;" title="Mi Perfil">
       <div class="n-avatar"><?= strtoupper(substr($user['nombre'], 0, 1)) ?></div>
       <div>
         <div class="n-uname"><?= htmlspecialchars($user['nombre']) ?></div>
@@ -387,6 +413,14 @@ function navActive($path) {
     </button>
   </div>
 </nav>
+
+<!-- Manual de Usuario -->
+<a href="<?= APP_URL ?>/assets/docs/Manual_BreadControl.pdf" target="_blank" class="btn-manual" title="Manual de Usuario">
+  <i class="bi bi-book-half"></i>
+  <span class="manual-tooltip">Manual de Usuario</span>
+</a>
+
+
 
 <!-- MODAL CIUDAD -->
 <div id="modal-ciudad" class="modal-ciudad-overlay">
@@ -517,4 +551,21 @@ document.getElementById('modal-ciudad').addEventListener('click', function(e){
     });
   });
 })();
+
+/* ── AUTO-LOGOUT 60s inactividad ── */
+(function(){
+  var timeout;
+  var LIMIT = 360; // 6 minutos
+  function resetTimer(){
+    clearTimeout(timeout);
+    timeout = setTimeout(function(){
+      window.location.href = '<?= APP_URL ?>/logout.php';
+    }, LIMIT * 1000);
+  }
+  ['mousemove','keydown','click','scroll','touchstart'].forEach(function(ev){
+    document.addEventListener(ev, resetTimer, {passive:true});
+  });
+  resetTimer();
+})();
+
 </script>

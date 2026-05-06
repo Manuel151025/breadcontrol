@@ -83,14 +83,22 @@ function getConfiguracion(): array {
 // Generar número de lote único
 // Formato: INS-2026-02-25-001
 function generarNumeroLote(string $prefijo): string {
+    $pre3   = strtoupper(substr($prefijo, 0, 3));
     $fecha  = date('Y-m-d');
+    $patron = $pre3 . '-' . $fecha . '-%';
     $pdo    = getConexion();
     $stmt   = $pdo->prepare(
-        "SELECT COUNT(*) FROM lote WHERE fecha_ingreso >= CURDATE()"
+        "SELECT numero_lote FROM lote WHERE numero_lote LIKE ? ORDER BY numero_lote DESC LIMIT 1"
     );
-    $stmt->execute();
-    $count  = (int) $stmt->fetchColumn() + 1;
-    return strtoupper(substr($prefijo, 0, 3)) . '-' . $fecha . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+    $stmt->execute([$patron]);
+    $ultimo = $stmt->fetchColumn();
+    if ($ultimo) {
+        $partes = explode('-', $ultimo);
+        $seq = (int)end($partes) + 1;
+    } else {
+        $seq = 1;
+    }
+    return $pre3 . '-' . $fecha . '-' . str_pad($seq, 3, '0', STR_PAD_LEFT);
 }
 
 // Calcular porcentaje de variación entre dos precios

@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirmar_cierre'])) 
     $sugerencia = trim($_POST['sugerencia_produccion'] ?? '');
 
     // Calcular totales del día
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE DATE(fecha_hora)=?");
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=?");
     $stmt->execute([$hoy]); $total_ingresos = (float)$stmt->fetchColumn();
 
     $stmt = $pdo->prepare("SELECT COALESCE(SUM(cl.costo_consumo),0) FROM consumo_lote cl INNER JOIN produccion pr ON pr.id_produccion=cl.id_produccion WHERE DATE(pr.fecha_produccion)=?");
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirmar_cierre'])) 
         ")->execute([
             $user['id_usuario'], $hoy,
             $total_ingresos, $total_gastos, $costo_produccion,
-            $utilidad_bruta, $utilidad_neta, $sugerencia_produccion ?: null
+            $utilidad_bruta, $utilidad_neta, $sugerencia ?: null
         ]);
         $msg_ok = 'Cierre del día guardado correctamente.';
     } catch (Exception $e) {
@@ -55,14 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirmar_cierre'])) 
 }
 
 // ── Datos del día actual ───────────────────────────────────────────────────
-$stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE DATE(fecha_hora)=?");
+$stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=?");
 $stmt->execute([$hoy]); $total_ventas = (float)$stmt->fetchColumn();
 
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM venta WHERE DATE(fecha_hora)=?");
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=?");
 $stmt->execute([$hoy]); $num_ventas = (int)$stmt->fetchColumn();
 
 // Diferencia vs ayer
-$stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE DATE(fecha_hora)=DATE_SUB(?,INTERVAL 1 DAY)");
+$stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=DATE_SUB(?,INTERVAL 1 DAY)");
 $stmt->execute([$hoy]); $ventas_ayer = (float)$stmt->fetchColumn();
 $diff_ventas = $ventas_ayer > 0 ? round((($total_ventas - $ventas_ayer) / $ventas_ayer) * 100, 1) : null;
 
@@ -83,10 +83,10 @@ $utilidad_neta  = $utilidad_bruta - $total_gastos;
 
 // ── Ventas por producto ────────────────────────────────────────────────────
 $stmt = $pdo->prepare("
-    SELECT p.nombre, SUM(v.unidades_vendidas) AS u, SUM(v.total_venta) AS t
-    FROM venta v INNER JOIN producto p ON p.id_producto = v.id_producto
-    WHERE DATE(v.fecha_hora)=?
-    GROUP BY v.id_producto ORDER BY t DESC
+    SELECT COALESCE(cp.nombre, p.nombre) AS nombre, SUM(v.unidades_vendidas) AS u, SUM(v.total_venta) AS t
+    FROM venta v LEFT JOIN categoria_precio cp ON cp.id_categoria = v.id_categoria_precio LEFT JOIN producto p ON p.id_producto = v.id_producto
+    WHERE v.tipo_salida='venta' AND DATE(v.fecha_hora)=?
+    GROUP BY nombre ORDER BY t DESC
 ");
 $stmt->execute([$hoy]);
 $ventas_prod = $stmt->fetchAll();
@@ -96,7 +96,7 @@ $stmt = $pdo->prepare("
     SELECT COALESCE(c.nombre,'Mostrador') AS cliente, COALESCE(c.tipo,'mostrador') AS tipo,
            SUM(v.total_venta) AS t, COUNT(*) AS n
     FROM venta v LEFT JOIN cliente c ON c.id_cliente = v.id_cliente
-    WHERE DATE(v.fecha_hora)=?
+    WHERE v.tipo_salida='venta' AND DATE(v.fecha_hora)=?
     GROUP BY v.id_cliente ORDER BY t DESC
 ");
 $stmt->execute([$hoy]);
@@ -156,7 +156,7 @@ $stmt = $pdo->prepare("
     LEFT JOIN venta v       ON v.id_producto  = p.id_producto
                             AND DATE(v.fecha_hora)        = ?
     WHERE p.activo = 1
-    GROUP BY p.id_producto
+    GROUP BY nombre
     HAVING producidas > 0
     ORDER BY sobrante DESC
 ");
@@ -243,33 +243,26 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   .c-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:1.5rem;color:var(--ink3);font-size:.78rem;opacity:.7;text-align:center;flex:1;}
   .c-empty i{font-size:1.6rem;opacity:.35;}
 
-  /* ── ZONA INFERIOR ── */
-  .cierre-bottom{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
-  .cierre-right{display:flex;flex-direction:column;gap:.7rem;}
+  /* ── ZONA INFERIOR: misma grid que c-body ── */
+  .cierre-bottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;}
 
-  /* Form cierre */
-  .cierre-form{background:var(--ccard);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:.7rem;animation:fadeUp .45s .38s ease both;}
+  /* Form cierre dentro de card */
+  .cierre-form{display:flex;flex-direction:column;gap:.55rem;padding:.65rem .85rem;}
   .obs-wrap{width:100%;}
-  .obs-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:var(--ink3);margin-bottom:.3rem;}
-  .obs-textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:.5rem .75rem;font-size:.82rem;font-family:inherit;color:var(--ink);background:var(--clight);resize:none;height:52px;transition:border-color .2s;box-sizing:border-box;}
+  .obs-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:var(--ink3);margin-bottom:.25rem;}
+  .obs-textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:.45rem .7rem;font-size:.78rem;font-family:inherit;color:var(--ink);background:var(--clight);resize:none;height:48px;transition:border-color .2s;box-sizing:border-box;}
   .obs-textarea:focus{outline:none;border-color:var(--c3);box-shadow:0 0 0 3px rgba(198,113,36,.1);}
-  .btn-cerrar{width:100%;background:linear-gradient(135deg,var(--c3),var(--c1));color:#fff;border:none;border-radius:11px;padding:.72rem 1.3rem;font-size:.87rem;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(198,113,36,.3);display:flex;align-items:center;justify-content:center;gap:.45rem;transition:all .2s;}
-  .btn-cerrar:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(198,113,36,.5);}
-  .cierre-ya{display:flex;align-items:flex-start;gap:.5rem;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:.55rem .85rem;font-size:.79rem;color:#2e7d32;font-weight:600;}
-  .cierre-ya i{font-size:1rem;flex-shrink:0;margin-top:.1rem;}
+  .btn-cerrar{width:35% ;background:linear-gradient(135deg,var(--c3),var(--c1));color:#fff;border:none;border-radius:9px;padding:.52rem 1rem;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 3px 12px rgba(198,113,36,.25);display:flex;align-items:center;justify-content:center;gap:.35rem;transition:all .2s;}
+  .btn-cerrar:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(198,113,36,.4);}
+  .cierre-ya{display:flex;align-items:flex-start;gap:.4rem;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:9px;padding:.45rem .7rem;font-size:.72rem;color:#2e7d32;font-weight:600;}
+  .cierre-ya i{font-size:.9rem;flex-shrink:0;margin-top:.1rem;}
 
-  /* Historial */
-  .hist-card{background:var(--ccard);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;animation:fadeUp .45s .43s ease both;}
-
-  /* Sobrantes compacto */
-  .sob-card{background:var(--ccard);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;padding:.65rem .85rem;gap:.35rem;animation:fadeUp .45s .46s ease both;}
-  .sob-titulo{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:var(--ink3);display:flex;align-items:center;gap:.4rem;}
-  .sob-titulo i{color:var(--c3);font-size:.85rem;}
-  .sob-lista{display:flex;flex-direction:column;gap:.25rem;}
-  .sob-fila{display:flex;align-items:center;gap:.4rem;padding:.28rem .42rem;background:var(--clight);border-radius:7px;}
-  .sob-nombre{font-size:.77rem;font-weight:600;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .sob-det{font-size:.64rem;color:var(--ink3);white-space:nowrap;flex-shrink:0;}
-  .sob-vacio{font-size:.77rem;color:#2e7d32;font-weight:600;display:flex;align-items:center;gap:.35rem;padding:.15rem 0;}
+  /* Sobrantes filas dentro de card */
+  .sob-lista{display:flex;flex-direction:column;gap:.2rem;padding:.4rem .85rem;}
+  .sob-fila{display:flex;align-items:center;gap:.4rem;padding:.3rem .4rem;background:var(--clight);border-radius:7px;}
+  .sob-nombre{font-size:.75rem;font-weight:600;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sob-det{font-size:.62rem;color:var(--ink3);white-space:nowrap;flex-shrink:0;}
+  .sob-vacio{font-size:.75rem;color:#2e7d32;font-weight:600;display:flex;align-items:center;justify-content:center;gap:.3rem;padding:1rem;flex:1;}
   .ht{width:100%;border-collapse:collapse;}
   .ht th{font-size:.59rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);font-weight:700;padding:.45rem .8rem;background:var(--clight);border-bottom:1px solid var(--border);white-space:nowrap;}
   .ht th:not(:first-child){text-align:right;}
@@ -282,14 +275,13 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   @media(max-width:1100px){
     .c-body{grid-template-columns:1fr 1fr;}
     .kpi-row{grid-template-columns:repeat(2,1fr);}
-    .cierre-bottom{grid-template-columns:1fr;}
+    .cierre-bottom{grid-template-columns:1fr 1fr;}
   }
   @media(max-width:768px){
     .page{margin-top:60px;padding:.5rem;}
     .kpi-row{grid-template-columns:1fr 1fr;}
     .c-body{grid-template-columns:1fr;}
     .cierre-bottom{grid-template-columns:1fr;}
-    .btn-cerrar{width:100%;}
   }
 </style>
 
@@ -299,7 +291,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   <div class="wc-banner">
     <div class="wc-left">
       <div>
-        <div class="wc-greeting">Panadería BreakControl</div>
+        <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Cierre <em>del Día</em></div>
         <div class="wc-sub"><?= date('l, d \d\e F \d\e Y') ?></div>
       </div>
@@ -499,107 +491,119 @@ require_once __DIR__ . '/../../views/layouts/header.php';
     </div><!-- /c-body -->
   </div><!-- /zona-central -->
 
-  <!-- ══ ZONA INFERIOR: form cierre | historial + sobrantes ══ -->
+  <!-- ══ ZONA INFERIOR: 3 cards alineados con c-body ══ -->
   <div class="cierre-bottom">
 
-    <!-- Formulario confirmar cierre -->
-    <div class="cierre-form">
-      <?php if ($cierre_guardado): ?>
-      <div class="cierre-ya">
-        <i class="bi bi-check-circle-fill"></i>
-        <div>
-          Cierre del día ya guardado
-          <?php if (!empty($cierre_guardado['sugerencia_produccion'])): ?>
-          <div style="font-size:.71rem;font-weight:400;opacity:.75;margin-top:.1rem">
-            "<?= htmlspecialchars($cierre_guardado['sugerencia_produccion']) ?>"
-          </div>
-          <?php endif; ?>
+    <!-- Card 1: Cierre del día (alineado con Ventas/producto) -->
+    <div class="card">
+      <div class="ch">
+        <div class="ch-left">
+          <span class="ch-ico" style="background:rgba(103,58,183,.1);color:#673ab7"><i class="bi bi-moon-stars-fill"></i></span>
+          <span class="ch-title">Cierre del día</span>
         </div>
       </div>
-      <?php endif; ?>
-      <form method="POST" style="display:flex;flex-direction:column;gap:.6rem;width:100%;">
-        <div class="obs-wrap">
-          <div class="obs-label">Sugerencia producción mañana (opcional)</div>
-          <textarea name="sugerencia_produccion" class="obs-textarea"
-            placeholder="Ej: Aumentar pan de sal, preparar más croissants..."><?= htmlspecialchars($cierre_guardado['sugerencia_produccion'] ?? '') ?></textarea>
-        </div>
-        <button type="submit" name="confirmar_cierre" class="btn-cerrar">
-          <i class="bi bi-moon-stars-fill"></i>
-          <?= $cierre_guardado ? 'Actualizar cierre' : 'Confirmar cierre del día' ?>
-        </button>
-      </form>
-    </div>
-
-    <!-- Columna derecha: historial + sobrantes -->
-    <div class="cierre-right">
-
-      <!-- Historial cierres -->
-      <?php if (!empty($historial)): ?>
-      <div class="hist-card">
-        <div class="ch">
-          <div class="ch-left">
-            <span class="ch-ico ico-blu"><i class="bi bi-clock-history"></i></span>
-            <span class="ch-title">Historial reciente</span>
+      <div class="cierre-form">
+        <?php if ($cierre_guardado): ?>
+        <div class="cierre-ya">
+          <i class="bi bi-check-circle-fill"></i>
+          <div>
+            Cierre guardado
+            <?php if (!empty($cierre_guardado['sugerencia_produccion'])): ?>
+            <div style="font-size:.65rem;font-weight:400;opacity:.75;margin-top:.1rem">
+              "<?= htmlspecialchars($cierre_guardado['sugerencia_produccion']) ?>"
+            </div>
+            <?php endif; ?>
           </div>
-          <span class="badge b-neu"><?= count($historial) ?> días</span>
-        </div>
-        <div style="overflow-x:auto">
-          <table class="ht">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Ingresos</th>
-                <th>Util. bruta</th>
-                <th>Util. neta</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($historial as $h): ?>
-              <tr>
-                <td style="font-weight:600;white-space:nowrap">
-                  <?= date('d/m/Y', strtotime($h['fecha'])) ?>
-                  <?php if ($h['fecha'] === $hoy): ?>
-                  <span class="badge b-ok" style="margin-left:.3rem">hoy</span>
-                  <?php endif; ?>
-                </td>
-                <td class="grn">$<?= number_format($h['total_ingresos'], 0, ',', '.') ?></td>
-                <td class="<?= $h['utilidad_bruta'] >= 0 ? 'grn' : 'red' ?>">
-                  <?= $h['utilidad_bruta'] >= 0 ? '+' : '-' ?>$<?= number_format(abs($h['utilidad_bruta']), 0, ',', '.') ?>
-                </td>
-                <td class="<?= $h['utilidad_neta'] >= 0 ? 'grn' : 'red' ?>">
-                  <?= $h['utilidad_neta'] >= 0 ? '+' : '-' ?>$<?= number_format(abs($h['utilidad_neta']), 0, ',', '.') ?>
-                </td>
-              </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <?php endif; ?>
-
-      <!-- Sobrantes compacto -->
-      <div class="sob-card">
-        <div class="sob-titulo"><i class="bi bi-box-seam"></i> Sin vender hoy
-          <span class="badge <?= $total_sobrante <= 0 ? 'b-ok' : 'b-bad' ?>" style="margin-left:auto">
-            <?= $total_sobrante <= 0 ? '✓ Todo vendido' : $total_sobrante . ' und' ?>
-          </span>
-        </div>
-        <?php if (empty($sobrantes) || $total_sobrante <= 0): ?>
-        <div class="sob-vacio"><i class="bi bi-emoji-smile"></i> ¡Todo vendido hoy!</div>
-        <?php else: ?>
-        <div class="sob-lista">
-          <?php foreach ($sobrantes as $s): if ($s['sobrante'] <= 0) continue; ?>
-          <div class="sob-fila">
-            <span class="sob-nombre"><?= htmlspecialchars($s['nombre']) ?></span>
-            <span class="sob-det"><?= $s['vendidas'] ?>/<span style="color:var(--ink2)"><?= $s['producidas'] ?></span></span>
-            <span class="badge b-bad" style="font-size:.6rem"><?= $s['sobrante'] ?> und</span>
-          </div>
-          <?php endforeach; ?>
         </div>
         <?php endif; ?>
+        <form method="POST" style="display:flex;flex-direction:column;gap:.5rem;width:100%;">
+          <div class="obs-wrap">
+            <div class="obs-label">Sugerencia producción mañana</div>
+            <textarea name="sugerencia_produccion" class="obs-textarea"
+              placeholder="Ej: Aumentar pan de sal..."><?= htmlspecialchars($cierre_guardado['sugerencia_produccion'] ?? '') ?></textarea>
+          </div>
+          <button type="submit" name="confirmar_cierre" class="btn-cerrar">
+            <i class="bi bi-moon-stars-fill"></i>
+            <?= $cierre_guardado ? 'Actualizar cierre' : 'Confirmar cierre' ?>
+          </button>
+        </form>
       </div>
+    </div>
 
-    </div><!-- /cierre-right -->
+    <!-- Card 2: Historial reciente (estilo Ventas/cliente) -->
+    <?php if (!empty($historial)): ?>
+    <div class="card">
+      <div class="ch">
+        <div class="ch-left">
+          <span class="ch-ico ico-blu"><i class="bi bi-clock-history"></i></span>
+          <span class="ch-title">Historial reciente</span>
+        </div>
+        <span class="badge b-neu"><?= count($historial) ?> días</span>
+      </div>
+      <div class="d-scroll">
+        <table class="ht">
+          <thead>
+            <tr><th>Fecha</th><th>Ingresos</th><th>U. bruta</th><th>U. neta</th></tr>
+          </thead>
+          <tbody>
+            <?php foreach ($historial as $h): ?>
+            <tr>
+              <td style="font-weight:600;white-space:nowrap">
+                <?= date('d/m', strtotime($h['fecha'])) ?>
+                <?php if ($h['fecha'] === $hoy): ?>
+                <span class="badge b-ok" style="margin-left:.2rem">hoy</span>
+                <?php endif; ?>
+              </td>
+              <td class="grn">$<?= number_format($h['total_ingresos'], 0, ',', '.') ?></td>
+              <td class="<?= $h['utilidad_bruta'] >= 0 ? 'grn' : 'red' ?>">
+                <?= $h['utilidad_bruta'] >= 0 ? '+' : '-' ?>$<?= number_format(abs($h['utilidad_bruta']), 0, ',', '.') ?>
+              </td>
+              <td class="<?= $h['utilidad_neta'] >= 0 ? 'grn' : 'red' ?>">
+                <?= $h['utilidad_neta'] >= 0 ? '+' : '-' ?>$<?= number_format(abs($h['utilidad_neta']), 0, ',', '.') ?>
+              </td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <?php else: ?>
+    <div class="card">
+      <div class="ch">
+        <div class="ch-left">
+          <span class="ch-ico ico-blu"><i class="bi bi-clock-history"></i></span>
+          <span class="ch-title">Historial reciente</span>
+        </div>
+      </div>
+      <div class="c-empty"><i class="bi bi-clock-history"></i>Sin cierres previos</div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Card 3: Sin vender hoy (estilo Operaciones) -->
+    <div class="card">
+      <div class="ch">
+        <div class="ch-left">
+          <span class="ch-ico ico-red"><i class="bi bi-box-seam"></i></span>
+          <span class="ch-title">Sin vender hoy</span>
+        </div>
+        <span class="badge <?= $total_sobrante <= 0 ? 'b-ok' : 'b-bad' ?>">
+          <?= $total_sobrante <= 0 ? '✓ Todo vendido' : $total_sobrante . ' und' ?>
+        </span>
+      </div>
+      <?php if (empty($sobrantes) || $total_sobrante <= 0): ?>
+      <div class="c-empty"><i class="bi bi-emoji-smile"></i>¡Todo vendido hoy!</div>
+      <?php else: ?>
+      <div class="sob-lista">
+        <?php foreach ($sobrantes as $s): if ($s['sobrante'] <= 0) continue; ?>
+        <div class="sob-fila">
+          <span class="sob-nombre"><?= htmlspecialchars($s['nombre']) ?></span>
+          <span class="sob-det"><?= $s['vendidas'] ?>/<span style="color:var(--ink2)"><?= $s['producidas'] ?></span></span>
+          <span class="badge b-bad" style="font-size:.58rem"><?= $s['sobrante'] ?> und</span>
+        </div>
+        <?php endforeach; ?>
+      </div>
+      <?php endif; ?>
+    </div>
 
   </div><!-- /cierre-bottom -->
 </div><!-- /page -->

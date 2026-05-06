@@ -139,6 +139,10 @@ if (isset($_GET['ajax_lotes'])) {
 // ══════════════════════════════════════════════════════════════
 $msg_ok  = '';
 $msg_err = '';
+if (!empty($_SESSION['msg_ok_prod'])) {
+    $msg_ok = $_SESSION['msg_ok_prod'];
+    unset($_SESSION['msg_ok_prod']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar'])) {
     $id_prod  = (int)($_POST['id_producto']         ?? 0);
@@ -269,18 +273,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar'])) {
                         UPDATE produccion SET costo_total=?, costo_unitario=? WHERE id_produccion=?
                     ")->execute([$costo_total, $costo_unit, $id_produccion]);
 
+                    // Insertar distribución por categoría de precio
+                    $cats_dist = $_POST['dist'] ?? [];
+                    $total_real = 0;
+                    foreach ($cats_dist as $id_cat => $und_cat) {
+                        $und_cat = (int)$und_cat;
+                        if ($und_cat > 0) {
+                            $pdo->prepare("INSERT INTO produccion_precio (id_produccion, id_categoria_precio, unidades) VALUES (?,?,?)")
+                                ->execute([$id_produccion, (int)$id_cat, $und_cat]);
+                            $total_real += $und_cat;
+                        }
+                    }
+                    // Actualizar unidades_producidas con el total real distribuido
+                    if ($total_real > 0 && $total_real != $unidades) {
+                        $pdo->prepare("UPDATE produccion SET unidades_producidas=? WHERE id_produccion=?")
+                            ->execute([$total_real, $id_produccion]);
+                        $unidades = $total_real;
+                    }
+
                     $pdo->commit();
 
                     $np = $pdo->prepare("SELECT nombre FROM producto WHERE id_producto=?");
                     $np->execute([$id_prod]);
                     $nombre_prod = $np->fetchColumn();
 
-                    $msg_ok = "Producción registrada: <strong>{$tandas} tanda(s)</strong> → "
-                            . "<strong>{$unidades} unidades</strong> de "
-                            . "<strong>" . htmlspecialchars($nombre_prod) . "</strong>. "
-                            . "Costo total: <strong>$" . number_format($costo_total,0,',','.') . "</strong>"
-                            . " | Por unidad: <strong>$" . number_format($costo_unit,0,',','.') . "</strong>."
-                            . " Lotes descontados correctamente.";
+                    $_SESSION['msg_ok_prod'] = "Producción registrada: <strong>{$tandas} tanda(s)</strong> de <strong>" . htmlspecialchars($nombre_prod) . "</strong>"
+                            . "<br><strong>{$unidades} unidades</strong> producidas"
+                            . "<br>Costo total: <strong>$" . number_format($costo_total,0,',','.') . "</strong>"
+                            . "<br>Costo por unidad: <strong>$" . number_format($costo_unit,0,',','.') . "</strong>"
+                            . "<br>Lotes descontados correctamente.";
+                    header('Location: nueva_produccion.php');
+                    exit;
 
                 } catch (Exception $e) {
                     $pdo->rollBack();
@@ -292,6 +315,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar'])) {
 }
 
 // Productos activos con indicador de receta
+// Categorías de precio para distribución
+$categorias_precio = $pdo->query("SELECT * FROM categoria_precio WHERE activo=1 ORDER BY precio_unitario")->fetchAll();
+
 $productos = $pdo->query("
     SELECT p.id_producto, p.nombre, p.cantidad_por_tanda,
            (SELECT COUNT(*) FROM receta WHERE id_producto=p.id_producto AND es_vigente=1) AS tiene_receta
@@ -304,12 +330,20 @@ $prod_hoy = $pdo->query("
            pr.costo_total, pr.costo_unitario, p.nombre AS producto
     FROM produccion pr
     INNER JOIN producto p ON p.id_producto=pr.id_producto
-    WHERE DATE(pr.fecha_produccion)=CURDATE()
+    WHERE DATE(pr.fecha_produccion)='" . date('Y-m-d') . "'
     ORDER BY pr.fecha_produccion DESC
 ")->fetchAll();
 
 $total_hoy = array_sum(array_column($prod_hoy,'unidades_producidas'));
 $costo_hoy = array_sum(array_column($prod_hoy,'costo_total'));
+
+
+// ── Observación del último cierre ──────────────────────────────
+$obs_cierre = $pdo->query("
+    SELECT sugerencia_produccion, fecha FROM cierre_dia 
+    WHERE sugerencia_produccion IS NOT NULL AND sugerencia_produccion != '' 
+    ORDER BY fecha DESC LIMIT 1
+")->fetch();
 
 $page_title = 'Nueva Producción';
 require_once __DIR__ . '/../../views/layouts/header.php';
@@ -385,8 +419,11 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   .lote-consumir{color:#c62828;font-weight:700;white-space:nowrap;font-size:.68rem;}
   .lote-disp{color:#2e7d32;font-size:.62rem;white-space:nowrap;margin-left:auto;}
   .sin-lote{font-size:.72rem;color:#c62828;padding:.28rem .48rem;background:rgba(229,57,53,.05);border:1px dashed rgba(229,57,53,.28);border-radius:7px;margin:.1rem 0;}
-  .alert-falta{background:rgba(229,57,53,.07);border:1px solid rgba(229,57,53,.18);border-radius:8px;padding:.45rem .65rem;font-size:.75rem;color:#c62828;margin-top:.4rem;display:flex;align-items:center;gap:.35rem;}
-  .bloqueo-bar{background:rgba(229,57,53,.08);border-top:1px solid rgba(229,57,53,.15);padding:.5rem .75rem;font-size:.73rem;color:#c62828;font-weight:700;display:flex;align-items:center;gap:.35rem;}
+  .alert-falta{background:rgba(229,57,53,.07);border:1px solid rgba(229,57,53,.18);border-radius:8px;padding:.55rem .75rem;font-size:.75rem;color:#c62828;margin-top:.4rem;display:flex;align-items:flex-start;gap:.45rem;line-height:1.5;text-align:justify;}
+  .alert-falta i{flex-shrink:0;margin-top:.12rem;font-size:.82rem;}
+  .alert-falta-text{flex:1;}
+  .bloqueo-bar{background:rgba(230,81,0,.08);border:1px solid rgba(230,81,0,.22);border-radius:9px;padding:.65rem .85rem;font-size:.75rem;color:#e65100;font-weight:600;display:flex;align-items:flex-start;gap:.45rem;margin-top:.5rem;line-height:1.5;text-align:justify;}
+  .bloqueo-bar i{flex-shrink:0;margin-top:.12rem;font-size:.85rem;}
   /* TABLA */
   .tbl-wrap{overflow-y:auto;flex:1;min-height:0;}
   .gt{width:100%;border-collapse:collapse;}
@@ -398,9 +435,32 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;padding:3rem 1rem;color:var(--ink3);font-size:.82rem;text-align:center;flex:1;}
   .empty i{font-size:2.2rem;opacity:.3;}
   @media(max-width:900px){.page{height:auto;overflow:visible;margin-top:60px;}.g-body{grid-template-columns:1fr;}}
+
+  /* ── Observación cierre ── */
+  .obs-banner{background:linear-gradient(135deg,rgba(21,101,192,.08),rgba(21,101,192,.03));border:1.5px solid rgba(21,101,192,.2);border-radius:12px;padding:.7rem 1rem;display:flex;align-items:flex-start;gap:.6rem;animation:fadeUp .5s ease both;position:relative;}
+  .obs-banner .obs-ico{width:36px;height:36px;border-radius:9px;background:rgba(21,101,192,.12);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#1565c0;flex-shrink:0;}
+  .obs-banner .obs-body{flex:1;}
+  .obs-banner .obs-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#1565c0;margin-bottom:.15rem;}
+  .obs-banner .obs-text{font-size:.82rem;color:var(--ink);font-weight:600;line-height:1.4;}
+  .obs-banner .obs-date{font-size:.62rem;color:#42a5f5;margin-top:.15rem;}
+  .obs-banner .obs-close{position:absolute;top:.5rem;right:.6rem;background:none;border:none;font-size:1rem;color:#90caf9;cursor:pointer;padding:0;line-height:1;}
+  .obs-banner .obs-close:hover{color:#1565c0;}
 </style>
 
 <div class="page">
+
+
+        <?php if (!empty($obs_cierre['sugerencia_produccion'])): ?>
+        <div class="obs-banner" id="obs-cierre-banner">
+          <div class="obs-ico"><i class="bi bi-chat-left-text-fill"></i></div>
+          <div class="obs-body">
+            <div class="obs-label">Nota del último cierre</div>
+            <div class="obs-text"><?= htmlspecialchars($obs_cierre['sugerencia_produccion']) ?></div>
+            <div class="obs-date">Cierre del <?= date('d/m/Y', strtotime($obs_cierre['fecha'])) ?></div>
+          </div>
+          <button class="obs-close" onclick="this.parentElement.style.display='none'" title="Cerrar">&times;</button>
+        </div>
+        <?php endif; ?>
 
   <div class="wc-banner">
     <div class="wc-left">
@@ -482,6 +542,27 @@ require_once __DIR__ . '/../../views/layouts/header.php';
           </div>
 
 
+
+          <!-- DISTRIBUCIÓN POR PRECIO -->
+          <div id="panel-distribucion" class="fl" style="display:none;">
+            <label><i class="bi bi-grid-3x3-gap" style="color:var(--c3)"></i> ¿Cuántos de cada precio?</label>
+            <div style="background:var(--clight);border:1px solid var(--border);border-radius:10px;padding:.7rem .85rem;">
+              <div style="font-size:.7rem;color:var(--ink3);margin-bottom:.5rem;">
+                Se esperan <strong id="dist-total-label">0</strong> unidades. Escribe cuántas salieron realmente de cada precio:
+              </div>
+              <?php foreach ($categorias_precio as $cp): ?>
+              <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;">
+                <span style="font-size:.8rem;font-weight:700;color:var(--ink);min-width:65px;">$<?= number_format($cp['precio_unitario'],0,',','.') ?></span>
+                <input type="number" name="dist[<?= $cp['id_categoria'] ?>]" 
+                       class="dist-input" data-cat="<?= $cp['id_categoria'] ?>"
+                       min="0" step="1" value="0" oninput="checkDistTotal()"
+                       style="width:80px;border:1px solid var(--border);border-radius:8px;padding:.35rem .5rem;font-size:.88rem;font-family:'Fraunces',serif;font-weight:700;text-align:center;background:#fff;">
+                <span style="font-size:.7rem;color:var(--ink3);">unidades</span>
+              </div>
+              <?php endforeach; ?>
+              <div id="dist-status" style="margin-top:.5rem;padding:.4rem .6rem;border-radius:8px;font-size:.75rem;font-weight:700;text-align:center;"></div>
+            </div>
+          </div>
 
           <!-- PANEL DE LOTES FIFO -->
           <div id="panel-lotes" class="fl" style="display:none;">
@@ -573,6 +654,48 @@ function changeUnd(d) {
 }
 
 let timer = null;
+function showDistribucion(totalUnidades) {
+  var panel = document.getElementById('panel-distribucion');
+  if (totalUnidades > 0) {
+    panel.style.display = 'block';
+    document.getElementById('dist-total-label').textContent = totalUnidades;
+    // Reset all inputs
+    document.querySelectorAll('.dist-input').forEach(function(inp){ inp.value = 0; });
+    // Pre-fill first category with all units
+    var first = document.querySelector('.dist-input');
+    if (first) first.value = totalUnidades;
+    checkDistTotal();
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function checkDistTotal() {
+  var inputs = document.querySelectorAll('.dist-input');
+  var sum = 0;
+  inputs.forEach(function(inp){ sum += parseInt(inp.value) || 0; });
+  var target = parseInt(document.getElementById('dist-total-label').textContent) || 0;
+  var status = document.getElementById('dist-status');
+  if (sum === 0) {
+    status.textContent = '';
+    status.style.background = 'transparent';
+  } else if (sum === target) {
+    status.textContent = '✅ ' + sum + ' unidades — coincide con lo esperado';
+    status.style.background = 'rgba(46,125,50,.1)';
+    status.style.color = '#2e7d32';
+  } else if (sum > target) {
+    var extra = sum - target;
+    status.textContent = '📈 ' + sum + ' unidades — ' + extra + ' más de lo esperado';
+    status.style.background = 'rgba(21,101,192,.1)';
+    status.style.color = '#1565c0';
+  } else {
+    var menos = target - sum;
+    status.textContent = '📉 ' + sum + ' unidades — ' + menos + ' menos de lo esperado';
+    status.style.background = 'rgba(230,81,0,.08)';
+    status.style.color = '#e65100';
+  }
+}
+
 function cargarLotes() {
   clearTimeout(timer);
   timer = setTimeout(_fetch, 420);
@@ -592,8 +715,10 @@ function _fetch() {
   if (selOpt && selOpt.value && cantXTanda > 0) {
     prevVal.textContent = totalUnidades.toLocaleString('es-CO');
     prev.style.display = 'block';
+    showDistribucion(totalUnidades);
   } else {
     prev.style.display = 'none';
+    showDistribucion(0);
   }
 
   if (!prod) { panel.style.display = 'none'; return; }
@@ -648,17 +773,17 @@ function _fetch() {
         if (!ing.alcanza) {
           const falta = ing.cant_necesaria - ing.total_disponible;
           html += '<div class="alert-falta"><i class="bi bi-exclamation-triangle-fill"></i>'
-                + 'Faltan <strong>' + fmt(falta) + ' ' + ing.unidad_medida + '</strong>.'
-                + ' Actualiza el stock en <strong>Inventario</strong> o registra una compra.'
+                + '<span class="alert-falta-text">Faltan <strong>' + fmt(falta) + ' ' + ing.unidad_medida + '</strong>. '
+                + 'Actualiza el stock en <strong>Inventario</strong> o registra una compra.</span>'
                 + '</div>';
         }
         html += '</div>';
       });
 
       if (data.hay_faltante) {
-        html += '<div class="bloqueo-bar" style="background:rgba(230,81,0,.1);border:1px solid rgba(230,81,0,.3);border-radius:9px;padding:.6rem .85rem;font-size:.78rem;font-weight:600;color:#e65100;display:flex;align-items:center;gap:.4rem;margin-top:.4rem;">'
+        html += '<div class="bloqueo-bar">'
               + '<i class="bi bi-exclamation-triangle-fill"></i>'
-              + '⚠ Stock insuficiente. Si ya sacaste los ingredientes del estante, haz clic en <strong>Registrar</strong> de todas formas — el sistema consumirá lo que haya y registrará el faltante.'
+              + '<span class="alert-falta-text">Stock insuficiente. Si ya sacaste los ingredientes del estante, haz clic en <strong>Registrar</strong> de todas formas — el sistema consumirá lo que haya y registrará el faltante.</span>'
               + '</div>';
       }
 

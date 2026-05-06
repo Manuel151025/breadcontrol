@@ -4,10 +4,22 @@
 //  Archivo: config/db.php
 // ============================================================
 
-define('DB_HOST',   'localhost');
-define('DB_USER',   'root');
-define('DB_PASS',   '');           // En XAMPP la contraseña por defecto es vacía
-define('DB_NAME',   'panaderia_bd');
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+if ($host === 'localhost' || $host === '127.0.0.1') {
+    // LOCAL (XAMPP)
+    define('DB_HOST',   'localhost');
+    define('DB_USER',   'root');
+    define('DB_PASS',   '');
+    define('DB_NAME',   'panaderia_bd');
+} else {
+    // HOSTING (Hostinger)
+    define('DB_HOST',   '193.203.175.84');
+    define('DB_USER',   'u631215701_breadcontrol');
+    define('DB_PASS',   'Breadcontrol2026');
+    define('DB_NAME',   'u631215701_breadcontrol');
+}
+
 define('DB_CHARSET','utf8mb4');
 
 function getConexion(): PDO {
@@ -22,6 +34,7 @@ function getConexion(): PDO {
         ];
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $opciones);
+            $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
         } catch (PDOException $e) {
             die(json_encode([
                 'error' => true,
@@ -30,5 +43,6 @@ function getConexion(): PDO {
         }
     }
 
+    $pdo->exec("SET time_zone = '-05:00'");
     return $pdo;
 }

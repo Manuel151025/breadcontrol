@@ -6,14 +6,19 @@ require_once __DIR__ . '/../../includes/funciones.php';
 
 requerirPropietario();
 $pdo  = getConexion();
+
+// Meses y días en español
+$meses_es = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+$dias_es = ['Sun'=>'Dom','Mon'=>'Lun','Tue'=>'Mar','Wed'=>'Mié','Thu'=>'Jue','Fri'=>'Vie','Sat'=>'Sáb'];
+$mes_actual = $meses_es[(int)date('n')];
 $user = usuarioActual();
 
-$ventas_hoy   = (float)$pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE DATE(fecha_hora)=CURDATE()")->fetchColumn();
-$ventas_ayer  = (float)$pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE DATE(fecha_hora)=DATE_SUB(CURDATE(),INTERVAL 1 DAY)")->fetchColumn();
-$num_ventas   = (int)$pdo->query("SELECT COUNT(*) FROM venta WHERE DATE(fecha_hora)=CURDATE()")->fetchColumn();
+$ventas_hoy   = (float)$pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=CURDATE()")->fetchColumn();
+$ventas_ayer  = (float)$pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=DATE_SUB(CURDATE(),INTERVAL 1 DAY)")->fetchColumn();
+$num_ventas   = (int)$pdo->query("SELECT COUNT(*) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=CURDATE()")->fetchColumn();
 $diff_v       = $ventas_ayer > 0 ? round((($ventas_hoy - $ventas_ayer) / $ventas_ayer) * 100, 1) : null;
 
-$ingresos_mes = (float)$pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE MONTH(fecha_hora)=MONTH(CURDATE()) AND YEAR(fecha_hora)=YEAR(CURDATE())")->fetchColumn();
+$ingresos_mes = (float)$pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND MONTH(fecha_hora)=MONTH(CURDATE()) AND YEAR(fecha_hora)=YEAR(CURDATE())")->fetchColumn();
 $compras_mes  = (float)$pdo->query("SELECT COALESCE(SUM(total_pagado),0) FROM compra WHERE MONTH(fecha_compra)=MONTH(CURDATE()) AND YEAR(fecha_compra)=YEAR(CURDATE())")->fetchColumn();
 $utilidad_mes = $ingresos_mes - $compras_mes;
 
@@ -39,11 +44,12 @@ $prods_recientes = $pdo->query("
 ")->fetchAll();
 
 $top_ventas = $pdo->query("
-    SELECT p.nombre, SUM(v.unidades_vendidas) AS u, SUM(v.total_venta) AS t
+    SELECT COALESCE(cp.nombre, p.nombre) AS nombre, SUM(v.unidades_vendidas) AS u, SUM(v.total_venta) AS t
     FROM venta v
-    INNER JOIN producto p ON p.id_producto = v.id_producto
-    WHERE DATE(v.fecha_hora) = CURDATE()
-    GROUP BY v.id_producto
+    LEFT JOIN categoria_precio cp ON cp.id_categoria = v.id_categoria_precio
+    LEFT JOIN producto p ON p.id_producto = v.id_producto
+    WHERE v.tipo_salida='venta' AND DATE(v.fecha_hora) = CURDATE()
+    GROUP BY nombre
     ORDER BY t DESC
     LIMIT 4
 ")->fetchAll();
@@ -51,7 +57,7 @@ $top_ventas = $pdo->query("
 $dias_raw = $pdo->query("
     SELECT DATE(fecha_hora) AS d, COALESCE(SUM(total_venta), 0) AS t
     FROM venta
-    WHERE fecha_hora >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+    WHERE tipo_salida='venta' AND fecha_hora >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
     GROUP BY DATE(fecha_hora)
 ")->fetchAll(PDO::FETCH_KEY_PAIR);
 
@@ -59,7 +65,7 @@ $chart = [];
 for ($i = 6; $i >= 0; $i--) {
     $f = date('Y-m-d', strtotime("-{$i} days"));
     $chart[] = [
-        'lbl' => date('D', strtotime($f)),
+        'lbl' => $dias_es[date('D', strtotime($f))],
         'v'   => (float)($dias_raw[$f] ?? 0),
         'hoy' => $i === 0
     ];
@@ -90,6 +96,13 @@ if (empty($consumo_hoy)) {
     ")->fetchAll();
 }
 $max_consumo_hoy = !empty($consumo_hoy) ? max(array_column($consumo_hoy, 'total')) : 1;
+// ── Observación del último cierre ──
+$obs_cierre = $pdo->query("
+    SELECT sugerencia_produccion, fecha FROM cierre_dia 
+    WHERE sugerencia_produccion IS NOT NULL AND sugerencia_produccion != '' 
+    ORDER BY fecha DESC LIMIT 1
+")->fetch();
+
 require_once __DIR__ . '/../../views/layouts/header.php';
 ?>
 <!-- ESTILOS TABLERO -->
@@ -314,6 +327,16 @@ require_once __DIR__ . '/../../views/layouts/header.php';
       .fin3 { grid-template-columns: 1fr; }
       .fin3 .fcard:last-child { grid-column: auto; }
     }
+
+  /* ── Observación cierre ── */
+  .obs-banner{background:linear-gradient(135deg,rgba(21,101,192,.08),rgba(21,101,192,.03));border:1.5px solid rgba(21,101,192,.2);border-radius:12px;padding:.7rem 1rem;display:flex;align-items:flex-start;gap:.6rem;animation:fadeUp .5s ease both;position:relative;}
+  .obs-banner .obs-ico{width:36px;height:36px;border-radius:9px;background:rgba(21,101,192,.12);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#1565c0;flex-shrink:0;}
+  .obs-banner .obs-body{flex:1;}
+  .obs-banner .obs-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#1565c0;margin-bottom:.15rem;}
+  .obs-banner .obs-text{font-size:.82rem;color:var(--ink);font-weight:600;line-height:1.4;}
+  .obs-banner .obs-date{font-size:.62rem;color:#42a5f5;margin-top:.15rem;}
+  .obs-banner .obs-close{position:absolute;top:.5rem;right:.6rem;background:none;border:none;font-size:1rem;color:#90caf9;cursor:pointer;padding:0;line-height:1;}
+  .obs-banner .obs-close:hover{color:#1565c0;}
 </style>
 
 <!-- PÁGINA -->
@@ -366,6 +389,19 @@ require_once __DIR__ . '/../../views/layouts/header.php';
       </div>
     </div>
   </div>
+
+
+  <?php if (!empty($obs_cierre['sugerencia_produccion'])): ?>
+  <div class="obs-banner" id="obs-cierre-banner">
+    <div class="obs-ico"><i class="bi bi-chat-left-text-fill"></i></div>
+    <div class="obs-body">
+      <div class="obs-label">Nota del último cierre</div>
+      <div class="obs-text"><?= htmlspecialchars($obs_cierre['sugerencia_produccion']) ?></div>
+      <div class="obs-date">Cierre del <?= date('d/m/Y', strtotime($obs_cierre['fecha'])) ?></div>
+    </div>
+    <button class="obs-close" onclick="this.parentElement.style.display='none'" title="Cerrar">&times;</button>
+  </div>
+  <?php endif; ?>
 
   <div class="grid">
 
@@ -442,7 +478,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
       <div class="ch">
         <div class="ch-left">
           <span class="ch-ico ico-grn"><i class="bi bi-graph-up-arrow"></i></span>
-          <span class="ch-title">Finanzas — <?= date('F') ?></span>
+          <span class="ch-title">Finanzas — <?= $mes_actual ?></span>
         </div>
       </div>
       <div class="fin3">
@@ -512,7 +548,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
         <?php
         $acs = [
           ['/modules/produccion/nueva_produccion.php', 'bi-fire',           'Producción', 'var(--c3)', 'rgba(198,113,36,.08)'],
-          ['/modules/ventas/nueva_venta.php',          'bi-bag-plus-fill',  'Nueva venta','#198754',   'rgba(25,135,84,.08)'],
+          ['/modules/ventas/index.php',          'bi-bag-plus-fill',  'Nueva venta','#198754',   'rgba(25,135,84,.08)'],
           ['/modules/compras/index.php',               'bi-cart-plus-fill', 'Compra',     '#0d6efd',   'rgba(13,110,253,.08)'],
           ['/modules/inventario/index.php',            'bi-box-seam-fill',  'Inventario', 'var(--c1)', 'rgba(148,91,53,.08)'],
           ['/modules/ventas/clientes.php',             'bi-shop',           'Tiendas',   '#e91e63',   'rgba(233,30,99,.08)'],

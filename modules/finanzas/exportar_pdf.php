@@ -12,7 +12,7 @@ $hasta = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['hasta'] ?? '') ? $_GET['hast
 $user  = usuarioActual();
 
 // ── Totales ──────────────────────────────────────────────────────
-$stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE DATE(fecha_hora) BETWEEN :d AND :h");
+$stmt = $pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) BETWEEN :d AND :h");
 $stmt->execute([':d'=>$desde,':h'=>$hasta]);
 $ingresos = (float)$stmt->fetchColumn();
 
@@ -28,7 +28,7 @@ $utilidad_bruta = $ingresos - $compras_total;
 $utilidad_neta  = $ingresos - $compras_total - $gastos_op;
 $margen_bruto   = $ingresos > 0 ? round(($utilidad_bruta/$ingresos)*100,1) : 0;
 
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM venta WHERE DATE(fecha_hora) BETWEEN :d AND :h");
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) BETWEEN :d AND :h");
 $stmt->execute([':d'=>$desde,':h'=>$hasta]);
 $num_ventas = (int)$stmt->fetchColumn();
 
@@ -37,16 +37,16 @@ $stmt->execute([':d'=>$desde,':h'=>$hasta]);
 $num_compras = (int)$stmt->fetchColumn();
 
 // ── Ventas por día para gráfico ───────────────────────────────────
-$stmt = $pdo->prepare("SELECT DATE(fecha_hora) AS dia, SUM(total_venta) AS total FROM venta WHERE DATE(fecha_hora) BETWEEN :d AND :h GROUP BY DATE(fecha_hora) ORDER BY dia");
+$stmt = $pdo->prepare("SELECT DATE(fecha_hora) AS dia, SUM(total_venta) AS total FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) BETWEEN :d AND :h GROUP BY DATE(fecha_hora) ORDER BY dia");
 $stmt->execute([':d'=>$desde,':h'=>$hasta]);
 $ventas_dia = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
 // ── Top productos ─────────────────────────────────────────────────
 $stmt = $pdo->prepare("
-    SELECT p.nombre, SUM(v.unidades_vendidas) AS u, SUM(v.total_venta) AS t
-    FROM venta v INNER JOIN producto p ON p.id_producto=v.id_producto
+    SELECT COALESCE(cp.nombre, p.nombre) AS nombre, SUM(v.unidades_vendidas) AS u, SUM(v.total_venta) AS t
+    FROM venta v LEFT JOIN categoria_precio cp ON cp.id_categoria=v.id_categoria_precio LEFT JOIN producto p ON p.id_producto=v.id_producto
     WHERE DATE(v.fecha_hora) BETWEEN :d AND :h
-    GROUP BY v.id_producto ORDER BY t DESC LIMIT 6
+    GROUP BY nombre ORDER BY t DESC LIMIT 6
 ");
 $stmt->execute([':d'=>$desde,':h'=>$hasta]);
 $top_prod = $stmt->fetchAll();
@@ -440,7 +440,7 @@ $titulo_periodo = date('d \d\e F Y', strtotime($desde)) . ' — ' . date('d \d\e
           <img src="<?= APP_URL ?>/assets/img/logo.png" alt="Logo Panadería">
         </div>
         <div class="hdr-text-block">
-          <div class="hdr-nombre">BreakControl</div>
+          <div class="hdr-nombre">BreadControl</div>
           <div class="hdr-sub">Sistema de gestión · Florencia, Caquetá</div>
         </div>
       </div>
@@ -686,14 +686,14 @@ $titulo_periodo = date('d \d\e F Y', strtotime($desde)) . ' — ' . date('d \d\e
         <img src="<?= APP_URL ?>/assets/img/logo.png" alt="Logo">
       </div>
       <div>
-        <div class="footer-marca">Sistema BreakControl</div>
+        <div class="footer-marca">Sistema BreadControl</div>
         <div class="footer-ciudad">Florencia, Caquetá · Colombia</div>
       </div>
     </div>
     <div class="footer-info">
       Generado por <?= htmlspecialchars($user['nombre']) ?> · <?= date('d/m/Y H:i') ?><br>
       Período: <?= date('d/m/Y',strtotime($desde)) ?> — <?= date('d/m/Y',strtotime($hasta)) ?>
-      <div class="footer-page">Sistema de Gestión BreakControl</div>
+      <div class="footer-page">Sistema de Gestión BreadControl</div>
     </div>
   </div>
 

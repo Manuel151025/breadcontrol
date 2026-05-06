@@ -72,10 +72,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_compra'])) {
                 $pdo->commit();
                 $merma_aviso = $es_harina ? " (merma aplicada: disponible <strong>".number_format($cantidad_disponible,3)." kg</strong> de {$cantidad} kg comprados)" : '';
                 $alerta_precio = abs($variacion) >= 5 ? " ⚠️ Variación de precio: {$variacion}%" : '';
-                $msg_ok = "Compra registrada. Lote <strong>$numero_lote</strong> creado.$merma_aviso$alerta_precio";
+                $msg_ok = "Compra registrada.<br>Lote <strong>$numero_lote</strong> creado.";
+                if ($merma_aviso) $msg_ok .= "<br>" . ltrim($merma_aviso, " ");
+                if ($alerta_precio) $msg_ok .= "<br>" . ltrim($alerta_precio, " ");
             } catch (Exception $e) {
                 $pdo->rollBack();
-                $msg_err = 'Error al guardar la compra. Intenta de nuevo.';
+                $msg_err = 'Error al guardar: ' . $e->getMessage();
             }
         }
     }
@@ -231,8 +233,12 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   /* Mensajes */
   .btn-etq{border-color:rgba(198,113,36,.2);color:var(--c3);background:rgba(198,113,36,.06);}
   .btn-etq:hover{background:rgba(198,113,36,.15);transform:scale(1.08);}
-  .msg-ok{background:#e8f5e9;border:1px solid #a5d6a7;border-left:3px solid #2e7d32;border-radius:10px;padding:.6rem .9rem;font-size:.82rem;color:#1b5e20;font-weight:600;margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem;}
-  .msg-err{background:#ffebee;border:1px solid #ef9a9a;border-left:3px solid #c62828;border-radius:10px;padding:.6rem .9rem;font-size:.82rem;color:#c62828;margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem;}
+  .msg-ok{background:#e8f5e9;border:1px solid #a5d6a7;border-left:4px solid #2e7d32;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#1b5e20;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+  .msg-ok i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}
+  .msg-ok span{flex:1;}
+  .msg-err{background:#ffebee;border:1px solid #ef9a9a;border-left:4px solid #c62828;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#c62828;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+  .msg-err i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}
+  .msg-err span{flex:1;}
   .domingo-aviso{background:rgba(255,167,38,.1);border:1px solid rgba(255,167,38,.35);border-radius:10px;padding:.6rem .9rem;font-size:.82rem;color:#e65100;font-weight:600;margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem;}
   .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;padding:2.5rem 1rem;color:var(--ink3);font-size:.82rem;text-align:center;flex:1;}
   .empty i{font-size:2.2rem;opacity:.3;}
@@ -344,7 +350,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
   <div class="wc-banner">
     <div class="wc-left">
       <div>
-        <div class="wc-greeting">Panadería BreakControl</div>
+        <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Registro de <em>Compras</em></div>
         <div class="wc-sub">Control de insumos y proveedores — <?= date('F Y') ?></div>
       </div>
@@ -375,8 +381,15 @@ require_once __DIR__ . '/../../views/layouts/header.php';
     <div class="top-actions">
       <form method="get" style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;">
         <input type="text" name="q" class="inp-search" placeholder="Buscar insumo o proveedor…" value="<?= htmlspecialchars($busca) ?>">
-        <input type="month" name="mes" class="inp-search" style="width:145px;" value="<?= htmlspecialchars($mes_filtro) ?>">
-        <a href="index.php?alerta=1<?= $busca ? '&q='.urlencode($busca) : '' ?>" class="btn-sec <?= $filtro_alerta ? 'active' : '' ?>">
+        <input type="month" name="mes" class="inp-search" style="width:145px;" value="<?= htmlspecialchars($mes_filtro) ?>" onchange="this.form.submit()">
+        <button type="submit" class="btn-sec" style="padding:.42rem .7rem;"><i class="bi bi-search"></i></button>
+        <?php
+          $alerta_params = [];
+          if (!$filtro_alerta) $alerta_params[] = 'alerta=1';
+          if ($busca) $alerta_params[] = 'q=' . urlencode($busca);
+          $alerta_href = 'index.php' . ($alerta_params ? '?' . implode('&', $alerta_params) : '');
+        ?>
+        <a href="<?= $alerta_href ?>" class="btn-sec <?= $filtro_alerta ? 'active' : '' ?>">
           <i class="bi bi-exclamation-triangle<?= $filtro_alerta ? '-fill' : '' ?>"></i> Alertas
         </a>
       </form>
@@ -400,7 +413,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
       <div class="form-body">
 
         <?php if ($msg_ok): ?>
-        <div class="msg-ok"><i class="bi bi-check-circle-fill"></i><?= $msg_ok ?></div>
+        <div class="msg-ok"><i class="bi bi-check-circle-fill"></i><span><?= $msg_ok ?></span></div>
         <?php
         // Obtener id de la compra recién registrada para el botón de etiqueta
         $last_id = (int)$pdo->lastInsertId();
@@ -417,7 +430,7 @@ require_once __DIR__ . '/../../views/layouts/header.php';
         <?php endif; ?>
         <?php endif; ?>
         <?php if ($msg_err): ?>
-        <div class="msg-err"><i class="bi bi-exclamation-circle-fill"></i><?= $msg_err ?></div>
+        <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i><span><?= $msg_err ?></span></div>
         <?php endif; ?>
         <?php if (esHoyDomingo()): ?>
         <div class="domingo-aviso"><i class="bi bi-moon-stars-fill"></i> Los domingos no se registran compras.</div>
