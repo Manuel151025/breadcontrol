@@ -1,0 +1,36 @@
+# ═══ BreadControl .gitignore ═══
+
+# Archivos de configuración con contraseñas
+config/email.php
+.env
+test_*.php
+fix_*.php
+diagnostico_*.php
+instalar_phpmailer.php
+
+# Imágenes subidas por usuario
+assets/img/variedades/*
+!assets/img/variedades/.gitkeep
+
+# Documentos generados
+assets/docs/*.pdf
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
+nbproject/
+
+# Logs
+*.log
+error_log
+
+# PHP
+vendor/
+composer.lock
+
