@@ -3,7 +3,7 @@
 # Archivos de configuración con contraseñas
 config/email.php
 .env
-test_*.php
+/test_*.php
 fix_*.php
 diagnostico_*.php
 instalar_phpmailer.php
