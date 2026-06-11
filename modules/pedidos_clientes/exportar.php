@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../includes/sesion.php';
 requerirPropietario();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['exportar_ids'])) {
-    die("No se seleccionaron pedidos para exportar.");
+    throw new Exception("No se seleccionaron pedidos para exportar.");
 }
 
 $formato = $_POST['formato'] ?? 'excel';
