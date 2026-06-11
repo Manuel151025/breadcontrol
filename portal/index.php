@@ -318,7 +318,7 @@ function togglePass() {
     45:'bi-cloud-fog',48:'bi-cloud-fog',51:'bi-cloud-drizzle',53:'bi-cloud-drizzle',
     55:'bi-cloud-drizzle',61:'bi-cloud-rain',63:'bi-cloud-rain-heavy',65:'bi-cloud-rain-heavy',
     80:'bi-cloud-rain',81:'bi-cloud-rain-heavy',95:'bi-cloud-lightning-rain'};
-  fetch('https://api.open-meteo.com/v1/forecast?latitude=1.6144&longitude=-75.6062&current_weather=true&timezone=America/Bogota')
+  fetch('<?= get_env("API_OPEN_METEO_URL", "https://api.open-meteo.com/v1/forecast") ?>?latitude=1.6144&longitude=-75.6062&current_weather=true&timezone=America/Bogota')
     .then(function(r){return r.json()})
     .then(function(d){
       var cw = d.current_weather;
