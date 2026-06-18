@@ -254,7 +254,9 @@
       <form method="get">
         <input type="date" name="fecha" class="fil-date" value="<?= htmlspecialchars($fecha_fil) ?>" onchange="this.form.submit()">
       </form>
+      <a href="exportar_pdf.php?fecha=<?= urlencode($fecha_fil) ?>" target="_blank" class="btn-back" style="padding: 0.5rem 0.95rem; font-size: 0.82rem; font-weight: 700;"><i class="bi bi-printer-fill"></i> Imprimir Reporte</a>
       <a href="nueva_produccion.php" class="btn-grad"><i class="bi bi-plus-lg"></i> Nueva con receta</a>
+
     </div>
   </div>
 

@@ -110,6 +110,10 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 
 **Patrón:** Arquitectura MVC modular (config, includes, controllers, models, views, modules).
 
+**Principios de Limpieza SOLID y Frontend:**
+- **Responsabilidad Única (SRP):** Las vistas no realizan cálculos matemáticos de negocio (como balances de deuda o de consolidación de pedidos), delegando estas responsabilidades a componentes auxiliares en el backend como [PedidoHelper](file:///c:/xampp/htdocs/panaderia/helpers/PedidoHelper.php).
+- **Separación de Diseño y Lógica:** Se evita el código "inline". Los estilos CSS de diagramación y scripts interactivos de interacción con el DOM son extraídos hacia recursos estáticos organizados en `/assets/css/` (ej. `main.css`, `pedidos.css`) y `/assets/js/` (ej. `main.js`, `pedidos.js`).
+
 **Método de inventario:** FIFO (First In, First Out) — los lotes más antiguos de ingredientes se consumen primero de forma transaccional.
 
 **Producción:** Las unidades producidas se distribuyen por categoría de precio para el control exacto de stock disponible al vender.

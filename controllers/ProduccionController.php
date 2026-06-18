@@ -214,4 +214,20 @@ class ProduccionController {
         require_once __DIR__ . '/../views/layouts/header.php';
         require_once __DIR__ . '/../views/produccion/detalle.php';
     }
+
+    /**
+     * Exporta el reporte de producción del día en formato imprimible.
+     */
+    public function exportarPDF() {
+        requerirPropietario();
+
+        $fecha_fil = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha'] ?? '') ? $_GET['fecha'] : date('Y-m-d');
+
+        $producciones  = $this->model->getProduccionesPorFecha($fecha_fil);
+        $total_tandas  = array_sum(array_column($producciones, 'cantidad_tandas'));
+        $fecha_generado = date('d/m/Y H:i');
+
+        require_once __DIR__ . '/../views/produccion/exportar_pdf.php';
+    }
 }
+

@@ -1,0 +1,8 @@
+# Bloquear acceso a archivos de configuración .env
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Bloquear acceso a archivos ocultos (que inician con punto)
+RedirectMatch 403 /\..*$

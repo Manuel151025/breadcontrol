@@ -7,8 +7,26 @@
 require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../config/db.php';
 
-session_name(SESSION_NOMBRE);
-session_start();
+// Configuración de cookie de sesión segura
+if (session_status() === PHP_SESSION_NONE) {
+    $secure = false;
+    if (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1)) {
+        $secure = true;
+    } elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+        $secure = true;
+    }
+    
+    session_set_cookie_params([
+        'lifetime' => SESSION_DURACION,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    session_name(SESSION_NOMBRE);
+    session_start();
+}
 
 // Verificar que el usuario esté logueado
 // Si no lo está, redirigir al login
@@ -49,14 +67,10 @@ function requerirPropietario(): void {
 
 // Iniciar sesión del usuario
 function iniciarSesion(string $nombre_usuario, string $contrasena): bool {
+    require_once __DIR__ . '/../models/AuthModel.php';
     $pdo  = getConexion();
-    $stmt = $pdo->prepare(
-        "SELECT id_usuario, nombre_completo, contrasena_hash, rol
-         FROM usuario
-         WHERE nombre_usuario = ? AND activo = 1"
-    );
-    $stmt->execute([$nombre_usuario]);
-    $usuario = $stmt->fetch();
+    $model = new AuthModel($pdo);
+    $usuario = $model->getUsuarioPorNombre($nombre_usuario);
 
     if ($usuario && password_verify($contrasena, $usuario['contrasena_hash'])) {
         $_SESSION['id_usuario']       = $usuario['id_usuario'];
@@ -68,6 +82,7 @@ function iniciarSesion(string $nombre_usuario, string $contrasena): bool {
 
     return false;
 }
+
 
 // Cerrar sesión
 function cerrarSesion(): void {
@@ -89,4 +104,30 @@ function usuarioActual(): array {
 // Verificar si es propietario (sin redirigir)
 function esPropietario(): bool {
     return isset($_SESSION['rol']) && $_SESSION['rol'] === 'propietario';
+}
+
+/**
+ * Genera un token CSRF criptográficamente seguro si no existe en la sesión.
+ */
+function generar_token_csrf(): string {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Valida si el token provisto coincide de forma segura con el token de sesión.
+ */
+function validar_token_csrf(?string $token): bool {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (empty($_SESSION['csrf_token']) || empty($token)) {
+        return false;
+    }
+    return hash_equals($_SESSION['csrf_token'], $token);
 }

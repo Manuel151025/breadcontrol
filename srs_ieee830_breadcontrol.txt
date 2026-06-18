@@ -1,0 +1,341 @@
+# 📄 Especificación de Requisitos de Software (SRS)
+## Proyecto: BreadControl
+### Estándar IEEE Std 830-1998 (Ampliado con Fórmulas, Consultas, RF, RNF e Historias de Usuario)
+
+---
+
+## 📋 Tabla de Contenido
+1. [Introducción](#1-introducción)
+   - 1.1 Propósito
+   - 1.2 Ámbito del Sistema
+   - 1.3 Definiciones, Acrónimos y Abreviaturas
+   - 1.4 Referencias
+   - 1.5 Perspectiva General
+2. [Descripción General](#2-descripción-general)
+   - 2.1 Perspectiva del Producto
+   - 2.2 Funciones del Producto
+   - 2.3 Características de los Usuarios
+   - 2.4 Restricciones Generales
+   - 2.5 Suposiciones y Dependencias
+3. [Requisitos Específicos](#3-requisitos-específicos)
+   - 3.1 Requisitos Funcionales (RF)
+   - 3.2 Requisitos No Funcionales (RNF)
+   - 3.3 Interfaces Externas
+   - 3.4 Requisitos de Seguridad
+4. [Fórmulas Matemáticas del Sistema](#4-fórmulas-matemáticas-del-sistema)
+5. [Consultas SQL Críticas (Data Access Layer)](#5-consultas-sql-críticas-data-access-layer)
+6. [Historias de Usuario (HU)](#6-historias-de-usuario-hu)
+
+---
+
+## 1. Introducción
+
+### 1.1 Propósito
+El propósito de este documento es definir la Especificación de Requisitos de Software (SRS) para el sistema **BreadControl**, una plataforma web de gestión integral diseñada específicamente para optimizar, controlar y digitalizar las operaciones de panaderías artesanales colombianas y entornos educativos relacionados (como el SENA). 
+
+Está dirigido al autor del proyecto, instructores, evaluadores del programa de formación ADSO, y desarrolladores que den mantenimiento o escalabilidad al sistema.
+
+### 1.2 Ámbito del Sistema
+El sistema se denomina **BreadControl**. Su objetivo primordial es centralizar y automatizar los procesos de:
+* Control de inventario de insumos mediante el método FIFO.
+* Registro y análisis de costos en producción por tandas.
+* Ventas rápidas, pedidos detallados para clientes/tiendas con bonificaciones y ñapas automáticas.
+* Administración educativa bajo el flujo Instructor-Aprendiz con límites de cupo semanal y flujos de aprobación.
+* Integración de pasarelas de pago y cierres diarios de caja con reportes financieros.
+
+**Beneficios principales**: Reducción de merma, optimización de materias primas, control financiero riguroso, trazabilidad operativa e historial transaccional seguro.
+
+### 1.3 Definiciones, Acrónimos y Abreviaturas
+* **FIFO (First In, First Out)**: Primero en entrar, primero en salir. Método de gestión de inventario donde los lotes de insumos más antiguos son consumidos primero.
+* **SENA**: Servicio Nacional de Aprendizaje (entidad educativa colombiana).
+* **ADSO**: Análisis y Desarrollo de Software (programa de formación tecnológica).
+* **PIN**: Personal Identification Number (Código de 6 dígitos para la recuperación de cuentas).
+* **Wompi**: Pasarela de pagos de Bancolombia utilizada para transacciones y consolidaciones de saldos.
+* **Merma**: Pérdida de material (harina de trigo) durante el proceso de almacenamiento o producción, estimada en un 6% para harina en el sistema.
+* **Ñapa**: Regalo o cantidad adicional de producto entregada tradicionalmente al cliente como incentivo en pedidos detallados.
+* **COP**: Peso Colombiano (moneda local).
+* **CSRF (Cross-Site Request Forgery)**: Vulnerabilidad de falsificación de petición en sitios cruzados.
+* **XSS (Cross-Site Scripting)**: Inyección de código malicioso en páginas web vistas por usuarios.
+
+### 1.4 Referencias
+* Estándar IEEE Std 830-1998 para la Especificación de Requisitos de Software.
+* Repositorio del Proyecto en GitHub: [Manuel151025/BreadControl](https://github.com/Manuel151025/BreadControl).
+* Documentación de la API de Open-Meteo para el reporte del clima en tiempo real.
+* Documentación técnica del SDK/Webhook de Wompi de Bancolombia.
+
+### 1.5 Perspectiva General
+El resto de este documento está organizado de la siguiente manera:
+* **Sección 2 (Descripción General)**: Describe los factores generales que afectan al producto y sus requerimientos a alto nivel, incluyendo actores, dependencias e interfaces.
+* **Sección 3 (Requisitos Específicos)**: Detalla individualmente los requisitos funcionales y no funcionales, interfaces de usuario, y medidas de seguridad bajo las cuales opera el software.
+* **Sección 4 (Fórmulas Matemáticas)**: Detalla las ecuaciones exactas detrás de las finanzas y de la lógica de inventarios.
+* **Sección 5 (Consultas SQL Críticas)**: Muestra el mapeo físico de base de datos para los algoritmos clave.
+* **Sección 6 (Historias de Usuario)**: Define las HUs con sus criterios de aceptación.
+
+---
+
+## 2. Descripción General
+
+### 2.1 Perspectiva del Producto
+BreadControl es un sistema web independiente configurado en una arquitectura MVC clásica implementada en PHP y MySQL. El sistema se comunica externamente con servicios de correo (SMTP mediante PHPMailer) y APIs externas (Open-Meteo y Wompi).
+
+```
+┌────────────────┐     ┌──────────────┐     ┌──────────────┐
+│   Navegador    │────▶│   PHP 8      │────▶│   MySQL 8    │
+│  (Client Side) │◀────│  (MVC App)   │◀────│ (BD Relación)│
+└────────────────┘     └──────────────┘     └──────────────┘
+       │                      │
+       ├─ (Clima API)         ├─ (SMTP Email)
+       └─ (Wompi Checkout)    └─ (Wompi Webhook)
+```
+
+### 2.2 Funciones del Producto
+El sistema BreadControl se divide en los siguientes subsistemas funcionales:
+1. **Seguridad y Accesos**: Autenticación de roles (propietario, cliente/aprendiz, instructor), control de inactividad, recuperación de PIN y cifrado bcrypt.
+2. **Gestión de Inventario**: Registro de insumos, alertas de stock bajo y control FIFO de lotes.
+3. **Registro de Compras**: Registro de compras asignando número de lote autogenerado, alertas de variación de precio y ajuste por mermas.
+4. **Producción**: Registro de tandas basadas en recetas vigentes, descuento automático de insumos por FIFO y distribución por precio.
+5. **Ventas y Facturación**: Venta directa en mostrador, carrito detallado por variedad de pan, bonificaciones y ñapas para tiendas.
+6. **Gastos Operativos**: Registro y control de egresos diarios.
+7. **Cierre de Caja**: Balance diario financiero de ingresos, gastos, costo de producción y utilidad neta con sugerencias.
+8. **Portal del Cliente / Aprendiz**: Solicitud de pedidos, control de cupo semanal, aprobación por instructores y pago consolidado vía Wompi.
+
+### 2.3 Características de los Usuarios
+El sistema cuenta con tres tipos de perfiles de usuario definidos:
+* **Propietario / Administrador**: Acceso total a todos los módulos (inventario, recetas, finanzas, cierres, compras, producción y administración de tiendas).
+* **Cliente / Aprendiz**: Acceso al Portal del Cliente para realizar solicitudes de pedidos a la panadería, ver deudas y pagar sus saldos, restringido por cupo semanal.
+* **Instructor**: Perfil de cliente con facultades de aprobación sobre los pedidos realizados por sus aprendices a cargo y consolidación de pagos.
+
+### 2.4 Restricciones Generales
+* **Desarrollo**: Backend implementado en PHP 8.0 o superior en estilo modular.
+* **Base de Datos**: MySQL 8.0.
+* **Frontend**: Uso exclusivo de vanilla HTML5, CSS3 personalizado y JavaScript vanilla. Sin frameworks como Bootstrap CSS (excepto para iconos) o Tailwind CSS, priorizando estilos propios de alto impacto estético.
+* **Tiempo de Expiración**: Cierre de sesión automático por inactividad tras 6 minutos.
+* **Cancelación de Pedidos**: Límite de 48 horas de anticipación a la fecha de entrega acordada para que el cliente cancele una solicitud.
+
+### 2.5 Suposiciones y Dependencias
+* Se asume que el servidor cuenta con conexión constante a internet para realizar la validación del clima (API Open-Meteo) y el procesamiento de los webhooks de pago (Wompi).
+* La recuperación de credenciales por email depende de la disponibilidad del servidor SMTP configurado.
+
+---
+
+## 3. Requisitos Específicos
+
+### 3.1 Requisitos Funcionales (RF)
+
+#### Módulo de Autenticación y Seguridad
+* **RF-01 (Autenticación de Usuarios)**: El sistema debe permitir iniciar sesión ingresando el nombre de usuario y contraseña, validando contra hashes bcrypt en base de datos.
+* **RF-02 (Control de Expiración de Sesión)**: El sistema debe cerrar la sesión del usuario si transcurren más de 6 minutos (360 segundos) sin actividad en la plataforma.
+* **RF-03 (Recuperación de Contraseña)**: El sistema debe permitir recuperar credenciales enviando un código temporal al correo configurado del usuario o introduciendo un PIN de seguridad de 6 dígitos.
+* **RF-04 (Control de Roles)**: El sistema debe restringir el acceso a los módulos administrativos (inventario, compras, finanzas, recetas) exclusivamente al rol "Propietario".
+
+#### Módulo de Inventario e Insumos
+* **RF-05 (Catálogo de Insumos)**: El sistema debe permitir crear, leer, actualizar y desactivar lógicamente (soft delete) insumos parametrizando nombre, unidad de medida (kg, g, L, ml, unidad), si es harina, stock actual y punto de reposición.
+* **RF-06 (Alertas de Stock Bajo)**: El sistema debe generar alertas visuales y registros de alerta cuando el stock físico actual de un insumo sea menor o igual al punto de reposición definido.
+* **RF-07 (Ajuste Manual de Inventario)**: El sistema debe permitir registrar ajustes manuales (por daños o diferencias físicas), recalculando los saldos en los lotes activos mediante orden FIFO (para disminuciones) o sumando al último lote (para incrementos), documentando el motivo del ajuste.
+
+#### Módulo de Compras e Insumos Entrantes
+* **RF-08 (Registro de Compras)**: El sistema debe registrar las compras de insumos especificando cantidad, precio unitario, proveedor y fecha de compra.
+* **RF-09 (Autogeneración de Lotes FIFO)**: Al registrar una compra, el sistema debe crear un lote en estado `activo` con un código autogenerado único bajo el formato `PRE-YYYY-MM-DD-NNN` (donde PRE son las 3 primeras letras del insumo).
+* **RF-10 (Control de Variación de Precio)**: El sistema debe advertir si el precio unitario del insumo comprado presenta una variación superior al 5% en comparación con la última compra registrada de ese mismo insumo.
+* **RF-11 (Cálculo de Merma para Harinas)**: Al registrar compras de insumos marcados como "harina", el sistema debe descontar automáticamente un 6% del volumen ingresado en concepto de merma en el lote de inventario.
+
+#### Módulo de Recetas y Producción
+* **RF-12 (Catálogo de Recetas)**: El sistema debe registrar recetas para los productos especificando la cantidad necesaria de cada insumo por tanda de producción.
+* **RF-13 (Cálculo e Ingreso de Producción)**: El sistema debe permitir el registro de producciones diarias especificando producto, cantidad de tandas y cantidad de unidades obtenidas.
+* **RF-14 (Descuento Automático FIFO)**: Al guardar una producción, el sistema debe descontar de manera automática y secuencial los insumos de la receta de los lotes activos en orden cronológico FIFO.
+* **RF-15 (Cálculo del Costo de Tanda)**: El sistema debe calcular el costo de la producción sumando el costo de adquisición de los lotes de insumos consumidos. Debe registrar en la base de datos el `costo_total` y el `costo_unitario` de la producción correspondiente.
+* **RF-16 (Distribución de Producción por Precios)**: El sistema debe permitir distribuir las unidades totales producidas de un producto entre diferentes categorías de precio ($500, $1.000, etc.) para habilitar su stock en ventas.
+
+#### Módulo de Ventas y Facturación
+* **RF-17 (Venta Rápida)**: El sistema debe permitir registrar ventas rápidas cobradas en mostrador seleccionando la categoría de precio y especificando la cantidad de unidades vendidas.
+* **RF-18 (Pedidos Detallados por Carrito)**: El sistema debe proveer una interfaz de carrito de compras detallado donde se seleccionen variedades de pan con imágenes y cantidades.
+* **RF-19 (Bonificación Automática)**: Al seleccionar un cliente clasificado como "tienda", el sistema debe aplicar una bonificación del 20% en unidades adicionales del pedido sin costo.
+* **RF-20 (Asignación de Ñapa)**: El sistema debe permitir configurar unidades de "ñapa" (unidades gratis adicionales) por variedad en los pedidos detallados de las tiendas.
+* **RF-21 (Salidas Especiales)**: El sistema debe admitir tres tipos de salidas de producto: "Venta" (genera ingreso financiero), "Bonificación" (regalo registrado sin costo) y "Consumo interno" (descuento del stock para consumo de empleados).
+
+#### Portal del Cliente y Roles Educativos
+* **RF-22 (Solicitud de Pedidos)**: Los clientes tradicionales, aprendices o instructores deben poder registrar solicitudes de pedidos detallando variedades de pan y fecha de entrega.
+* **RF-23 (Límite de Cupo Semanal para Aprendices)**: Al procesar un pedido de un aprendiz, el sistema debe sumar el total del pedido actual más los pedidos del aprendiz en la semana en curso y bloquear la transacción si supera el `cupo_semanal` definido en su ficha.
+* **RF-24 (Aprobación del Instructor)**: El sistema debe requerir que los pedidos realizados por aprendices sean marcados como aprobados por su instructor asignado antes de quedar en estado de confirmación operativa.
+* **RF-25 (Restricción de Cancelación)**: El sistema debe prohibir la cancelación o modificación de pedidos por parte del cliente si faltan menos de 48 horas para la fecha y hora de entrega pactada.
+* **RF-26 (Pago Consolidado vía Webhook Wompi)**: El sistema debe permitir consolidar múltiples pedidos de un mismo cliente para generar una referencia de pago única integrada a Wompi. Al recibir la notificación del webhook de aprobación (`aprobado`), debe marcar todos los pedidos asociados como pagados de forma transaccional.
+
+#### Módulo de Gastos y Cierre de Caja
+* **RF-27 (Registro de Gastos Operativos)**: El propietario debe poder registrar gastos operativos del día detallando concepto y valor.
+* **RF-28 (Cierre Diario de Caja)**: El propietario debe ejecutar el cierre financiero diario, donde el sistema calcula de manera consolidada los ingresos de ventas, gastos operativos, costo de producción (vía consumo FIFO) y calcula la utilidad bruta y neta.
+* **RF-29 (Banner de Observaciones)**: Las observaciones y sugerencias de producción registradas en el cierre de caja de un día deben mostrarse en un banner del tablero principal al día siguiente.
+
+---
+
+### 3.2 Requisitos No Funcionales (RNF)
+
+* **RNF-01 (Tiempo de Respuesta)**: Las solicitudes HTTP deben procesarse y renderizar el HTML final en un tiempo máximo de 2.0 segundos bajo condiciones estándar.
+* **RNF-02 (Transaccionalidad Completa)**: Cualquier operación de escritura que modifique múltiples entidades relacionadas (ej. inserción en `venta` y descuentos en `lote` e `insumo`) debe estar contenida bajo transacciones SQL explícitas (`pdo->beginTransaction()`).
+* **RNF-03 (Seguridad de Sesiones)**: La inactividad detectada debe destruirse en el servidor y eliminar las cookies mediante expiración forzada.
+* **RNF-04 (Diseño Adaptable)**: La interfaz gráfica debe adaptarse a pantallas móviles (360px de ancho) y pantallas panorámicas (1920px de ancho) utilizando CSS flexible (Grid y Flexbox) sin frameworks.
+* **RNF-05 (Compatibilidad Cruzada)**: La aplicación web debe ser totalmente operable en Chrome, Firefox, Safari y Edge sin pérdida de estilos o de interactividad.
+* **RNF-06 (Modularidad de Código)**: Los archivos de lógica del backend no deben mezclar consultas SQL en las vistas directas, utilizando la abstracción provista por la carpeta `models/`.
+* **RNF-07 (Separación de Diseño y Lógica en Frontend)**: La maquetación de estilos y los scripts de interactividad deben estar completamente aislados de las plantillas HTML, referenciándose como recursos estáticos externos (`.css` y `.js`) alojados en el directorio `/assets/` para facilitar la cacheabilidad y el mantenimiento independiente.
+* **RNF-08 (Responsabilidad Única en Vistas - SRP)**: Las vistas deben limitarse a desplegar información formateada provista por el controlador. Cualquier cálculo matemático complejo de negocio (ej. balance de deudas o consolidación de saldos de pedidos) debe delegarse a componentes auxiliares en el backend (`helpers/` o clases de servicio).
+
+---
+
+### 3.3 Interfaces Externas
+* **SMTP**: Envío de correos electrónicos transaccionales usando PHPMailer 6.9 y el puerto seguro 465 SSL.
+* **Open-Meteo**: Interfaz REST basada en HTTP GET que retorna las condiciones del clima en formato JSON en base a la geolocalización.
+* **Wompi API**: Generación de botones de pago tipo widget y webhook HTTP POST seguro que notifique los cambios de estado transaccionales desde los servidores de Wompi.
+
+---
+
+### 3.4 Requisitos de Seguridad
+* **RS-01**: Cifrado de contraseñas mediante hash seguro `bcrypt` (`password_hash`).
+* **RS-02**: Prevención de CSRF mediante tokens inyectados en la sesión y validados de manera estricta usando `hash_equals()`.
+* **RS-03**: Prevención de SQL Injection a través del uso de PDO bind parameters nativos y la desactivación de emulación de consultas.
+* **RS-04**: Prevención de XSS mediante sanitización del DOM usando `htmlspecialchars()` y funciones personalizadas de limpieza de tags HTML.
+
+---
+
+## 4. Fórmulas Matemáticas del Sistema
+
+El sistema implementa las siguientes ecuaciones matemáticas exactas dentro de sus controladores y modelos:
+
+### A. Porcentaje de Variación de Precio de Insumos
+Utilizada para alertar al propietario sobre incrementos de costos en compras de insumos superiores al 5%:
+$$\text{Variación (\%)} = \left( \frac{\text{Precio Nuevo} - \text{Precio Anterior}}{\text{Precio Anterior}} \right) \times 100$$
+
+### B. Cálculo de Descuento de Insumos con Merma (Harina)
+Al ingresar un lote de harina, el peso registrado en inventario se reduce en un 6%:
+$$\text{Cantidad Inventariada} = \text{Cantidad Comprada} \times (1 - 0.06) = \text{Cantidad Comprada} \times 0.94$$
+
+### C. Costo de Producción de una Tanda
+El costo acumulado se obtiene consumiendo lotes FIFO individuales:
+$$\text{Costo Total Producción} = \sum_{i \in \text{Ingredientes}} \left( \sum_{j \in \text{Lotes FIFO}} \text{Cantidad Consumida}_{i,j} \times \text{Precio Unitario}_{i,j} \right)$$
+El costo unitario por producto terminado se formula así:
+$$\text{Costo Unitario} = \frac{\text{Costo Total Producción}}{\text{Unidades Producidas}}$$
+
+### D. Bonificación Automática a Tiendas (20%)
+Cálculo de unidades gratis añadidas automáticamente al pedido:
+$$\text{Unidades Bonificadas} = \lfloor \text{Unidades Solicitadas} \times 0.20 \rfloor$$
+
+### E. Límite de Cupo Semanal de Aprendiz
+Validación ejecutada antes del registro de cualquier pedido:
+$$\left( \sum_{k \in \text{Pedidos Semanales}} \text{Total Estimado}_k \right) + \text{Total Pedido Nuevo} \le \text{Cupo Semanal}$$
+
+### F. Caja y Cierre Financiero Diario
+Cálculo de balance neto del día:
+$$\text{Utilidad Bruta} = \text{Total Ingresos por Ventas} - \text{Costo de Producción (Consumo FIFO)}$$
+$$\text{Utilidad Neta} = \text{Utilidad Bruta} - \text{Total Gastos Operativos}$$
+
+### G. Conversión de Divisa para Pasarela Wompi
+La API de Wompi requiere el cobro expresado en centavos:
+$$\text{Monto Centavos} = \text{Monto Pesos (COP)} \times 100$$
+
+---
+
+## 5. Consultas SQL Críticas (Data Access Layer)
+
+A continuación se exponen las consultas relacionales directas que soportan los flujos críticos en el servidor:
+
+### A. Obtención de Lotes de Insumos bajo Orden FIFO
+Selecciona los lotes del insumo con saldo disponible, ordenados desde el más antiguo para su posterior descuento:
+```sql
+SELECT id_lote, numero_lote, fecha_ingreso, cantidad_disponible, precio_unitario
+FROM lote
+WHERE id_insumo = ? AND estado = 'activo' AND cantidad_disponible > 0
+ORDER BY fecha_ingreso ASC;
+```
+
+### B. Consumo Acumulado Semanal de Aprendiz para Validación de Cupo
+Calcula la suma de todos los pedidos activos y confirmados que el aprendiz ha solicitado a lo largo de la semana actual (desde el lunes):
+```sql
+SELECT COALESCE(SUM(total_estimado), 0) AS consumido_semana
+FROM pedido_cliente
+WHERE id_creador = ? 
+  AND id_cliente = ?
+  AND estado NOT IN ('rechazado', 'cancelado')
+  AND fecha_solicitud >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), '%Y-%m-%d 00:00:00');
+```
+
+### C. Cálculo de Stock de Ventas por Categoría de Precio
+Obtiene la diferencia neta de unidades producidas contra unidades vendidas para determinar el stock físico listo para comercializar hoy:
+```sql
+SELECT cp.id_categoria, cp.nombre, cp.precio_unitario,
+    COALESCE((SELECT SUM(pp.unidades) FROM produccion_precio pp WHERE pp.id_categoria_precio = cp.id_categoria), 0) -
+    COALESCE((SELECT SUM(v.unidades_vendidas) FROM venta v WHERE v.id_categoria_precio = cp.id_categoria), 0) AS stock_hoy
+FROM categoria_precio cp 
+WHERE cp.activo = 1 
+ORDER BY cp.precio_unitario;
+```
+
+### D. Cálculo de Costo Real de Producción del Día
+Suma el costo total acumulado en base a los descuentos de lotes FIFO aplicados en las preparaciones del día seleccionado:
+```sql
+SELECT COALESCE(SUM(cl.costo_consumo), 0) AS costo_produccion
+FROM consumo_lote cl 
+INNER JOIN produccion pr ON pr.id_produccion = cl.id_produccion 
+WHERE DATE(pr.fecha_produccion) = ?;
+```
+
+---
+
+## 6. Historias de Usuario (HU)
+
+### HU-01: Gestión de Inventario FIFO y Alertas
+**COMO** Propietario de la panadería  
+**QUIERO** que el sistema descuente los insumos de forma automática usando el método FIFO  
+**PARA** garantizar que los ingredientes más antiguos se consuman primero y evitar mermas por vencimiento.
+
+* **Criterios de Aceptación:**
+  1. Al registrar una producción de pan, el sistema debe leer la receta del producto y descontar de la tabla `lote` la cantidad requerida del insumo empezando por el lote de menor fecha de ingreso.
+  2. Si el stock actual del insumo queda por debajo del punto de reposición, el sistema debe registrar automáticamente una alerta de tipo `stock_bajo` visible en el panel.
+  3. Si la disminución física se registra mediante un ajuste manual, el sistema debe registrar el motivo y aplicar el descuento FIFO a los lotes.
+
+---
+
+### HU-02: Control de Cupo Semanal de Aprendiz
+**COMO** Aprendiz del SENA  
+**QUIERO** solicitar pedidos para mi taller de panadería desde el portal del cliente  
+**PARA** no exceder mi presupuesto semanal asignado por la institución.
+
+* **Criterios de Aceptación:**
+  1. Al guardar una solicitud de pedido, el sistema debe sumar el valor total estimado al histórico de la semana en curso del aprendiz creador.
+  2. Si la suma excede el `cupo_semanal` configurado para dicho aprendiz, el sistema debe abortar el registro y mostrar un mensaje de error detallando el cupo disponible y el monto excedido en COP.
+  3. No se permite realizar modificaciones a pedidos creados si el nuevo total infringe esta misma restricción.
+
+---
+
+### HU-03: Aprobación de Pedidos por Instructor
+**COMO** Instructor a cargo del taller  
+**QUIERO** validar y autorizar los pedidos generados por mis aprendices  
+**PARA** confirmar que los insumos y variedades de pan solicitados son los correctos antes de la producción.
+
+* **Criterios de Aceptación:**
+  1. Los pedidos creados por aprendices deben quedar inicialmente en estado `aprobado_instructor = 0`.
+  2. El instructor debe ingresar a su portal y ver una lista consolidada de las solicitudes pendientes de sus aprendices.
+  3. El instructor puede confirmar (cambia `aprobado_instructor = 1`) o rechazar la solicitud de pedido. Solo los aprobados se envían al panel operativo del propietario.
+
+---
+
+### HU-04: Cierre Diario de Caja y Utilidades
+**COMO** Propietario de la panadería  
+**QUIERO** realizar el cierre financiero al finalizar la jornada  
+**PARA** calcular de forma exacta la utilidad bruta y neta obtenida.
+
+* **Criterios de Aceptación:**
+  1. Al iniciar el cierre, el sistema debe calcular la suma total de ingresos por ventas cobradas hoy.
+  2. El sistema debe calcular el costo de insumos consumidos hoy sumando los registros asociados de `consumo_lote` en las producciones del día.
+  3. Se deben deducir los gastos registrados del día, mostrando en pantalla las utilidades neta y bruta.
+  4. Al guardar el cierre, las observaciones ingresadas deben quedar guardadas para mostrarse en el banner principal del dashboard del día siguiente.
+
+---
+
+### HU-05: Integración de Pagos con Pasarela Wompi
+**COMO** Cliente o Instructor  
+**QUIERO** pagar mis pedidos pendientes a través de PSE o Nequi  
+**PARA** saldar mis cuentas pendientes de forma digital e inmediata.
+
+* **Criterios de Aceptación:**
+  1. El cliente puede seleccionar uno o varios pedidos confirmados pendientes de pago y generar una orden de pago unificada.
+  2. El sistema debe calcular el total, convertir a centavos y llamar a la API de Wompi para generar la pasarela de pago.
+  3. Al procesar el Webhook de Wompi en estado `aprobado`, el sistema de forma transaccional debe registrar un abono equivalente al total de la transacción en `pago_abono` y marcar los pedidos asociados como `aprobado`/`pagado`.
+  4. Si la transacción expira, el sistema debe volver a liberar los pedidos para una nueva solicitud de pago.
