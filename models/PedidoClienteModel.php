@@ -39,7 +39,8 @@ class PedidoClienteModel {
         $where[] = "p.aprobado_instructor = 1";
         $sql_where = "WHERE " . implode(" AND ", $where);
         $stmt = $this->pdo->prepare("
-            SELECT p.*, c.nombre as cliente, c.tipo as tipo_cliente, c2.nombre as nombre_creador
+            SELECT p.*, c.nombre as cliente, c.tipo as tipo_cliente, 
+                   c2.nombre as nombre_creador, c2.es_aprendiz as creador_es_aprendiz
             FROM pedido_cliente p
             JOIN cliente c ON p.id_cliente = c.id_cliente
             LEFT JOIN cliente c2 ON p.id_creador = c2.id_cliente
@@ -86,7 +87,8 @@ class PedidoClienteModel {
      */
     public function getPedido(int $id_pedido) {
         $stmt = $this->pdo->prepare("
-            SELECT p.*, c.nombre as cliente, c.tipo as tipo_cliente, c.telefono, c2.nombre as nombre_creador
+            SELECT p.*, c.nombre as cliente, c.tipo as tipo_cliente, c.telefono, 
+                   c2.nombre as nombre_creador, c2.es_aprendiz as creador_es_aprendiz
             FROM pedido_cliente p
             JOIN cliente c ON p.id_cliente = c.id_cliente
             LEFT JOIN cliente c2 ON p.id_creador = c2.id_cliente

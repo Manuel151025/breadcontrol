@@ -340,6 +340,12 @@
                     <td data-label="Cliente" style="font-weight:600; text-align: right;"><?= htmlspecialchars($p['cliente']) ?> <span style="font-size:0.7rem; color:var(--ink3); display:block;"><?= $p['tipo_cliente'] ?></span></td>
                     <td data-label="Creado Por" style="font-size:0.8rem; color:var(--ink2);">
                         <?= htmlspecialchars($p['nombre_creador'] ?? 'Directo') ?>
+                        <?php if (isset($p['creador_es_aprendiz']) && (int)$p['creador_es_aprendiz'] === 1): ?>
+                            <br>
+                            <span class="ep <?= (int)$p['id_cliente'] === (int)$p['id_creador'] ? 'ep-no_aplica' : 'ep-parcial' ?>" style="font-size:0.6rem; padding:0.1rem 0.35rem; margin-top:0.25rem;">
+                                <?= (int)$p['id_cliente'] === (int)$p['id_creador'] ? 'Personal' : 'ADSO' ?>
+                            </span>
+                        <?php endif; ?>
                     </td>
                     <td data-label="Entrega" style="font-weight:600; color:var(--c1);">
                         <?= formatearFechaEntrega($p['fecha_entrega']) ?>

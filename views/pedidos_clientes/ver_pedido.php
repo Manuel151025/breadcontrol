@@ -35,6 +35,16 @@
 
             <div class="info-p"><strong>Cliente:</strong> <?= htmlspecialchars($pedido['cliente']) ?> (<?= $pedido['tipo_cliente'] ?>)</div>
             <div class="info-p"><strong>Digitado por:</strong> <?= htmlspecialchars($pedido['nombre_creador'] ?? 'Mismo cliente') ?></div>
+            <?php if (isset($pedido['creador_es_aprendiz']) && (int)$pedido['creador_es_aprendiz'] === 1): ?>
+            <div class="info-p">
+                <strong>Destino Pedido:</strong>
+                <?php if ((int)$pedido['id_cliente'] === (int)$pedido['id_creador']): ?>
+                    <span class="estado-badge" style="background:#f5f3ff; color:#6d28d9; border:1px solid #c4b5fd; text-transform:uppercase; font-size:0.7rem; font-weight:700; padding:0.18rem 0.55rem; border-radius:20px; display:inline-flex; align-items:center;">Personal</span>
+                <?php else: ?>
+                    <span class="estado-badge" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; text-transform:uppercase; font-size:0.7rem; font-weight:700; padding:0.18rem 0.55rem; border-radius:20px; display:inline-flex; align-items:center;">Cuenta ADSO</span>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
             <div class="info-p"><strong>Teléfono:</strong> <?= htmlspecialchars($pedido['telefono'] ?: 'No registrado') ?></div>
             <div class="info-p"><strong>Fecha Entrega:</strong> <span style="color:var(--c1); font-weight:700;">
                 <?= formatearFechaEntrega($pedido['fecha_entrega']) ?>

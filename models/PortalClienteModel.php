@@ -207,7 +207,7 @@ class PortalClienteModel {
         }
 
         $stmt = $this->pdo->prepare("
-            SELECT p.*, c.nombre AS nombre_creador
+            SELECT p.*, c.nombre AS nombre_creador, c.es_aprendiz AS creador_es_aprendiz
             FROM pedido_cliente p
             LEFT JOIN cliente c ON p.id_creador = c.id_cliente
             $join_variedad
@@ -239,8 +239,12 @@ class PortalClienteModel {
      */
     public function getPedido(int $id_pedido, int $cliente_id): ?array {
         $stmt = $this->pdo->prepare("
-            SELECT * FROM pedido_cliente 
-            WHERE id_pedido = ? AND (id_cliente = ? OR id_creador = ?)
+            SELECT p.*, c.nombre AS nombre_cliente, c.tipo AS tipo_cliente, 
+                   c2.nombre AS nombre_creador, c2.es_aprendiz AS creador_es_aprendiz
+            FROM pedido_cliente p
+            JOIN cliente c ON p.id_cliente = c.id_cliente
+            LEFT JOIN cliente c2 ON p.id_creador = c2.id_cliente
+            WHERE p.id_pedido = ? AND (p.id_cliente = ? OR p.id_creador = ?)
         ");
         $stmt->execute([$id_pedido, $cliente_id, $cliente_id]);
         $res = $stmt->fetch(PDO::FETCH_ASSOC);

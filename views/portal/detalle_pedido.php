@@ -303,7 +303,11 @@
                         <span><i class="bi bi-clock-history"></i> Solicitado el</span>
                         <strong><?= date('d/m/Y H:i', strtotime($pedido['fecha_solicitud'])) ?></strong>
                     </div>
-                    <?php if ($es_aprendiz): ?>
+                    <?php if ($es_aprendiz || (isset($pedido['creador_es_aprendiz']) && (int)$pedido['creador_es_aprendiz'] === 1)): ?>
+                    <div class="info-item">
+                        <span><i class="bi bi-person-badge"></i> Creado por</span>
+                        <strong><?= htmlspecialchars($pedido['nombre_creador'] ?? 'Yo') ?></strong>
+                    </div>
                     <div class="info-item">
                         <span><i class="bi bi-journal-check"></i> Dirigido a</span>
                         <strong>

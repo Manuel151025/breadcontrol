@@ -210,6 +210,28 @@
         .btn-exp-pdf{background:#c62828;color:#fff;}
         .btn-exp-pdf:hover{background:#b71c1c;}
 
+        /* ── DESTINO BADGES ── */
+        .badge-dest {
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 0.12rem 0.4rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-block;
+            margin-top: 0.25rem;
+        }
+        .badge-dest.personal {
+            background: rgba(148, 91, 53, 0.1);
+            color: var(--c1);
+            border: 1px solid rgba(148, 91, 53, 0.2);
+        }
+        .badge-dest.adso {
+            background: rgba(21, 101, 192, 0.1);
+            color: #1565c0;
+            border: 1px solid rgba(21, 101, 192, 0.2);
+        }
+
         /* ── MODAL PAN ── */
         .modal-backdrop{position:fixed;inset:0;background:rgba(40,21,8,.55);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s ease;}
         .modal-backdrop.open{opacity:1;pointer-events:all;}
@@ -769,7 +791,15 @@
                         <td data-label=""><input type="checkbox" name="ids[]" value="<?= $p['id_pedido'] ?>" class="chk-dash"></td>
                         <?php endif; ?>
                         <td data-label="Pedido" style="font-weight:700;color:var(--ink2);">#<?= str_pad($p['id_pedido'],4,'0',STR_PAD_LEFT) ?></td>
-                        <td data-label="Creado por" style="font-weight:600;"><?= htmlspecialchars($p['nombre_creador'] ?? 'Yo') ?></td>
+                        <td data-label="Creado por" style="font-weight:600;">
+                            <?= htmlspecialchars($p['nombre_creador'] ?? 'Yo') ?>
+                            <?php if (isset($p['creador_es_aprendiz']) && (int)$p['creador_es_aprendiz'] === 1): ?>
+                                <br>
+                                <span class="badge-dest <?= (int)$p['id_cliente'] === (int)$p['id_creador'] ? 'personal' : 'adso' ?>">
+                                    <?= (int)$p['id_cliente'] === (int)$p['id_creador'] ? 'Personal' : 'ADSO' ?>
+                                </span>
+                            <?php endif; ?>
+                        </td>
                         <td data-label="Para Entregar" style="font-weight:600;color:var(--c1);">
                             <?= formatearFechaEntrega($p['fecha_entrega']) ?>
                         </td>
