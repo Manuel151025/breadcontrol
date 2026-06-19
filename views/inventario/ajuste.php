@@ -1,3 +1,4 @@
+<link href="<?= APP_URL ?>/assets/css/inventario.css" rel="stylesheet">
 <div class="page">
   <!-- TOPBAR -->
   <div class="topbar">
