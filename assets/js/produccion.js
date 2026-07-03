@@ -1,3 +1,9 @@
+function escHtml(str) {
+  return String(str == null ? '' : str).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
 function changeUnd(d) {
   const i = document.getElementById('inp-und');
   // Limitar hasta 5 tandas máximo, mínimo 1
@@ -130,9 +136,9 @@ function _fetch() {
         html += '<div class="ing-block">';
         html += '<div class="ing-nombre">' +
           '<i class="bi bi-bag" style="color:var(--c3);font-size:.72rem"></i>' +
-          '<strong>' + ing.nombre + '</strong>' +
+          '<strong>' + escHtml(ing.nombre) + '</strong>' +
           '<span class="cant-badge' + (!ing.alcanza ? ' falta' : (ing.hay_stock_manual ? ' manual' : '')) + '">' +
-          fmt(ing.cant_necesaria) + ' ' + ing.unidad_medida +
+          fmt(ing.cant_necesaria) + ' ' + escHtml(ing.unidad_medida) +
           (ing.total_disponible > 0 ? ' · disp: ' + fmt(ing.total_disponible) : '') + '</span>' +
           (ing.aplica_merma ? '<span style="font-size:.56rem;color:var(--c3)">🌾 merma</span>' : '') +
           '</div>';
@@ -142,9 +148,9 @@ function _fetch() {
         } else {
           ing.lotes_a_usar.forEach(lote => {
             if (lote.sin_lote) {
-              html += '<div class="lote-fila mas-antiguo" style="background:rgba(198,113,36,.06);border-color:rgba(198,113,36,.2);">' + '<div class="lote-row1">' + '<span class="lote-num"><i class="bi bi-pencil-square" style="font-size:.58rem;margin-right:.2rem;color:var(--c3)"></i>Stock editado en Inventario</span>' + '<span style="font-size:.55rem;font-weight:700;padding:.04rem .3rem;border-radius:20px;background:rgba(198,113,36,.12);color:var(--c3);border:1px solid rgba(198,113,36,.25);">sin lote</span>' + '</div>' + '<div class="lote-row2">' + '<span class="lote-fecha">Sin número de lote</span>' + '<span class="lote-consumir">−' + fmt(lote.a_consumir) + ' ' + ing.unidad_medida + '</span>' + '<span class="lote-disp">disp: ' + fmt(lote.disponible) + '</span>' + '</div>' + '</div>';
+              html += '<div class="lote-fila mas-antiguo" style="background:rgba(198,113,36,.06);border-color:rgba(198,113,36,.2);">' + '<div class="lote-row1">' + '<span class="lote-num"><i class="bi bi-pencil-square" style="font-size:.58rem;margin-right:.2rem;color:var(--c3)"></i>Stock editado en Inventario</span>' + '<span style="font-size:.55rem;font-weight:700;padding:.04rem .3rem;border-radius:20px;background:rgba(198,113,36,.12);color:var(--c3);border:1px solid rgba(198,113,36,.25);">sin lote</span>' + '</div>' + '<div class="lote-row2">' + '<span class="lote-fecha">Sin número de lote</span>' + '<span class="lote-consumir">−' + fmt(lote.a_consumir) + ' ' + escHtml(ing.unidad_medida) + '</span>' + '<span class="lote-disp">disp: ' + fmt(lote.disponible) + '</span>' + '</div>' + '</div>';
             } else {
-              html += '<div class="lote-fila' + (lote.es_mas_antiguo ? ' mas-antiguo' : '') + '">' + '<div class="lote-row1">' + '<span class="lote-num"><i class="bi bi-tag-fill" style="color:var(--c3);font-size:.58rem;margin-right:.2rem"></i>' + lote.numero_lote + '</span>' + (lote.es_mas_antiguo ? '<span class="tag-antiguo">📦 más antiguo</span>' : '') + '</div>' + '<div class="lote-row2">' + '<span class="lote-fecha">' + lote.fecha_ingreso + '</span>' + '<span class="lote-consumir">−' + fmt(lote.a_consumir) + ' ' + ing.unidad_medida + '</span>' + '<span class="lote-disp">disp: ' + fmt(lote.disponible) + '</span>' + '</div>' + '</div>';
+              html += '<div class="lote-fila' + (lote.es_mas_antiguo ? ' mas-antiguo' : '') + '">' + '<div class="lote-row1">' + '<span class="lote-num"><i class="bi bi-tag-fill" style="color:var(--c3);font-size:.58rem;margin-right:.2rem"></i>' + escHtml(lote.numero_lote) + '</span>' + (lote.es_mas_antiguo ? '<span class="tag-antiguo">📦 más antiguo</span>' : '') + '</div>' + '<div class="lote-row2">' + '<span class="lote-fecha">' + escHtml(lote.fecha_ingreso) + '</span>' + '<span class="lote-consumir">−' + fmt(lote.a_consumir) + ' ' + escHtml(ing.unidad_medida) + '</span>' + '<span class="lote-disp">disp: ' + fmt(lote.disponible) + '</span>' + '</div>' + '</div>';
             }
           });
         }
@@ -166,6 +172,8 @@ function _fetch() {
           '</div>';
       }
 
+      // Campos dinámicos (ing.nombre, ing.unidad_medida, lote.numero_lote, lote.fecha_ingreso)
+      // ya pasan por escHtml() al construir `html` — revisado contra DOM XSS.
       if (cont) cont.innerHTML = html;
     })
     .catch(() => {

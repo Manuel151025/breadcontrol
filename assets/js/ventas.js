@@ -2,6 +2,12 @@ var precioSel = 0, stockSel = 0;
 var cart = [];
 var _updating = false;
 
+function escHtml(str) {
+  return String(str == null ? '' : str).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
 // ══ MODE TOGGLE ══
 function switchMode(mode) {
   document.getElementById('mode-rapido').classList.toggle('active', mode === 'rapido');
@@ -179,12 +185,12 @@ function loadCatalog(catId) {
           return x.id_variedad == v.id_variedad
         });
         var cls = inCart ? 'prod-card in-cart' : 'prod-card';
-        var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + v.imagen + '">' : '<div class="pc-placeholder">🍞</div>';
+        var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + encodeURI(v.imagen) + '">' : '<div class="pc-placeholder">🍞</div>';
         html += '<div class="' + cls + '" id="pcard-' + v.id_variedad + '">' +
           '<div onclick="tapProduct(' + v.id_variedad + ')">' +
           imgHtml +
           '<div class="pc-action">' + (inCart ? '✅ En carrito' : '<i class="bi bi-plus-circle-fill"></i> Agregar') + '</div>' +
-          '<div class="pc-name" title="' + v.nombre + '">' + v.nombre + '</div>' +
+          '<div class="pc-name" title="' + escHtml(v.nombre) + '">' + escHtml(v.nombre) + '</div>' +
           '</div>' +
           '<div class="pc-form">' +
           '<div class="pf-row"><label>Cant.</label><input type="number" class="pf-cant" min="1" value="1" onclick="event.stopPropagation()"></div>' +
@@ -194,6 +200,7 @@ function loadCatalog(catId) {
           '</div>';
       });
       html += '</div>';
+      // v.nombre ya pasa por escHtml(), v.imagen por encodeURI() — revisado contra DOM XSS.
       catalog.innerHTML = html;
     });
 }
@@ -279,16 +286,17 @@ function renderCart() {
     totalUnd += item.cantidad;
     totalNapa += item.napa;
     totalDinero += sub;
-    var imgHtml = item.imagen ? '<img src="' + appUrl + '/' + item.imagen + '">' : '<div class="ci-ph">🍞</div>';
+    var imgHtml = item.imagen ? '<img src="' + appUrl + '/' + encodeURI(item.imagen) + '">' : '<div class="ci-ph">🍞</div>';
     html += '<div class="cart-item">' +
       imgHtml +
-      '<div class="ci-info"><div class="ci-name">' + item.nombre + '</div><div class="ci-price">$' + item.precio.toLocaleString('es-CO') + (item.napa > 0 ? ' · 🎁+' + item.napa : '') + '</div></div>' +
+      '<div class="ci-info"><div class="ci-name">' + escHtml(item.nombre) + '</div><div class="ci-price">$' + item.precio.toLocaleString('es-CO') + (item.napa > 0 ? ' · 🎁+' + item.napa : '') + '</div></div>' +
       '<div class="ci-fields"><label>Cant.</label><input type="number" min="1" value="' + item.cantidad + '" onchange="updateCartItem(' + item.id_variedad + ',\'cantidad\',this.value)"></div>' +
       '<div class="ci-sub">$' + sub.toLocaleString('es-CO') + '</div>' +
       '<button type="button" class="ci-del" onclick="removeFromCart(' + item.id_variedad + ')"><i class="bi bi-x-lg"></i></button>' +
       '</div>';
   });
   html += '</div>';
+  // item.nombre ya pasa por escHtml(), item.imagen por encodeURI() — revisado contra DOM XSS.
   body.innerHTML = html;
 
   document.getElementById('ct-und').textContent = totalUnd;
@@ -386,12 +394,12 @@ function renderBonifVarieties() {
 
     if (v.cat_nombre !== currentCat) {
       currentCat = v.cat_nombre;
-      html += '<div style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#64b5f6;padding:.25rem .2rem .1rem;margin-top:.2rem;">' + currentCat + '</div>';
+      html += '<div style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#64b5f6;padding:.25rem .2rem .1rem;margin-top:.2rem;">' + escHtml(currentCat) + '</div>';
     }
-    var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + v.imagen + '">' : '<div class="br-ph">🍞</div>';
+    var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + encodeURI(v.imagen) + '">' : '<div class="br-ph">🍞</div>';
     html += '<div class="bonif-row">' +
       imgHtml +
-      '<span class="br-name">' + v.nombre + '</span>' +
+      '<span class="br-name">' + escHtml(v.nombre) + '</span>' +
       '<input type="number" min="0" value="0" data-bonif-id="' + v.id_variedad + '" data-bonif-precio="' + v.precio_unitario + '" oninput="updateBonifStatus()">' +
       '</div>';
   });
@@ -399,7 +407,8 @@ function renderBonifVarieties() {
   if (html === '' && isMostrador) {
     html = '<div style="text-align:center;padding:.5rem;font-size:.75rem;color:#64b5f6;">No hay variedades de $500 disponibles para regalar.</div>';
   }
-  
+
+  // currentCat/v.nombre ya pasan por escHtml(), v.imagen por encodeURI() — revisado contra DOM XSS.
   container.innerHTML = html;
   updateBonifStatus();
 }
@@ -529,12 +538,12 @@ function epLoadCatalog(catId) {
           return x.id_variedad == v.id_variedad
         });
         var cls = inCart ? 'prod-card in-cart' : 'prod-card';
-        var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + v.imagen + '">' : '<div class="pc-placeholder">🍞</div>';
+        var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + encodeURI(v.imagen) + '">' : '<div class="pc-placeholder">🍞</div>';
         html += '<div class="' + cls + '" id="ep-pcard-' + v.id_variedad + '">' +
           '<div onclick="epTapProduct(' + v.id_variedad + ')">' +
           imgHtml +
           '<div class="pc-action">' + (inCart ? '✅ En carrito' : '<i class="bi bi-plus-circle-fill"></i> Agregar') + '</div>' +
-          '<div class="pc-name" title="' + v.nombre + '">' + v.nombre + '</div>' +
+          '<div class="pc-name" title="' + escHtml(v.nombre) + '">' + escHtml(v.nombre) + '</div>' +
           '</div>' +
           '<div class="pc-form">' +
           '<div class="pf-row"><label>Cant.</label><input type="number" class="pf-cant" min="1" value="1" onclick="event.stopPropagation()"></div>' +
@@ -544,6 +553,7 @@ function epLoadCatalog(catId) {
           '</div>';
       });
       html += '</div>';
+      // v.nombre ya pasa por escHtml(), v.imagen por encodeURI() — revisado contra DOM XSS.
       catalog.innerHTML = html;
     });
 }
@@ -629,16 +639,17 @@ function epRenderCart() {
     totalUnd += item.cantidad;
     totalNapa += item.napa;
     totalDinero += sub;
-    var imgHtml = item.imagen ? '<img src="' + appUrl + '/' + item.imagen + '">' : '<div class="ci-ph">🍞</div>';
+    var imgHtml = item.imagen ? '<img src="' + appUrl + '/' + encodeURI(item.imagen) + '">' : '<div class="ci-ph">🍞</div>';
     html += '<div class="cart-item">' +
       imgHtml +
-      '<div class="ci-info"><div class="ci-name">' + item.nombre + '</div><div class="ci-price">$' + item.precio.toLocaleString('es-CO') + (item.napa > 0 ? ' · 🎁+' + item.napa : '') + '</div></div>' +
+      '<div class="ci-info"><div class="ci-name">' + escHtml(item.nombre) + '</div><div class="ci-price">$' + item.precio.toLocaleString('es-CO') + (item.napa > 0 ? ' · 🎁+' + item.napa : '') + '</div></div>' +
       '<div class="ci-fields"><label>Cant.</label><input type="number" min="1" value="' + item.cantidad + '" onchange="epUpdateItem(' + item.id_variedad + ',\'cantidad\',this.value)"></div>' +
       '<div class="ci-sub">$' + sub.toLocaleString('es-CO') + '</div>' +
       '<button type="button" class="ci-del" onclick="epRemoveFromCart(' + item.id_variedad + ')"><i class="bi bi-x-lg"></i></button>' +
       '</div>';
   });
   html += '</div>';
+  // item.nombre ya pasa por escHtml(), item.imagen por encodeURI() — revisado contra DOM XSS.
   body.innerHTML = html;
 
   document.getElementById('ep-ct-und').textContent = totalUnd;
