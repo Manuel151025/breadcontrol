@@ -112,7 +112,9 @@
 .obs-close { position:absolute; top:.5rem; right:.6rem; background:none; border:none; font-size:1rem; color:#90caf9; cursor:pointer; padding:0; line-height:1; }
 .obs-close:hover { color:#1565c0; }
 
-.alert-falta { background:rgba(229,57,53,.07); border:1px solid rgba(229,57,53,.18); border-radius:8px; padding:.55rem .75rem; font-size:.75rem; color:#c62828; margin-top:.4rem; display:flex; align-items:flex-start; gap:.45rem; line-height:1.5; text-align:justify; }
+.alert-falta { background:rgba(229,57,53,.07); border:1px solid rgba(229,57,53,.18); border-radius:8px; padding:.55rem .75rem; font-size:.75rem; color:#c62828; margin-top:.4rem; display:flex; flex-wrap:wrap; align-items:flex-start; gap:.45rem; line-height:1.5; text-align:justify; }
+.btn-comprar-falta { display:inline-flex; align-items:center; gap:.3rem; margin-left:auto; flex-shrink:0; background:#c62828; color:#fff; text-decoration:none; font-size:.72rem; font-weight:700; padding:.32rem .65rem; border-radius:6px; white-space:nowrap; transition:background .2s; }
+.btn-comprar-falta:hover { background:#a31d1d; color:#fff; }
 .bloqueo-bar { background:rgba(230,81,0,.08); border:1px solid rgba(230,81,0,.22); border-radius:9px; padding:.65rem .85rem; font-size:.75rem; color:#e65100; font-weight:600; display:flex; align-items:flex-start; gap:.45rem; margin-top:.5rem; line-height:1.5; text-align:justify; }
 
 .empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.5rem; padding:3rem 1rem; color:var(--ink3); font-size:.82rem; text-align:center; flex:1; }

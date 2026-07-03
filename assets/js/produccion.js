@@ -158,8 +158,10 @@ function _fetch() {
         if (!ing.alcanza) {
           const falta = ing.cant_necesaria - ing.total_disponible;
           html += '<div class="alert-falta"><i class="bi bi-exclamation-triangle-fill"></i>' +
-            '<span class="alert-falta-text">Faltan <strong>' + fmt(falta) + ' ' + ing.unidad_medida + '</strong>. ' +
+            '<span class="alert-falta-text">Faltan <strong>' + fmt(falta) + ' ' + escHtml(ing.unidad_medida) + '</strong>. ' +
             'Actualiza el stock en <strong>Inventario</strong> o registra una compra.</span>' +
+            '<a class="btn-comprar-falta" href="' + appUrl + '/modules/compras/index.php?id_insumo=' + ing.id_insumo + '" target="_blank" rel="noopener">' +
+            '<i class="bi bi-cart-plus-fill"></i> Comprar</a>' +
             '</div>';
         }
         html += '</div>';

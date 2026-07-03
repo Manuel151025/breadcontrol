@@ -688,6 +688,17 @@ function confirmarInsumo() {
   document.body.style.overflow = '';
 }
 
+// ══ Preseleccionar insumo si se llega con ?id_insumo=X (ej: desde Producción) ══
+(function preseleccionarInsumoDesdeURL() {
+  const idInsumo = new URLSearchParams(window.location.search).get('id_insumo');
+  if (!idInsumo) return;
+  const card = document.querySelector('#grid-insumos .mcard[data-id="' + idInsumo + '"]');
+  if (!card) return;
+  seleccionarInsumo(card);
+  confirmarInsumo();
+  document.getElementById('form-compra')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+})();
+
 // ══ PROVEEDORES ═══════════════════════════════════════════════
 function filtrarProveedores() {
   const q     = document.getElementById('busca-prov').value.toLowerCase().trim();
