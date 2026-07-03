@@ -1,7 +1,13 @@
 <?php
 // sql/migrar_instructor_flow.php
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("Este script solo puede ejecutarse desde la linea de comandos.\n");
+}
+
 require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/logger.php';
 
 try {
     $pdo = getConexion();
@@ -41,6 +47,7 @@ try {
     echo "MIGRACIÓN COMPLETADA CON ÉXITO.\n";
 
 } catch (Exception $e) {
-    echo "ERROR: " . $e->getMessage() . "\n";
+    log_error($e);
+    echo "ERROR: la migracion fallo. Revisa el log en /logs para el detalle.\n";
     exit(1);
 }
