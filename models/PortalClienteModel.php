@@ -956,7 +956,7 @@ class PortalClienteModel {
      * Obtiene el listado de instructores (clientes tipo tienda activos).
      */
     public function getInstructoresActivos(): array {
-        return $this->pdo->query("SELECT id_cliente, nombre FROM cliente WHERE tipo = 'tienda' AND activo = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+        return $this->pdo->query("SELECT id_cliente, nombre FROM cliente WHERE tipo = 'tienda' AND activo = 1 AND es_aprendiz = 0 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
