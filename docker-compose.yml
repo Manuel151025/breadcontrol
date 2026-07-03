@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: panaderia_app
+    restart: always
+    ports:
+      - "8092:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: panaderia_db
+    command: --sql_mode="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+    restart: always
+    environment:
+      MYSQL_DATABASE: panaderia_bd
+      MYSQL_USER: panaderia_user
+      MYSQL_PASSWORD: panaderia_password
+      MYSQL_ROOT_PASSWORD: panaderia_root_password
+    volumes:
+      - panaderia_db_data:/var/lib/mysql
+      - ./sql/panaderia_bd.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  panaderia_db_data:

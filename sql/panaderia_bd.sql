@@ -912,7 +912,7 @@ UNLOCK TABLES;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
 /*!50001 SET character_set_client      = utf8mb4 */;
 /*!50001 SET character_set_results     = utf8mb4 */;
-/*!50001 SET collation_connection      = utf8mb4_uca1400_ai_ci */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`u631215701_breadcontrol`@`%` SQL SECURITY DEFINER */
 /*!50001 VIEW `v_inventario_actual` AS select `i`.`id_insumo` AS `id_insumo`,`i`.`nombre` AS `nombre`,`i`.`unidad_medida` AS `unidad_medida`,`i`.`es_harina` AS `es_harina`,`i`.`stock_actual` AS `stock_actual`,`i`.`punto_reposicion` AS `punto_reposicion`,`i`.`consumo_promedio_diario` AS `consumo_promedio_diario`,case when `i`.`consumo_promedio_diario` > 0 then round(`i`.`stock_actual` / `i`.`consumo_promedio_diario`,1) else NULL end AS `dias_restantes`,case when `i`.`stock_actual` <= `i`.`punto_reposicion` then 'critico' when `i`.`stock_actual` <= `i`.`punto_reposicion` * 1.5 then 'alerta' else 'normal' end AS `semaforo` from `insumo` `i` where `i`.`activo` = 1 */;
@@ -930,7 +930,7 @@ UNLOCK TABLES;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
 /*!50001 SET character_set_client      = utf8mb4 */;
 /*!50001 SET character_set_results     = utf8mb4 */;
-/*!50001 SET collation_connection      = utf8mb4_uca1400_ai_ci */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`u631215701_breadcontrol`@`%` SQL SECURITY DEFINER */
 /*!50001 VIEW `v_lotes_fifo` AS select `l`.`id_lote` AS `id_lote`,`l`.`id_insumo` AS `id_insumo`,`i`.`nombre` AS `nombre_insumo`,`l`.`numero_lote` AS `numero_lote`,`l`.`cantidad_disponible` AS `cantidad_disponible`,`l`.`precio_unitario` AS `precio_unitario`,`l`.`fecha_ingreso` AS `fecha_ingreso` from (`lote` `l` join `insumo` `i` on(`i`.`id_insumo` = `l`.`id_insumo`)) where `l`.`estado` = 'activo' and `l`.`cantidad_disponible` > 0 order by `l`.`id_insumo`,`l`.`fecha_ingreso` */;
@@ -948,7 +948,7 @@ UNLOCK TABLES;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
 /*!50001 SET character_set_client      = utf8mb4 */;
 /*!50001 SET character_set_results     = utf8mb4 */;
-/*!50001 SET collation_connection      = utf8mb4_uca1400_ai_ci */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`u631215701_breadcontrol`@`%` SQL SECURITY DEFINER */
 /*!50001 VIEW `v_margen_productos` AS select `p`.`id_producto` AS `id_producto`,`p`.`nombre` AS `nombre`,`p`.`categoria` AS `categoria`,`p`.`precio_venta` AS `precio_venta`,coalesce(`latest_prod`.`costo_unitario`,0) AS `costo_unitario`,case when `p`.`precio_venta` > 0 and coalesce(`latest_prod`.`costo_unitario`,0) > 0 then round((`p`.`precio_venta` - coalesce(`latest_prod`.`costo_unitario`,0)) / `p`.`precio_venta` * 100,2) else NULL end AS `margen_pct` from (`producto` `p` left join (select `pr`.`id_producto` AS `id_producto`,`pr`.`costo_unitario` AS `costo_unitario` from (`produccion` `pr` join (select `produccion`.`id_producto` AS `id_producto`,max(`produccion`.`id_produccion`) AS `max_id` from `produccion` group by `produccion`.`id_producto`) `latest` on(`pr`.`id_produccion` = `latest`.`max_id`))) `latest_prod` on(`latest_prod`.`id_producto` = `p`.`id_producto`)) where `p`.`activo` = 1 */;
@@ -966,7 +966,7 @@ UNLOCK TABLES;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
 /*!50001 SET character_set_client      = utf8mb4 */;
 /*!50001 SET character_set_results     = utf8mb4 */;
-/*!50001 SET collation_connection      = utf8mb4_uca1400_ai_ci */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`u631215701_breadcontrol`@`%` SQL SECURITY DEFINER */
 /*!50001 VIEW `v_resumen_financiero_30d` AS select `cd`.`fecha` AS `fecha`,`cd`.`total_ingresos` AS `total_ingresos`,`cd`.`costo_produccion` AS `costo_produccion`,`cd`.`total_gastos` AS `total_gastos`,`cd`.`utilidad_bruta` AS `utilidad_bruta`,`cd`.`utilidad_neta` AS `utilidad_neta` from `cierre_dia` `cd` where `cd`.`fecha` >= curdate() - interval 30 day order by `cd`.`fecha` desc */;

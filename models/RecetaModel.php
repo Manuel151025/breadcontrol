@@ -22,7 +22,7 @@ class RecetaModel {
         if ($busca) {
             $sql .= " AND p.nombre LIKE ? ";
         }
-        $sql .= " GROUP BY p.id_producto ORDER BY p.nombre ";
+        $sql .= " GROUP BY p.id_producto, r.id_receta ORDER BY p.nombre ";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($busca ? ["%$busca%"] : []);
