@@ -4,7 +4,7 @@
 
 BreadControl es una aplicación web diseñada específicamente para digitalizar y optimizar la operación diaria de panaderías artesanales colombianas. Desde el control de inventario hasta el cierre de caja y el portal de pedidos para clientes, todo en un solo lugar.
 
-> 🌐 **Demo en vivo:** [breadcontrol.adso.pro](https://breadcontrol.adso.pro)
+> 🌐 **Demo en vivo:** [breadcontrol.manuelcardenas.online](https://breadcontrol.manuelcardenas.online)
 
 ---
 

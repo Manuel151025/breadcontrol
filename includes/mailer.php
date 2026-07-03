@@ -2,7 +2,7 @@
 // Envía un correo HTML vía SendGrid API (cURL). Retorna true si 202 Accepted.
 function enviar_correo(string $to, string $to_nombre, string $subject, string $html): bool {
     $api_key    = get_env('SENDGRID_API_KEY');
-    $from_email = get_env('SENDGRID_FROM', 'no-reply@breadcontrol.adso.pro');
+    $from_email = get_env('SENDGRID_FROM', 'manuelcardenassuarez2005@gmail.com');
     $from_name  = get_env('SENDGRID_FROM_NOMBRE', 'BreadControl');
 
     if (!$api_key) {
