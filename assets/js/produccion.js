@@ -160,7 +160,7 @@ function _fetch() {
           html += '<div class="alert-falta"><i class="bi bi-exclamation-triangle-fill"></i>' +
             '<span class="alert-falta-text">Faltan <strong>' + fmt(falta) + ' ' + escHtml(ing.unidad_medida) + '</strong>. ' +
             'Actualiza el stock en <strong>Inventario</strong> o registra una compra.</span>' +
-            '<a class="btn-comprar-falta" href="' + appUrl + '/modules/compras/index.php?id_insumo=' + ing.id_insumo + '" target="_blank" rel="noopener">' +
+            '<a class="btn-comprar-falta" href="' + appUrl + '/modules/compras/index.php?id_insumo=' + ing.id_insumo + '">' +
             '<i class="bi bi-cart-plus-fill"></i> Comprar</a>' +
             '</div>';
         }
