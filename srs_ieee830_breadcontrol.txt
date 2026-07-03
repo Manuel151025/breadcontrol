@@ -76,7 +76,7 @@ El resto de este documento está organizado de la siguiente manera:
 ## 2. Descripción General
 
 ### 2.1 Perspectiva del Producto
-BreadControl es un sistema web independiente configurado en una arquitectura MVC clásica implementada en PHP y MySQL. El sistema se comunica externamente con servicios de correo (SMTP mediante PHPMailer) y APIs externas (Open-Meteo y Wompi).
+BreadControl es un sistema web independiente configurado en una arquitectura MVC clásica implementada en PHP y MySQL, desplegado en contenedores Docker (imagen `php:8.2-apache` + `mysql:8.0`) sobre un VPS con Nginx como proxy reverso y SSL de Let's Encrypt. El sistema se comunica externamente con servicios de correo (API HTTP de SendGrid) y APIs externas (Open-Meteo y Wompi).
 
 ```
 ┌────────────────┐     ┌──────────────┐     ┌──────────────┐
@@ -84,8 +84,9 @@ BreadControl es un sistema web independiente configurado en una arquitectura MVC
 │  (Client Side) │◀────│  (MVC App)   │◀────│ (BD Relación)│
 └────────────────┘     └──────────────┘     └──────────────┘
        │                      │
-       ├─ (Clima API)         ├─ (SMTP Email)
-       └─ (Wompi Checkout)    └─ (Wompi Webhook)
+       ├─ (Clima API)         ├─ (SendGrid API)
+       └─ (Wompi/Nequi        └─ (Wompi Webhook —
+          Checkout manual)       disponible, no activo en producción)
 ```
 
 ### 2.2 Funciones del Producto
@@ -113,8 +114,9 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 * **Cancelación de Pedidos**: Límite de 48 horas de anticipación a la fecha de entrega acordada para que el cliente cancele una solicitud.
 
 ### 2.5 Suposiciones y Dependencias
-* Se asume que el servidor cuenta con conexión constante a internet para realizar la validación del clima (API Open-Meteo) y el procesamiento de los webhooks de pago (Wompi).
-* La recuperación de credenciales por email depende de la disponibilidad del servidor SMTP configurado.
+* Se asume que el servidor cuenta con conexión constante a internet para realizar la validación del clima (API Open-Meteo) y el envío de correos vía SendGrid.
+* La recuperación de credenciales por email depende de la disponibilidad del servidor de envío configurado (SendGrid), y del remitente utilizado estar verificado ante el proveedor.
+* El pago digital depende de que el propietario mantenga vigente y correctamente configurado el link de checkout de Wompi/Nequi; la confirmación del pago es un paso manual del propietario, no automático.
 
 ---
 
@@ -145,6 +147,7 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 * **RF-14 (Descuento Automático FIFO)**: Al guardar una producción, el sistema debe descontar de manera automática y secuencial los insumos de la receta de los lotes activos en orden cronológico FIFO.
 * **RF-15 (Cálculo del Costo de Tanda)**: El sistema debe calcular el costo de la producción sumando el costo de adquisición de los lotes de insumos consumidos. Debe registrar en la base de datos el `costo_total` y el `costo_unitario` de la producción correspondiente.
 * **RF-16 (Distribución de Producción por Precios)**: El sistema debe permitir distribuir las unidades totales producidas de un producto entre diferentes categorías de precio ($500, $1.000, etc.) para habilitar su stock en ventas.
+* **RF-16b (Acceso Directo a Compra desde Alerta de Faltante)**: Cuando el cálculo de una producción detecte que un insumo no alcanza para la tanda solicitada, la alerta de faltante debe incluir un enlace directo al módulo de Compras con dicho insumo preseleccionado (`modules/compras/index.php?id_insumo=`), evitando que el propietario tenga que buscarlo manualmente.
 
 #### Módulo de Ventas y Facturación
 * **RF-17 (Venta Rápida)**: El sistema debe permitir registrar ventas rápidas cobradas en mostrador seleccionando la categoría de precio y especificando la cantidad de unidades vendidas.
@@ -158,7 +161,7 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 * **RF-23 (Límite de Cupo Semanal para Aprendices)**: Al procesar un pedido de un aprendiz, el sistema debe sumar el total del pedido actual más los pedidos del aprendiz en la semana en curso y bloquear la transacción si supera el `cupo_semanal` definido en su ficha.
 * **RF-24 (Aprobación del Instructor)**: El sistema debe requerir que los pedidos realizados por aprendices sean marcados como aprobados por su instructor asignado antes de quedar en estado de confirmación operativa.
 * **RF-25 (Restricción de Cancelación)**: El sistema debe prohibir la cancelación o modificación de pedidos por parte del cliente si faltan menos de 48 horas para la fecha y hora de entrega pactada.
-* **RF-26 (Pago Consolidado vía Webhook Wompi)**: El sistema debe permitir consolidar múltiples pedidos de un mismo cliente para generar una referencia de pago única integrada a Wompi. Al recibir la notificación del webhook de aprobación (`aprobado`), debe marcar todos los pedidos asociados como pagados de forma transaccional.
+* **RF-26 (Pago Consolidado vía Link de Pago)**: El sistema debe permitir consolidar múltiples pedidos de un mismo cliente en una sola referencia de pago, mostrando el link de checkout (Wompi/Nequi) configurado por el propietario junto con el monto total a pagar. La confirmación del pago la realiza manualmente el propietario desde el panel de "Pedidos de clientes" (acción "Confirmar Cobro Tienda"), marcando los pedidos asociados como pagados. El módulo `includes/wompi.php` provee además un endpoint de webhook (`wompiWebhook()`) y funciones para generar links de pago vía API de Wompi, quedando disponible para activarse en producción una vez se configuren las llaves `WOMPI_PUBLIC_KEY`, `WOMPI_PRIVATE_KEY` y `WOMPI_EVENTS_SECRET`; mientras tanto el flujo operativo es 100% manual.
 
 #### Módulo de Gastos y Cierre de Caja
 * **RF-27 (Registro de Gastos Operativos)**: El propietario debe poder registrar gastos operativos del día detallando concepto y valor.
@@ -181,9 +184,9 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 ---
 
 ### 3.3 Interfaces Externas
-* **SMTP**: Envío de correos electrónicos transaccionales usando PHPMailer 6.9 y el puerto seguro 465 SSL.
+* **SendGrid API**: Envío de correos electrónicos transaccionales (códigos de recuperación, notificaciones) mediante la API HTTP de SendGrid (`api.sendgrid.com/v3/mail/send`) vía cURL, autenticado con `SENDGRID_API_KEY`. El remitente (`SENDGRID_FROM`) debe estar verificado como Sender Identity en SendGrid para que los envíos sean aceptados.
 * **Open-Meteo**: Interfaz REST basada en HTTP GET que retorna las condiciones del clima en formato JSON en base a la geolocalización.
-* **Wompi API**: Generación de botones de pago tipo widget y webhook HTTP POST seguro que notifique los cambios de estado transaccionales desde los servidores de Wompi.
+* **Wompi/Nequi (link de pago manual)**: El propietario configura un link de checkout de Wompi (`checkout.wompi.co` o `checkout.nequi.wompi.co`) desde Configuración → Pagos; el cliente lo utiliza para pagar y el propietario confirma el cobro manualmente. El sistema incluye además (sin activar en producción) un cliente HTTP para la API de Wompi y un endpoint de webhook HTTP POST para automatizar esta confirmación en el futuro.
 
 ---
 
@@ -329,13 +332,13 @@ WHERE DATE(pr.fecha_produccion) = ?;
 
 ---
 
-### HU-05: Integración de Pagos con Pasarela Wompi
-**COMO** Cliente o Instructor  
-**QUIERO** pagar mis pedidos pendientes a través de PSE o Nequi  
-**PARA** saldar mis cuentas pendientes de forma digital e inmediata.
+### HU-05: Pago Consolidado de Pedidos vía Wompi/Nequi
+**COMO** Cliente o Instructor
+**QUIERO** pagar mis pedidos pendientes a través de PSE, Nequi, Bancolombia o tarjeta
+**PARA** saldar mis cuentas pendientes de forma digital.
 
 * **Criterios de Aceptación:**
-  1. El cliente puede seleccionar uno o varios pedidos confirmados pendientes de pago y generar una orden de pago unificada.
-  2. El sistema debe calcular el total, convertir a centavos y llamar a la API de Wompi para generar la pasarela de pago.
-  3. Al procesar el Webhook de Wompi en estado `aprobado`, el sistema de forma transaccional debe registrar un abono equivalente al total de la transacción en `pago_abono` y marcar los pedidos asociados como `aprobado`/`pagado`.
-  4. Si la transacción expira, el sistema debe volver a liberar los pedidos para una nueva solicitud de pago.
+  1. El cliente puede seleccionar uno o varios pedidos pendientes de pago y generar una orden de pago consolidada; el sistema calcula el monto total y lo agrupa bajo una sola referencia.
+  2. El sistema muestra el link de checkout de Wompi/Nequi configurado por el propietario para que el cliente complete el pago externamente, digitando el monto indicado.
+  3. El propietario verifica el pago recibido y lo confirma manualmente desde "Pedidos de clientes" (acción "Confirmar Cobro Tienda"), lo que marca los pedidos asociados como pagados; opcionalmente puede configurarse (`wompi_confirmar_auto`) para que además avancen automáticamente a estado "confirmado".
+  4. El sistema cuenta con un endpoint de webhook (`wompiWebhook()`) y funciones de la API de Wompi (`includes/wompi.php`) capaces de automatizar el paso 3 (generación de link único por transacción, validación de firma, confirmación automática), pendientes de activar en producción con llaves reales de Wompi (`WOMPI_PUBLIC_KEY`, `WOMPI_PRIVATE_KEY`, `WOMPI_EVENTS_SECRET`).

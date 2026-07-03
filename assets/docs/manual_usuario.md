@@ -26,6 +26,7 @@ Permite registrar el pan producido diariamente por tandas y descontar materias p
 * **Descuento de Insumos**: Al registrar una producción, se calculan las recetas e ingredientes necesarios y se restan automáticamente del inventario usando los lotes de compra más antiguos (FIFO).
 * **Distribución de Precios**: El pan producido se clasifica por categorías de precio ($500, $1.000, $2.000, $3.000, $5.000) lo cual incrementa el stock disponible para ventas de cada categoría.
 * **Producción Insuficiente**: Si no hay suficientes insumos para realizar la receta, el sistema te advertirá, permitiendo "forzar la producción" bajo tu responsabilidad, registrando stocks negativos transitorios.
+* **Botón "Comprar" en la Alerta de Faltante**: Cuando un ingrediente no alcanza para la tanda, la alerta roja incluye un botón **Comprar** que te lleva directo al módulo de Compras con ese insumo ya seleccionado, para que solo tengas que elegir proveedor, cantidad y precio.
 
 ## 4. Gestión de Ventas
 BreadControl cuenta con dos modalidades para registrar ingresos en la panadería física:
@@ -70,9 +71,9 @@ Por tus compras detalladas, el sistema te otorga crédito para llevar pan gratis
 * **Selección del Pan de Regalo**: Escoge qué panes deseas llevar gratis utilizando tu crédito disponible.
 * **Seguridad y Validación**: El sistema valida el costo real de los panes de regalo en el servidor. Si intentas alterar el JSON del navegador para pedir panes más caros o exceder tu saldo, el pedido será rechazado con un error por motivos de seguridad.
 
-## 4. Pagos Digitales e Integración con Wompi
-BreadControl admite pagos seguros a través de la pasarela de pagos Wompi (Bancolombia) y PSE/Nequi.
-* **Habilitar Pago Consolidado**: Si tienes varios pedidos pendientes de pago, puedes agruparlos en una sola transacción desde el menú de pagos. El sistema calcula el déficit pendiente y genera un botón de **Pagar ahora**.
-* **Completar la Transacción**: Serás redirigido de manera segura a la pasarela de Wompi. Puedes pagar con tarjetas de crédito, cuentas de ahorro o Nequi.
-* **Reintentar Pagos Rechazados**: Si tu pago es rechazado por el banco, el sistema no te bloqueará. Podrás volver a ingresar a tu portal de pagos y reintentar la transacción de forma inmediata.
-* **Validación de Saldos**: Una vez que Wompi confirme tu transacción como aprobada, el webhook del servidor validará el monto cobrado y registrará el saldo a favor de tus pedidos de forma automática.
+## 4. Pagos Digitales con Wompi/Nequi
+BreadControl permite pagar tus pedidos pendientes usando el link de pago de Wompi (Nequi, Bancolombia, PSE o tarjeta) que configura la panadería.
+* **Habilitar Pago Consolidado**: Si tienes varios pedidos pendientes de pago, puedes agruparlos en una sola transacción desde el menú de pagos. El sistema calcula el total pendiente y muestra un botón de **Pagar ahora**.
+* **Completar la Transacción**: Al tocar "Pagar ahora" se abre el link de checkout de Wompi. Digita el monto exacto que te indica la pantalla y paga con Nequi, Bancolombia, PSE o tarjeta.
+* **Confirmación del Pago**: A diferencia de una pasarela totalmente automática, el pago **lo confirma manualmente la panadería** una vez verifica que el dinero llegó — por eso puede tardar unos minutos en reflejarse como pagado en tu portal. Si no ves el cambio de inmediato, no te preocupes, no significa que el pago falló.
+* **Reintentar Pagos**: Si algo sale mal durante el pago, puedes volver a tu portal y generar el pago consolidado de nuevo sin problema.
