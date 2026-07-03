@@ -123,7 +123,7 @@
             <div class="var-info">
               <div class="var-name" title="<?= htmlspecialchars($v['nombre']) ?>"><?= htmlspecialchars($v['nombre']) ?></div>
               <div class="var-btns">
-                <button class="btn-act btn-edit" title="Editar" onclick="abrirEdit(<?= $v['id_variedad'] ?>,'<?= addslashes($v['nombre']) ?>','<?= $v['imagen'] ? APP_URL.'/'+$v['imagen'] : '' ?>')"><i class="bi bi-pencil"></i></button>
+                <button class="btn-act btn-edit" title="Editar" onclick="abrirEdit(<?= $v['id_variedad'] ?>,'<?= addslashes($v['nombre']) ?>','<?= $v['imagen'] ? APP_URL.'/'.$v['imagen'] : '' ?>')"><i class="bi bi-pencil"></i></button>
                 <a href="?del_var=<?= $v['id_variedad'] ?>" class="btn-act btn-del" title="Eliminar" onclick="return confirm('¿Eliminar esta variedad?')"><i class="bi bi-trash3"></i></a>
               </div>
             </div>

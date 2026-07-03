@@ -11,12 +11,20 @@ require_once __DIR__ . '/logger.php';
 define('APP_NOMBRE',   'Sistema Inventario Panadería');
 define('APP_VERSION',  '1.0');
 
-// Detectar automáticamente si estamos en local o en hosting
-$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-if ($host === 'localhost' || $host === '127.0.0.1') {
-    define('APP_URL', 'http://localhost/panaderia');
+// APP_URL viene del .env (fuente de verdad). Si no esta configurado,
+// se detecta automaticamente a partir del Host de la peticion como respaldo
+// para desarrollo local (no usar el Host de la peticion en produccion:
+// es controlado por el cliente y no debe confiarse para construir URLs).
+$app_url_env = get_env('APP_URL');
+if ($app_url_env) {
+    define('APP_URL', rtrim($app_url_env, '/'));
 } else {
-    define('APP_URL', 'https://' . $host);
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    if ($host === 'localhost' || $host === '127.0.0.1') {
+        define('APP_URL', 'http://localhost/panaderia');
+    } else {
+        define('APP_URL', 'https://' . $host);
+    }
 }
 
 // Zona horaria (Colombia)
