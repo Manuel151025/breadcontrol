@@ -1,3 +1,4 @@
+#Dockerfile for PHP 8.2 with Apache and MySQL support
 FROM php:8.2-apache
 
 RUN apt-get update && apt-get install -y \
@@ -9,3 +10,7 @@ RUN apt-get update && apt-get install -y \
 RUN a2enmod rewrite
 
 WORKDIR /var/www/html
+
+COPY . /var/www/html/
+
+RUN chown -R www-data:www-data /var/www/html
