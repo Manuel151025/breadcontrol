@@ -34,3 +34,5 @@ error_log
 vendor/
 composer.lock
 
+# SQL
+*.sql

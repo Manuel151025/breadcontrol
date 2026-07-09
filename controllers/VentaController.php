@@ -101,15 +101,11 @@ class VentaController {
                     $precio = (float)$cat_data['precio_unitario'];
                     $total  = ($tipo_salida === 'venta') ? round($precio * $cantidad, 2) : 0;
 
-                    // Validar stock disponible
+                    // Validar stock disponible (stock del día: producido hoy - vendido hoy,
+                    // considerando también lo vendido vía pedido detallado)
                     $stock_disponible = 9999;
                     if ($id_cat) {
-                        $stk = $this->pdo->prepare("
-                            SELECT COALESCE((SELECT SUM(pp.unidades) FROM produccion_precio pp WHERE pp.id_categoria_precio = ?), 0) - 
-                                   COALESCE((SELECT SUM(v.unidades_vendidas) FROM venta v WHERE v.id_categoria_precio = ?), 0) AS disponible
-                        ");
-                        $stk->execute([$id_cat, $id_cat]);
-                        $stock_disponible = (int)$stk->fetchColumn();
+                        $stock_disponible = $this->model->getStockDisponibleHoy($id_cat);
                     }
 
                     // Calcular Bonificación / Ñapa
@@ -143,7 +139,7 @@ class VentaController {
 
                             $tipo_labels = ['venta' => 'Venta', 'bonificacion' => 'Bonificación', 'consumo_interno' => 'Consumo interno'];
                             $tipo_icons  = ['venta' => '💰', 'bonificacion' => '🎁', 'consumo_interno' => '🍞'];
-                            
+
                             $msg_ok = $tipo_icons[$tipo_salida] . " <strong>" . $tipo_labels[$tipo_salida] . " registrada</strong><br>$cantidad unidades de " . htmlspecialchars($cat_data['nombre']);
                             if ($bonificacion > 0) {
                                 $msg_ok .= "<br>+ <strong>$bonificacion bonificadas 🏪</strong> = <strong>$und_fisicas entregadas</strong>";
@@ -168,39 +164,27 @@ class VentaController {
 
         // ── 4. POST — Registrar Pedido Detallado (guardar_pedido) ────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_pedido'])) {
-            $cart_json  = $_POST['carrito_json'] ?? '[]';
-            $id_cliente = (int)($_POST['ped_cliente'] ?? 0);
-            $cart       = json_decode($cart_json, true);
+            $cart_json   = $_POST['carrito_json'] ?? '[]';
+            $id_cliente  = (int)($_POST['ped_cliente'] ?? 0);
+            $bonif_json  = $_POST['bonif_json'] ?? '[]';
+            $cart        = json_decode($cart_json, true) ?: [];
+            $bonif_items = json_decode($bonif_json, true) ?: [];
 
             if (empty($cart)) {
                 $msg_err = 'El carrito está vacío.';
             } else {
                 try {
-                    $total_und = 0;
-                    $total_dinero = 0;
-                    foreach ($cart as $item) {
-                        $total_und += (int)$item['cantidad'];
-                        $total_dinero += (int)$item['cantidad'] * (float)$item['precio'];
-                    }
-
-                    // Bonificaciones globales
-                    $bonif_json  = $_POST['bonif_json'] ?? '[]';
-                    $bonif_items = json_decode($bonif_json, true);
-                    $bonus_units = 0;
-                    if (!empty($bonif_items)) {
-                        foreach ($bonif_items as $bi) {
-                            $bonus_units += (int)($bi['cantidad'] ?? 0);
-                        }
-                    }
-
-                    $this->model->registrarPedidoDetallado($id_cliente, $user['id_usuario'], $cart, $bonif_items);
+                    // La validación de cantidad, precio y stock ocurre dentro del modelo
+                    // (nunca se confía en los valores del carrito enviados por el cliente),
+                    // que devuelve los totales realmente guardados para armar el mensaje.
+                    $resultado = $this->model->registrarPedidoDetallado($id_cliente, $user['id_usuario'], $cart, $bonif_items);
 
                     $msg_ok = "📋 <strong>Pedido detallado registrado</strong>"
-                        . "<br>" . count($cart) . " variedades · $total_und unidades cobradas";
-                    if ($bonus_units > 0) {
-                        $msg_ok .= "<br>🎁 Bonificación/Ñapa: <strong>$bonus_units</strong> unidades de regalo";
+                        . "<br>" . $resultado['total_variedades'] . " variedades · " . $resultado['total_unidades'] . " unidades cobradas";
+                    if ($resultado['bonus_units'] > 0) {
+                        $msg_ok .= "<br>🎁 Bonificación/Ñapa: <strong>" . $resultado['bonus_units'] . "</strong> unidades de regalo";
                     }
-                    $msg_ok .= "<br>Total cobrado: <strong>$" . number_format($total_dinero, 0, ',', '.') . "</strong>";
+                    $msg_ok .= "<br>Total cobrado: <strong>$" . number_format($resultado['total_dinero'], 0, ',', '.') . "</strong>";
 
                     header('Location: index.php?msg_ok=' . urlencode($msg_ok));
                     exit;
@@ -213,35 +197,23 @@ class VentaController {
 
         // ── 5. POST — Editar Pedido Detallado (editar_pedido) ────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_pedido'])) {
-            $id_v        = (int)($_POST['edit_id_venta'] ?? 0);
-            $cart_json   = $_POST['edit_carrito_json'] ?? '[]';
-            $id_cliente  = (int)($_POST['edit_ped_cliente'] ?? 0);
+            $id_v         = (int)($_POST['edit_id_venta'] ?? 0);
+            $cart_json    = $_POST['edit_carrito_json'] ?? '[]';
+            $id_cliente   = (int)($_POST['edit_ped_cliente'] ?? 0);
             $bonif_json_e = $_POST['edit_bonif_json'] ?? '[]';
-            
-            $cart        = json_decode($cart_json, true);
-            $bonif_items_e = json_decode($bonif_json_e, true);
+
+            $cart          = json_decode($cart_json, true) ?: [];
+            $bonif_items_e = json_decode($bonif_json_e, true) ?: [];
 
             if ($id_v && !empty($cart)) {
                 try {
-                    $total_und = 0;
-                    $total_dinero = 0;
-                    foreach ($cart as $item) {
-                        $total_und += (int)$item['cantidad'];
-                        $total_dinero += (int)$item['cantidad'] * (float)$item['precio'];
-                    }
-                    $bonus_units = 0;
-                    if (!empty($bonif_items_e)) {
-                        foreach ($bonif_items_e as $bi) {
-                            $bonus_units += (int)($bi['cantidad'] ?? 0);
-                        }
-                    }
+                    // Misma revalidación de cantidad, precio y stock que al registrar.
+                    $resultado = $this->model->editarPedidoDetallado($id_v, $id_cliente, $cart, $bonif_items_e);
 
-                    $this->model->editarPedidoDetallado($id_v, $id_cliente, $cart, $bonif_items_e);
-
-                    $msg_ok = "📋 <strong>Pedido #$id_v actualizado</strong><br>" . count($cart) . " variedades · $total_und unidades · $" . number_format($total_dinero, 0, ',', '.');
-                    if ($bonus_units > 0) {
+                    $msg_ok = "📋 <strong>Pedido #$id_v actualizado</strong><br>" . $resultado['total_variedades'] . " variedades · " . $resultado['total_unidades'] . " unidades · $" . number_format($resultado['total_dinero'], 0, ',', '.');
+                    if ($resultado['bonus_units'] > 0) {
                         $etiq = $id_cliente > 0 ? 'bonificación 🏪' : 'ñapa 🎁';
-                        $msg_ok .= "<br>+ <strong>$bonus_units</strong> de $etiq";
+                        $msg_ok .= "<br>+ <strong>" . $resultado['bonus_units'] . "</strong> de $etiq";
                     }
 
                     header('Location: index.php?msg_ok=' . urlencode($msg_ok));
@@ -479,7 +451,7 @@ class VentaController {
         $productos_list = $this->model->getProductosActivosConStock();
         $clientes_list  = $this->pdo->query("SELECT id_cliente, nombre, tipo FROM cliente WHERE activo = 1 ORDER BY nombre")->fetchAll();
         $ventas_hoy     = $this->model->getVentasHoyNueva();
-        
+
         $total_hoy = array_sum(array_column($ventas_hoy, 'total_venta'));
         $num_hoy   = count($ventas_hoy);
 
@@ -499,7 +471,7 @@ class VentaController {
         }
 
         $ids = $_POST['exportar_ids'];
-        
+
         try {
             $res = $this->model->getVentasPorIds($ids);
             $ventas             = $res['ventas'];
@@ -517,7 +489,7 @@ class VentaController {
         header("Expires: 0");
 
         echo "\xEF\xBB\xBF"; // UTF-8 BOM
-        
+
         // Carga la plantilla de Excel
         require_once __DIR__ . '/../views/ventas/exportar_excel.php';
     }
