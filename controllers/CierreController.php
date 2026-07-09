@@ -67,10 +67,11 @@ class CierreController {
         $compras_hoy   = $this->model->getComprasHoy($hoy);
 
         // ── Alertas y sobrantes ─────────────────────────────────────
-        $alertas         = $this->model->getAlertasStockBajo();
-        $num_alertas     = count($alertas);
-        $sobrantes       = $this->model->getSobrantesHoy($hoy);
-        $total_sobrante  = array_sum(array_column($sobrantes, 'sobrante'));
+        $alertas             = $this->model->getAlertasStockBajo();
+        $num_alertas         = count($alertas);
+        $sobrantes           = $this->model->getSobrantesHoy($hoy);
+        $total_sobrante      = array_sum(array_column($sobrantes, 'sobrante'));
+        $ventas_sin_producto = $this->model->getVentasSinProductoHoy($hoy);
 
         // ── Cierre e historial ──────────────────────────────────────
         $cierre_guardado = $this->model->getCierreGuardado($hoy);

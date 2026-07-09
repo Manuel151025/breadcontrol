@@ -434,6 +434,13 @@
         <?php endforeach; ?>
       </div>
       <?php endif; ?>
+      <?php if ($ventas_sin_producto > 0): ?>
+      <div class="sub-sep"><i class="bi bi-info-circle-fill"></i>No incluido arriba</div>
+      <div class="dato-row">
+        <span class="dato-nombre">Vendido por categoría de precio sin producto específico</span>
+        <span class="dato-val" style="color:var(--ink2)"><?= $ventas_sin_producto ?> und</span>
+      </div>
+      <?php endif; ?>
     </div>
 
   </div><!-- /cierre-bottom -->

@@ -149,7 +149,22 @@ class CierreModel {
     }
 
     /**
-     * Pan sobrante del día: producido – vendido por producto
+     * Pan sobrante del día: producido – vendido por producto.
+     *
+     * LIMITACIÓN CONOCIDA (no corregida aquí a propósito, ver decisión en
+     * AUDITORIA.md C6): esta consulta solo reconcilia producto vs. venta
+     * cuando la venta trae id_producto directo (módulo clásico "venta
+     * nueva"). Las ventas del POS moderno (venta rápida y pedido detallado)
+     * no registran id_producto, solo id_categoria_precio — y una misma
+     * categoría de precio agrupa varias variedades de pan distintas (ej. la
+     * categoría de $500 recibe producción de Pan de Sal, Pan Grande,
+     * Croissant, Pan Dulce y Pan Coco a la vez). No hay forma de saber con el
+     * esquema actual a cuál de esos productos pertenece una venta por
+     * categoría, así que esas unidades no pueden restarse aquí sin adivinar.
+     * Para que "sobrante" no las ignore en silencio, se exponen aparte en
+     * getVentasSinProductoHoy() y el panel las muestra como nota separada.
+     * Arreglo de fondo (trabajo futuro): que el POS moderno registre también
+     * el id_producto vendido, no solo la categoría de precio.
      */
     public function getSobrantesHoy(string $fecha): array {
         $stmt = $this->pdo->prepare("
@@ -170,6 +185,29 @@ class CierreModel {
         ");
         $stmt->execute([$fecha, $fecha]);
         return $stmt->fetchAll();
+    }
+
+    /**
+     * Unidades salidas hoy (venta rápida o pedido detallado) que NO se pueden
+     * atribuir a un producto específico, porque el POS moderno solo registra
+     * id_categoria_precio y deja id_producto en NULL — ver el comentario de
+     * getSobrantesHoy() para el porqué. Se reporta aparte, como nota, para
+     * que el panel "Sin vender hoy" no subestime en silencio lo que falta por
+     * vender.
+     *
+     * Para pedido detallado basta sumar venta.unidades_vendidas: el registro
+     * maestro ya guarda ahí el total agregado del pedido (cantidad + ñapa +
+     * bonificación, ver VentaModel::registrarPedidoDetallado()), así que
+     * sumar también venta_detalle duplicaría el conteo.
+     */
+    public function getVentasSinProductoHoy(string $fecha): int {
+        $stmt = $this->pdo->prepare("
+            SELECT COALESCE(SUM(unidades_vendidas), 0)
+            FROM venta
+            WHERE id_producto IS NULL AND DATE(fecha_hora) = ?
+        ");
+        $stmt->execute([$fecha]);
+        return (int)$stmt->fetchColumn();
     }
 
     // ══════════════════════════════════════════════════════════════

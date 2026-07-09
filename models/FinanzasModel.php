@@ -180,16 +180,27 @@ class FinanzasModel {
         return $stmt->fetchAll();
     }
 
+    /**
+     * Detalle de ventas del período. Usa LEFT JOIN + COALESCE hacia producto
+     * y categoria_precio (mismo patrón que CierreModel::getVentasPorProducto())
+     * porque la mayoría de las ventas del POS moderno (venta rápida y pedido
+     * detallado) solo registran id_categoria_precio, no id_producto: el INNER
+     * JOIN anterior las excluía del reporte casi por completo. El pedido
+     * detallado no tiene categoría ni producto en su registro maestro (el
+     * detalle vive en venta_detalle), así que se agrega un tercer fallback
+     * de texto para que "producto" nunca llegue NULL a la vista PDF.
+     */
     public function getDetalleVentas(string $desde, string $hasta): array {
         $stmt = $this->pdo->prepare("
             SELECT DATE(v.fecha_hora) AS fecha, TIME(v.fecha_hora) AS hora,
                    COALESCE(c.nombre,'Mostrador') AS cliente, c.tipo,
-                   p.nombre AS producto, v.unidades_vendidas,
+                   COALESCE(cp.nombre, p.nombre, 'Pedido detallado') AS producto, v.unidades_vendidas,
                    COALESCE(v.unidades_bonificacion,0) AS bonificacion,
                    v.precio_unitario, v.total_venta
             FROM venta v
-            INNER JOIN producto p ON p.id_producto = v.id_producto
-            LEFT  JOIN cliente  c ON c.id_cliente  = v.id_cliente
+            LEFT JOIN producto p ON p.id_producto = v.id_producto
+            LEFT JOIN categoria_precio cp ON cp.id_categoria = v.id_categoria_precio
+            LEFT JOIN cliente  c ON c.id_cliente  = v.id_cliente
             WHERE DATE(v.fecha_hora) BETWEEN :d AND :h
             ORDER BY v.fecha_hora ASC
         ");
