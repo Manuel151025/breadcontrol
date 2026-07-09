@@ -2,6 +2,7 @@
 // controllers/CierreController.php
 
 require_once __DIR__ . '/../models/CierreModel.php';
+require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class CierreController {
     private $model;
@@ -30,8 +31,9 @@ class CierreController {
             $total_ingresos   = $this->model->getTotalVentasHoy($hoy);
             $costo_produccion = $this->model->getCostoProduccionHoy($hoy);
             $total_gastos_c   = $this->model->getTotalGastosHoy($hoy);
-            $utilidad_bruta   = $total_ingresos - $costo_produccion;
-            $utilidad_neta    = $utilidad_bruta - $total_gastos_c;
+            $utilidad          = FinanzasHelper::calcularUtilidad($total_ingresos, $costo_produccion, $total_gastos_c);
+            $utilidad_bruta   = $utilidad['bruta'];
+            $utilidad_neta    = $utilidad['neta'];
 
             try {
                 $this->model->guardarCierre(
@@ -56,8 +58,9 @@ class CierreController {
         $costo_produccion_hoy = $this->model->getCostoProduccionHoy($hoy);
         $total_gastos         = $this->model->getTotalGastosHoy($hoy);
 
-        $utilidad_bruta       = $total_ventas - $costo_produccion_hoy;
-        $utilidad_neta        = $utilidad_bruta - $total_gastos;
+        $utilidad             = FinanzasHelper::calcularUtilidad($total_ventas, $costo_produccion_hoy, $total_gastos);
+        $utilidad_bruta       = $utilidad['bruta'];
+        $utilidad_neta        = $utilidad['neta'];
 
         // ── Desgloses ───────────────────────────────────────────────
         $ventas_prod   = $this->model->getVentasPorProducto($hoy);

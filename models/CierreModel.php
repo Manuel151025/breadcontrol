@@ -1,6 +1,8 @@
 <?php
 // models/CierreModel.php
 
+require_once __DIR__ . '/../helpers/FinanzasHelper.php';
+
 class CierreModel {
     private $pdo;
 
@@ -61,11 +63,7 @@ class CierreModel {
      * Costo total de insumos consumidos en producción del día (consumo_lote)
      */
     public function getCostoProduccionHoy(string $fecha): float {
-        $stmt = $this->pdo->prepare(
-            "SELECT COALESCE(SUM(cl.costo_consumo),0) FROM consumo_lote cl INNER JOIN produccion pr ON pr.id_produccion=cl.id_produccion WHERE DATE(pr.fecha_produccion)=?"
-        );
-        $stmt->execute([$fecha]);
-        return (float)$stmt->fetchColumn();
+        return FinanzasHelper::costoProduccionEnRango($this->pdo, $fecha, $fecha);
     }
 
     /**

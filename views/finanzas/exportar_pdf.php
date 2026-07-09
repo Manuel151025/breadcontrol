@@ -385,7 +385,7 @@
     </div>
     <div class="kpi-card naranja">
       <div class="kpi-lbl">Utilidad bruta</div>
-      <div class="kpi-val">$<?= number_format(abs($utilidad_bruta),0,',','.') ?></div>
+      <div class="kpi-val"><?= $utilidad_bruta >= 0 ? '+' : '-' ?>$<?= number_format(abs($utilidad_bruta),0,',','.') ?></div>
       <div class="kpi-sub">
         <span class="kpi-dot" style="background:<?= $utilidad_bruta>=0?'var(--verde)':'var(--rojo)' ?>"></span>
         <?= $utilidad_bruta >= 0 ? 'Resultado positivo ✓' : 'Resultado negativo ✗' ?>
@@ -570,14 +570,14 @@
       <div class="rf-item">
         <div class="rf-lbl">Utilidad bruta</div>
         <div class="rf-val <?= $utilidad_bruta>=0?'pos':'neg' ?>">
-          <?= $utilidad_bruta>=0?'+':'' ?>$<?= number_format(abs($utilidad_bruta),0,',','.') ?>
+          <?= $utilidad_bruta>=0?'+':'-' ?>$<?= number_format(abs($utilidad_bruta),0,',','.') ?>
         </div>
         <div class="rf-sub">Margen <?= $margen_bruto ?>%</div>
       </div>
       <div class="rf-item">
         <div class="rf-lbl">Utilidad neta</div>
         <div class="rf-val <?= $utilidad_neta>=0?'pos':'neg' ?>">
-          <?= $utilidad_neta>=0?'+':'' ?>$<?= number_format(abs($utilidad_neta),0,',','.') ?>
+          <?= $utilidad_neta>=0?'+':'-' ?>$<?= number_format(abs($utilidad_neta),0,',','.') ?>
         </div>
         <div class="rf-sub">Incl. gastos operativos</div>
       </div>

@@ -1,6 +1,8 @@
 <?php
 // models/FinanzasModel.php
 
+require_once __DIR__ . '/../helpers/FinanzasHelper.php';
+
 class FinanzasModel {
     private $pdo;
 
@@ -24,6 +26,15 @@ class FinanzasModel {
         $stmt = $this->pdo->prepare("SELECT COALESCE(SUM(valor),0) FROM gasto WHERE DATE(fecha_gasto) BETWEEN :d AND :h");
         $stmt->execute([':d' => $desde, ':h' => $hasta]);
         return (float)$stmt->fetchColumn();
+    }
+
+    /**
+     * Costo real de producción (consumo_lote, FIFO) en el rango. A diferencia de
+     * getConsumoIngredientes(), que trae solo el top-N insumos para un gráfico,
+     * esta consulta suma TODOS los insumos consumidos, sin LIMIT.
+     */
+    public function getCostoProduccionRango(string $desde, string $hasta): float {
+        return FinanzasHelper::costoProduccionEnRango($this->pdo, $desde, $hasta);
     }
 
     public function getNumVentas(string $desde, string $hasta): int {

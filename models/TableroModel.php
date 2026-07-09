@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../helpers/FinanzasHelper.php';
+
 class TableroModel {
     private $pdo;
 
@@ -21,12 +23,22 @@ class TableroModel {
     }
 
     public function getFinanzasMes() {
+        $primerDia = date('Y-m-01');
+        $hoy       = date('Y-m-d');
+
         $ingresos = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND MONTH(fecha_hora)=MONTH(CURDATE()) AND YEAR(fecha_hora)=YEAR(CURDATE())")->fetchColumn();
         $compras = (float)$this->pdo->query("SELECT COALESCE(SUM(total_pagado),0) FROM compra WHERE MONTH(fecha_compra)=MONTH(CURDATE()) AND YEAR(fecha_compra)=YEAR(CURDATE())")->fetchColumn();
+        $gastos  = (float)$this->pdo->query("SELECT COALESCE(SUM(valor),0) FROM gasto WHERE MONTH(fecha_gasto)=MONTH(CURDATE()) AND YEAR(fecha_gasto)=YEAR(CURDATE())")->fetchColumn();
+        $costoProduccion = FinanzasHelper::costoProduccionEnRango($this->pdo, $primerDia, $hoy);
+
+        $utilidad = FinanzasHelper::calcularUtilidad($ingresos, $costoProduccion, $gastos);
+
         return [
             'ingresos' => $ingresos,
             'compras' => $compras,
-            'utilidad' => $ingresos - $compras
+            'gastos' => $gastos,
+            'costo_produccion' => $costoProduccion,
+            'utilidad' => $utilidad['neta']
         ];
     }
 

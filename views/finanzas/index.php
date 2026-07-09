@@ -162,7 +162,7 @@
         <div class="wc-pill-lbl">Ingresos</div>
       </div>
       <div class="wc-pill <?= $utilidad_bruta >= 0 ? 'ok' : 'alert' ?>">
-        <div class="wc-pill-num">$<?= number_format(abs($utilidad_bruta) / 1000, 1) ?>k</div>
+        <div class="wc-pill-num"><?= $utilidad_bruta >= 0 ? '+' : '-' ?>$<?= number_format(abs($utilidad_bruta) / 1000, 1) ?>k</div>
         <div class="wc-pill-lbl">Utilidad</div>
       </div>
       <div class="wc-pill">
@@ -277,7 +277,7 @@
       </div>
       <div class="kpi">
         <div class="kpi-lbl"><i class="bi bi-calculator" style="color:var(--c3)"></i>Utilidad bruta</div>
-        <div class="kpi-val <?= $utilidad_bruta >= 0 ? 'grn' : 'red' ?>">$<?= number_format(abs($utilidad_bruta), 0, ',', '.') ?></div>
+        <div class="kpi-val <?= $utilidad_bruta >= 0 ? 'grn' : 'red' ?>"><?= $utilidad_bruta >= 0 ? '+' : '-' ?>$<?= number_format(abs($utilidad_bruta), 0, ',', '.') ?></div>
         <div class="kpi-badge">
           <?php if ($diff_utilidad !== null): ?>
           <span class="<?= $diff_utilidad >= 0 ? 'tag-sube' : 'tag-baja' ?>"><?= $diff_utilidad >= 0 ? '+' : '' ?><?= $diff_utilidad ?>%</span>
@@ -435,7 +435,7 @@
             <div class="comp-fila">
               <div class="comp-lbl"><?= $lbl ?></div>
               <div class="comp-nums">
-                <span class="comp-actual" style="color:<?= $colorVal ?>">$<?= number_format(abs($actual), 0, ',', '.') ?></span>
+                <span class="comp-actual" style="color:<?= $colorVal ?>"><?= $actual < 0 ? '-' : '' ?>$<?= number_format(abs($actual), 0, ',', '.') ?></span>
                 <span class="comp-ant">ant: $<?= number_format(abs($anterior), 0, ',', '.') ?></span>
                 <?php if ($diff !== null): ?>
                 <span class="comp-diff" style="color:<?= $col ?>"><?= $ico ?> <?= abs($diff) ?>%</span>
@@ -490,7 +490,7 @@
           <div class="util-neta" style="background:<?= $utilidad_neta >= 0 ? '#f1f8f2' : '#fef2f2' ?>;border:1px solid <?= $utilidad_neta >= 0 ? '#a5d6a7' : '#ef9a9a' ?>;">
             <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:.2rem;">Utilidad neta</div>
             <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:800;color:<?= $utilidad_neta >= 0 ? '#2e7d32' : '#c62828' ?>">
-               $<?= number_format(abs($utilidad_neta),0,',','.') ?>
+               <?= $utilidad_neta >= 0 ? '+' : '-' ?>$<?= number_format(abs($utilidad_neta),0,',','.') ?>
             </div>
             <div style="font-size:.62rem;color:var(--ink3);margin-top:.15rem;">Ingresos − Compras − Gastos</div>
           </div>

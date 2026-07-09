@@ -2,6 +2,7 @@
 // controllers/GastoController.php
 
 require_once __DIR__ . '/../models/GastoModel.php';
+require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class GastoController {
     private $model;
@@ -101,11 +102,12 @@ class GastoController {
         }
         $total_dia = array_sum(array_column($gastos_dia, 'valor'));
         
-        // Obtener resumen financiero (ingresos y compras)
+        // Obtener resumen financiero (ingresos, compras y costo real de producción)
         $finanzas = $this->model->getResumenFinanzasDia($fecha_fil);
         $ingresos_dia = $finanzas['ingresos'];
         $compras_dia  = $finanzas['compras'];
-        $utilidad_neta = $ingresos_dia - $compras_dia - $total_dia;
+        $costo_produccion_dia = $finanzas['costo_produccion'];
+        $utilidad_neta = FinanzasHelper::calcularUtilidad($ingresos_dia, $costo_produccion_dia, $total_dia)['neta'];
         
         // Estadísticas mensuales
         $gastos_mes     = $this->model->getGastosMes();

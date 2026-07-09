@@ -156,7 +156,7 @@
         <div class="fcard">
           <div class="fcard-lbl"><i class="bi bi-calculator" style="color:var(--c3)"></i>Utilidad</div>
           <div class="fcard-val <?= $utilidad_mes >= 0 ? 'grn' : 'red' ?>">
-            $<?= number_format(abs($utilidad_mes), 0, ',', '.') ?>
+            <?= $utilidad_mes >= 0 ? '+' : '-' ?>$<?= number_format(abs($utilidad_mes), 0, ',', '.') ?>
           </div>
         </div>
       </div>

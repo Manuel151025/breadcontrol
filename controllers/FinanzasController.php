@@ -2,6 +2,7 @@
 // controllers/FinanzasController.php
 
 require_once __DIR__ . '/../models/FinanzasModel.php';
+require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class FinanzasController {
     private $model;
@@ -44,8 +45,10 @@ class FinanzasController {
         $ingresos = $this->model->getIngresos($desde, $hasta);
         $compras = $this->model->getComprasTotal($desde, $hasta);
         $gastos_op = $this->model->getGastosOp($desde, $hasta);
-        $utilidad_bruta = $ingresos - $compras;
-        $utilidad_neta  = $ingresos - $compras - $gastos_op;
+        $costo_produccion = $this->model->getCostoProduccionRango($desde, $hasta);
+        $utilidad       = FinanzasHelper::calcularUtilidad($ingresos, $costo_produccion, $gastos_op);
+        $utilidad_bruta = $utilidad['bruta'];
+        $utilidad_neta  = $utilidad['neta'];
         $margen_bruto   = $ingresos > 0 ? round(($utilidad_bruta / $ingresos) * 100, 1) : 0;
         $num_ventas = $this->model->getNumVentas($desde, $hasta);
         $num_compras = $this->model->getNumCompras($desde, $hasta);
@@ -88,8 +91,9 @@ class FinanzasController {
 
         $ingresos_ant = $this->model->getIngresos($desde_ant, $hasta_ant);
         $compras_ant  = $this->model->getComprasTotal($desde_ant, $hasta_ant);
+        $costo_produccion_ant = $this->model->getCostoProduccionRango($desde_ant, $hasta_ant);
 
-        $utilidad_ant  = $ingresos_ant - $compras_ant;
+        $utilidad_ant  = FinanzasHelper::calcularUtilidad($ingresos_ant, $costo_produccion_ant, 0.0)['bruta'];
         $diff_ingresos = $ingresos_ant  > 0 ? round((($ingresos       - $ingresos_ant)  / $ingresos_ant)  * 100, 1) : null;
         $diff_compras  = $compras_ant   > 0 ? round((($compras        - $compras_ant)   / $compras_ant)   * 100, 1) : null;
         $diff_utilidad = $utilidad_ant != 0  ? round((($utilidad_bruta - $utilidad_ant) / abs($utilidad_ant)) * 100, 1) : null;
@@ -130,8 +134,10 @@ class FinanzasController {
         $ingresos = $this->model->getIngresos($desde, $hasta);
         $compras_total = $this->model->getComprasTotal($desde, $hasta);
         $gastos_op = $this->model->getGastosOp($desde, $hasta);
-        $utilidad_bruta = $ingresos - $compras_total;
-        $utilidad_neta  = $ingresos - $compras_total - $gastos_op;
+        $costo_produccion = $this->model->getCostoProduccionRango($desde, $hasta);
+        $utilidad       = FinanzasHelper::calcularUtilidad($ingresos, $costo_produccion, $gastos_op);
+        $utilidad_bruta = $utilidad['bruta'];
+        $utilidad_neta  = $utilidad['neta'];
         $margen_bruto   = $ingresos > 0 ? round(($utilidad_bruta/$ingresos)*100,1) : 0;
         $num_ventas = $this->model->getNumVentas($desde, $hasta);
         $num_compras = $this->model->getNumCompras($desde, $hasta);

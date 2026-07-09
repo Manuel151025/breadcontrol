@@ -1,6 +1,8 @@
 <?php
 // models/AuthModel.php
 
+require_once __DIR__ . '/../helpers/FinanzasHelper.php';
+
 class AuthModel {
     private $pdo;
 
@@ -58,15 +60,16 @@ class AuthModel {
     public function getLandingStats(): array {
         $stats = [];
         try {
+            $hoy = date('Y-m-d');
             $stats['total_insumos']  = (int)$this->pdo->query("SELECT COUNT(*) FROM insumo WHERE activo = 1")->fetchColumn();
             $stats['insumos_bajos']  = (int)$this->pdo->query("SELECT COUNT(*) FROM insumo WHERE stock_actual <= punto_reposicion AND activo = 1")->fetchColumn();
             $stats['prod_hoy']       = (int)$this->pdo->query("SELECT COUNT(*) FROM produccion WHERE DATE(fecha_produccion) = CURDATE()")->fetchColumn();
             $stats['tandas_hoy']     = (float)$this->pdo->query("SELECT COALESCE(SUM(cantidad_tandas),0) FROM produccion WHERE DATE(fecha_produccion) = CURDATE()")->fetchColumn();
-            $stats['ventas_hoy']     = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE DATE(fecha_hora) = CURDATE()")->fetchColumn();
+            $stats['ventas_hoy']     = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) = CURDATE()")->fetchColumn();
             $stats['num_ventas']     = (int)$this->pdo->query("SELECT COUNT(*) FROM venta WHERE DATE(fecha_hora) = CURDATE()")->fetchColumn();
             $stats['gastos_hoy']     = (float)$this->pdo->query("SELECT COALESCE(SUM(valor),0) FROM gasto WHERE DATE(fecha_gasto) = CURDATE()")->fetchColumn();
-            $stats['costo_prod_hoy'] = (float)$this->pdo->query("SELECT COALESCE(SUM(cl.costo_consumo),0) FROM consumo_lote cl INNER JOIN produccion pr ON pr.id_produccion=cl.id_produccion WHERE DATE(pr.fecha_produccion)=CURDATE()")->fetchColumn();
-            $stats['utilidad_hoy']   = $stats['ventas_hoy'] - $stats['costo_prod_hoy'] - $stats['gastos_hoy'];
+            $stats['costo_prod_hoy'] = FinanzasHelper::costoProduccionEnRango($this->pdo, $hoy, $hoy);
+            $stats['utilidad_hoy']   = FinanzasHelper::calcularUtilidad($stats['ventas_hoy'], $stats['costo_prod_hoy'], $stats['gastos_hoy'])['neta'];
             $stats['cierre_hoy']     = (bool)$this->pdo->query("SELECT id_cierre FROM cierre_dia WHERE fecha = CURDATE()")->fetchColumn();
             $stats['productos_act']  = (int)$this->pdo->query("SELECT COUNT(*) FROM producto WHERE activo = 1")->fetchColumn();
         } catch (Exception $e) {

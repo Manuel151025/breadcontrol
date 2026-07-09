@@ -1,6 +1,8 @@
 <?php
 // models/GastoModel.php
 
+require_once __DIR__ . '/../helpers/FinanzasHelper.php';
+
 class GastoModel {
     private $pdo;
 
@@ -88,10 +90,11 @@ class GastoModel {
     }
 
     /**
-     * Obtiene el resumen de finanzas (ingresos por ventas y compras del día)
+     * Obtiene el resumen de finanzas (ingresos por ventas, compras y costo real
+     * de producción del día)
      */
     public function getResumenFinanzasDia(string $fecha): array {
-        $stmt_ventas = $this->pdo->prepare("SELECT COALESCE(SUM(total_venta), 0) FROM venta WHERE DATE(fecha_hora) = ?");
+        $stmt_ventas = $this->pdo->prepare("SELECT COALESCE(SUM(total_venta), 0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) = ?");
         $stmt_ventas->execute([$fecha]);
         $ingresos_dia = (float)$stmt_ventas->fetchColumn();
 
@@ -99,9 +102,12 @@ class GastoModel {
         $stmt_compras->execute([$fecha]);
         $compras_dia = (float)$stmt_compras->fetchColumn();
 
+        $costo_produccion_dia = FinanzasHelper::costoProduccionEnRango($this->pdo, $fecha, $fecha);
+
         return [
             'ingresos' => $ingresos_dia,
-            'compras'  => $compras_dia
+            'compras'  => $compras_dia,
+            'costo_produccion' => $costo_produccion_dia
         ];
     }
 }
