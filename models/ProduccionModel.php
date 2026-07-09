@@ -270,6 +270,7 @@ class ProduccionModel {
             $id_produccion = (int)$this->pdo->lastInsertId();
 
             $costo_total = 0.0;
+            $sin_precio  = [];
 
             // 2. Consumir lotes FIFO por cada ingrediente
             foreach ($ingredientes as $ing) {
@@ -299,6 +300,44 @@ class ProduccionModel {
                     $restante -= $consumir;
                 }
 
+                // Remanente sin lote real: generar un lote sintético con el último precio
+                // conocido (a la fecha de esta producción, sin mirar compras futuras) para
+                // que el consumo quede con costo trazable en vez de perderse en silencio.
+                if ($restante > 0.0001) {
+                    $stmt_precio = $this->pdo->prepare("
+                        SELECT precio_unitario FROM lote
+                        WHERE id_insumo = ? AND fecha_ingreso <= ?
+                        ORDER BY fecha_ingreso DESC LIMIT 1
+                    ");
+                    $stmt_precio->execute([$ing['id_insumo'], $fecha_hora]);
+                    $ultimo_precio = $stmt_precio->fetchColumn();
+
+                    if ($ultimo_precio !== false) {
+                        $precio_estimado = (float)$ultimo_precio;
+                        $costo_estimado  = round($restante * $precio_estimado, 2);
+                        $costo_total    += $costo_estimado;
+
+                        // numero_lote único: id_produccion es autoincremental y cada insumo
+                        // aparece una sola vez por producción en este bucle, no puede colisionar
+                        $numero_lote_est = 'EST-' . $id_produccion . '-' . $ing['id_insumo'];
+                        $this->pdo->prepare("
+                            INSERT INTO lote
+                                (id_insumo, id_compra, numero_lote, cantidad_inicial, cantidad_disponible, precio_unitario, fecha_ingreso, estado)
+                            VALUES (?, NULL, ?, ?, 0, ?, ?, 'agotado')
+                        ")->execute([$ing['id_insumo'], $numero_lote_est, $restante, $precio_estimado, $fecha_hora]);
+                        $id_lote_sint = (int)$this->pdo->lastInsertId();
+
+                        $this->pdo->prepare("
+                            INSERT INTO consumo_lote (id_produccion, id_lote, cantidad_consumida, cantidad_con_merma, costo_consumo)
+                            VALUES (?,?,?,?,?)
+                        ")->execute([$id_produccion, $id_lote_sint, $restante, $restante, $costo_estimado]);
+                    } else {
+                        // Sin ningún precio de referencia disponible a esta fecha: costo 0
+                        // para este remanente, pero queda advertencia visible (no se oculta).
+                        $sin_precio[] = $ing['nombre'];
+                    }
+                }
+
                 // Siempre descontar stock_actual (cubre lotes + stock manual)
                 $this->pdo->prepare("
                     UPDATE insumo SET stock_actual = GREATEST(0, stock_actual - ?) WHERE id_insumo=?
@@ -310,6 +349,15 @@ class ProduccionModel {
             $this->pdo->prepare("
                 UPDATE produccion SET costo_total=?, costo_unitario=? WHERE id_produccion=?
             ")->execute([$costo_total, $costo_unit, $id_produccion]);
+
+            // 3b. Advertencia visible si algún insumo no tuvo ningún precio de referencia
+            if (!empty($sin_precio)) {
+                $this->pdo->prepare("
+                    UPDATE produccion
+                    SET observaciones = CONCAT(observaciones, IF(observaciones = '', '', ' | '), ?)
+                    WHERE id_produccion = ?
+                ")->execute(['⚠ Sin precio histórico para: ' . implode(', ', $sin_precio), $id_produccion]);
+            }
 
             // 4. Insertar distribución por categoría de precio
             $total_real = 0;
@@ -362,12 +410,18 @@ class ProduccionModel {
     }
 
     /**
-     * Verifica stock suficiente para todos los ingredientes de una receta
+     * Verifica stock suficiente para todos los ingredientes de una receta, y además
+     * detecta (sin bloquear) cuándo insumo.stock_actual difiere de la suma real de
+     * lotes activos disponibles — esa divergencia es la razón por la que una
+     * producción puede pasar esta verificación y aun así quedarse sin lote real
+     * que cubra el consumo (ver registrarProduccionConConsumos()).
      *
-     * @return array Lista de errores de stock (vacía si todo alcanza)
+     * @return array{errores: array, avisos: array} errores bloquea (salvo forzar),
+     *         avisos es solo informativo
      */
     public function verificarStockIngredientes(array $ingredientes, int $tandas): array {
         $errores = [];
+        $avisos  = [];
         foreach ($ingredientes as $ing) {
             $cant_necesaria = $ing['cant_por_unidad'] * $tandas;
             $disponible = $this->getInsumoStockActual($ing['id_insumo']);
@@ -379,8 +433,19 @@ class ProduccionModel {
                     'disponible'     => $disponible,
                 ];
             }
+
+            $lotes = $this->getLotesDisponiblesFIFOParaConsumo($ing['id_insumo']);
+            $disponible_lotes = array_sum(array_column($lotes, 'cantidad_disponible'));
+            if (round($disponible_lotes, 3) !== round($disponible, 3)) {
+                $avisos[] = [
+                    'nombre'           => $ing['nombre'],
+                    'unidad_medida'    => $ing['unidad_medida'],
+                    'stock_actual'     => $disponible,
+                    'disponible_lotes' => $disponible_lotes,
+                ];
+            }
         }
-        return $errores;
+        return ['errores' => $errores, 'avisos' => $avisos];
     }
 
     /**

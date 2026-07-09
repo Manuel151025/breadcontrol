@@ -120,8 +120,10 @@ class ProduccionController {
                 } else {
                     $ingredientes = $this->model->getIngredientesReceta($id_receta);
 
-                    // Verificar stock suficiente
-                    $errores_stock = $this->model->verificarStockIngredientes($ingredientes, $tandas);
+                    // Verificar stock suficiente (bloqueante) y divergencias stock_actual vs lotes reales (informativo)
+                    $verificacion  = $this->model->verificarStockIngredientes($ingredientes, $tandas);
+                    $errores_stock = $verificacion['errores'];
+                    $avisos_stock  = $verificacion['avisos'];
 
                     $forzar = !empty($_POST['forzar_produccion']);
                     if (!empty($errores_stock) && !$forzar) {
@@ -133,8 +135,12 @@ class ProduccionController {
                                 . formatoInteligente($es['cant_necesaria']) . ' ' . $es['unidad_medida']
                                 . ', solo hay ' . formatoInteligente($es['disponible']) . ' ' . $es['unidad_medida'] . '.</li>';
                         }
-                        $msg_err .= '</ul>'
-                                 . '<form method="post" style="margin-top:.8rem" id="form-forzar">'
+                        $msg_err .= '</ul>';
+                        if (!empty($avisos_stock)) {
+                            $msg_err .= '<div style="margin-top:.6rem;font-size:.78rem;opacity:.85;">⚠ Además, el stock registrado no coincide con los lotes reales en: '
+                                     . implode(', ', array_column($avisos_stock, 'nombre')) . '.</div>';
+                        }
+                        $msg_err .= '<form method="post" style="margin-top:.8rem" id="form-forzar">'
                                  . '<input type="hidden" name="id_producto" value="' . $id_prod . '">'
                                  . '<input type="hidden" name="num_tandas" value="' . $tandas . '">'
                                  . '<input type="hidden" name="fecha_produccion" value="' . htmlspecialchars($fecha) . '">'
@@ -163,6 +169,10 @@ class ProduccionController {
                                     . "<br>Costo total: <strong>$" . number_format($resultado['costo_total'],0,',','.') . "</strong>"
                                     . "<br>Costo por unidad: <strong>$" . number_format($resultado['costo_unitario'],0,',','.') . "</strong>"
                                     . "<br>Lotes descontados correctamente.";
+                            if (!empty($avisos_stock)) {
+                                $_SESSION['msg_ok_prod'] .= "<br><small>⚠ Diferencia entre stock registrado y lotes reales en: "
+                                        . implode(', ', array_column($avisos_stock, 'nombre')) . "</small>";
+                            }
                             header('Location: nueva_produccion.php');
                             exit;
 
