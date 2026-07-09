@@ -14,3 +14,5 @@ WORKDIR /var/www/html
 COPY . /var/www/html/
 
 RUN chown -R www-data:www-data /var/www/html
+
+RUN echo "opcache.enable=0" > /usr/local/etc/php/conf.d/disable-opcache.ini
