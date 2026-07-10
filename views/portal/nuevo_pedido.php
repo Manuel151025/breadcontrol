@@ -307,6 +307,7 @@
         </div>
     </div>
     
+    <script src="<?= APP_URL ?>/assets/js/utils.js"></script>
     <script>
     function setPedidoPara(val) {
         document.getElementById('pedido_para_input').value = val;
@@ -376,7 +377,7 @@
                         + '<div onclick="tapProduct('+v.id_variedad+')">'
                         + imgHtml
                         + '<div class="pc-action">'+(inCart?'✅ En carrito':'<i class="bi bi-plus-circle-fill"></i> Agregar')+'</div>'
-                        + '<div class="pc-name" title="'+v.nombre+'">'+v.nombre+'</div>'
+                        + '<div class="pc-name" title="'+escHtml(v.nombre)+'">'+escHtml(v.nombre)+'</div>'
                         + '</div>'
                         + '<div class="pc-form">'
                         + '<div class="pf-row"><label>Cant.</label><input type="number" class="pf-cant" min="1" max="99" value="1" oninput="this.value=this.value.replace(/[^0-9]/g,\'\').slice(0,2)" onclick="event.stopPropagation()"></div>'
@@ -441,7 +442,7 @@
             var imgHtml = item.imagen ? '<img src="'+appUrl+'/'+item.imagen+'">' : '<div class="ci-ph">🍞</div>';
             html += '<div class="cart-item">'
                 + imgHtml
-                + '<div class="ci-info"><div class="ci-name">'+item.nombre+'</div><div class="ci-price">$'+item.precio.toLocaleString('es-CO')+'</div></div>'
+                + '<div class="ci-info"><div class="ci-name">'+escHtml(item.nombre)+'</div><div class="ci-price">$'+item.precio.toLocaleString('es-CO')+'</div></div>'
                 + '<div class="ci-fields"><input type="number" min="1" max="99" value="'+item.cantidad+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\').slice(0,2); updateItem('+item.id_variedad+',this.value)"></div>'
                 + '<div class="ci-sub">$'+sub.toLocaleString('es-CO')+'</div>'
                 + '<button type="button" class="ci-del" onclick="removeFromCart('+item.id_variedad+')"><i class="bi bi-x-lg"></i></button>'
@@ -527,7 +528,7 @@
             var imgHtml = v.imagen ? '<img src="'+appUrl+'/'+v.imagen+'">' : '<div class="br-ph">🍞</div>';
             html += '<div class="bonif-row">'
                 + imgHtml
-                + '<span class="br-name">'+v.nombre+'</span>'
+                + '<span class="br-name">'+escHtml(v.nombre)+'</span>'
                 + '<input type="number" min="0" max="99" value="0" data-bonif-id="'+v.id_variedad+'" data-bonif-precio="'+v.precio_unitario+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\').slice(0,2); updateBonifStatus(this)">'
                 + '</div>';
         });

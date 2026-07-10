@@ -1613,6 +1613,7 @@
   </div>
 </div>
 
+<script src="<?= APP_URL ?>/assets/js/utils.js"></script>
 <script>
   var appUrl = '<?= APP_URL ?>';
   var precioSel = 0, stockSel = 0;
@@ -1728,7 +1729,7 @@
             + '<div onclick="tapProduct(' + v.id_variedad + ')">'
             + imgHtml
             + '<div class="pc-action">' + (inCart ? '✅ En carrito' : '<i class="bi bi-plus-circle-fill"></i> Agregar') + '</div>'
-            + '<div class="pc-name" title="' + v.nombre + '">' + v.nombre + '</div>'
+            + '<div class="pc-name" title="' + escHtml(v.nombre) + '">' + escHtml(v.nombre) + '</div>'
             + '</div>'
             + '<div class="pc-form">'
             + '<div class="pf-row"><label>Cant.</label><input type="number" class="pf-cant" min="1" max="999" value="1" onclick="event.stopPropagation()" oninput="if(this.value>999)this.value=999"></div>'
@@ -1805,7 +1806,7 @@
       var imgHtml = item.imagen ? '<img src="' + appUrl + '/' + item.imagen + '">' : '<div class="ci-ph">🍞</div>';
       html += '<div class="cart-item">'
         + imgHtml
-        + '<div class="ci-info"><div class="ci-name">' + item.nombre + '</div><div class="ci-price">$' + item.precio.toLocaleString('es-CO') + (item.napa > 0 ? ' · 🎁+' + item.napa : '') + '</div></div>'
+        + '<div class="ci-info"><div class="ci-name">' + escHtml(item.nombre) + '</div><div class="ci-price">$' + item.precio.toLocaleString('es-CO') + (item.napa > 0 ? ' · 🎁+' + item.napa : '') + '</div></div>'
         + '<div class="ci-fields"><label>Cant.</label><input type="number" min="1" max="999" value="' + item.cantidad + '" onchange="updateCartItem(' + item.id_variedad + ',\'cantidad\',this.value)" oninput="if(this.value>999)this.value=999"></div>'
         + '<div class="ci-sub">$' + sub.toLocaleString('es-CO') + '</div>'
         + '<button type="button" class="ci-del" onclick="removeFromCart(' + item.id_variedad + ')"><i class="bi bi-x-lg"></i></button>'
@@ -1926,7 +1927,7 @@
       var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + v.imagen + '">' : '<div class="br-ph">🍞</div>';
       html += '<div class="bonif-row">'
         + imgHtml
-        + '<span class="br-name">' + v.nombre + '</span>'
+        + '<span class="br-name">' + escHtml(v.nombre) + '</span>'
         + '<input type="number" min="0" value="0" data-bonif-id="' + v.id_variedad + '" data-bonif-precio="' + v.precio_unitario + '" oninput="updateBonifStatus(this)">'
         + '</div>';
     });
@@ -2093,7 +2094,7 @@
             + '<div onclick="epTapProduct(' + v.id_variedad + ')">'
             + imgHtml
             + '<div class="pc-action">' + (inCart ? '✅ En carrito' : '<i class="bi bi-plus-circle-fill"></i> Agregar') + '</div>'
-            + '<div class="pc-name" title="' + v.nombre + '">' + v.nombre + '</div>'
+            + '<div class="pc-name" title="' + escHtml(v.nombre) + '">' + escHtml(v.nombre) + '</div>'
             + '</div>'
             + '<div class="pc-form">'
             + '<div class="pf-row"><label>Cant.</label><input type="number" class="pf-cant" min="1" max="999" value="1" onclick="event.stopPropagation()" oninput="if(this.value>999)this.value=999"></div>'
@@ -2161,7 +2162,7 @@
       var imgHtml = item.imagen ? '<img src="' + appUrl + '/' + item.imagen + '">' : '<div class="ci-ph">🍞</div>';
       html += '<div class="cart-item">'
         + imgHtml
-        + '<div class="ci-info"><div class="ci-name">' + item.nombre + '</div><div class="ci-price">$' + item.precio.toLocaleString('es-CO') + (item.napa > 0 ? ' · 🎁+' + item.napa : '') + '</div></div>'
+        + '<div class="ci-info"><div class="ci-name">' + escHtml(item.nombre) + '</div><div class="ci-price">$' + item.precio.toLocaleString('es-CO') + (item.napa > 0 ? ' · 🎁+' + item.napa : '') + '</div></div>'
         + '<div class="ci-fields"><label>Cant.</label><input type="number" min="1" max="999" value="' + item.cantidad + '" onchange="epUpdateItem(' + item.id_variedad + ',\'cantidad\',this.value)" oninput="if(this.value>999)this.value=999"></div>'
         + '<div class="ci-sub">$' + sub.toLocaleString('es-CO') + '</div>'
         + '<button type="button" class="ci-del" onclick="epRemoveFromCart(' + item.id_variedad + ')"><i class="bi bi-x-lg"></i></button>'
@@ -2277,7 +2278,7 @@
       var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + v.imagen + '">' : '<div class="br-ph">🍞</div>';
       html += '<div class="bonif-row">'
         + imgHtml
-        + '<span class="br-name">' + v.nombre + '</span>'
+        + '<span class="br-name">' + escHtml(v.nombre) + '</span>'
         + '<input type="number" min="0" value="0" data-ep-bonif-id="' + v.id_variedad + '" data-ep-bonif-precio="' + v.precio_unitario + '" oninput="epUpdateBonifStatus()">'
         + '</div>';
     });

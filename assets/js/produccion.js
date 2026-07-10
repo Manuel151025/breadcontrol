@@ -1,9 +1,3 @@
-function escHtml(str) {
-  return String(str == null ? '' : str).replace(/[&<>"']/g, function(c) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-  });
-}
-
 function changeUnd(d) {
   const i = document.getElementById('inp-und');
   // Limitar hasta 5 tandas máximo, mínimo 1

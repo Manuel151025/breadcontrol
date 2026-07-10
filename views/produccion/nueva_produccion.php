@@ -203,6 +203,7 @@
 </div>
 
 <script>var appUrl = '<?= APP_URL ?>';</script>
+<script src="<?= APP_URL ?>/assets/js/utils.js"></script>
 <script src="<?= APP_URL ?>/assets/js/produccion.js"></script>
 
 </body></html>

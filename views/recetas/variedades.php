@@ -123,7 +123,11 @@
             <div class="var-info">
               <div class="var-name" title="<?= htmlspecialchars($v['nombre']) ?>"><?= htmlspecialchars($v['nombre']) ?></div>
               <div class="var-btns">
-                <button class="btn-act btn-edit" title="Editar" onclick="abrirEdit(<?= $v['id_variedad'] ?>,'<?= addslashes($v['nombre']) ?>','<?= $v['imagen'] ? APP_URL.'/'.$v['imagen'] : '' ?>')"><i class="bi bi-pencil"></i></button>
+                <button class="btn-act btn-edit" title="Editar"
+                  data-id="<?= $v['id_variedad'] ?>"
+                  data-nombre="<?= htmlspecialchars($v['nombre'], ENT_QUOTES) ?>"
+                  data-img="<?= $v['imagen'] ? htmlspecialchars(APP_URL.'/'.$v['imagen'], ENT_QUOTES) : '' ?>"
+                  onclick="abrirEdit(this)"><i class="bi bi-pencil"></i></button>
                 <a href="?del_var=<?= $v['id_variedad'] ?>" class="btn-act btn-del" title="Eliminar" onclick="return confirm('¿Eliminar esta variedad?')"><i class="bi bi-trash3"></i></a>
               </div>
             </div>
@@ -174,7 +178,10 @@
 </div>
 
 <script>
-function abrirEdit(id, nombre, imgUrl) {
+function abrirEdit(btn) {
+  var id = btn.dataset.id;
+  var nombre = btn.dataset.nombre;
+  var imgUrl = btn.dataset.img;
   document.getElementById('edit-id').value = id;
   document.getElementById('edit-nombre').value = nombre;
   var preview = document.getElementById('edit-preview');
