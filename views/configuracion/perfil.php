@@ -161,6 +161,15 @@ html,body{min-height:100%;overflow-x:hidden;font-family:'Plus Jakarta Sans',sans
         <div class="status-row"><span class="sr-label">Correo</span><span class="sr-val <?= !empty($datos['correo_electronico']) ? 'sr-ok' : 'sr-warn' ?>"><?= !empty($datos['correo_electronico']) ? 'Verificado ✓' : 'Sin configurar' ?></span></div>
         <div class="status-row"><span class="sr-label">Sesión</span><span class="sr-val sr-ok"><?= date('h:i a') ?> · Activa</span></div>
       </div>
+      <div class="tab-nav">
+        <div class="status-title">Otras configuraciones</div>
+        <a href="<?= APP_URL ?>/modules/configuracion/pagos.php" class="tab-btn">
+          <i class="bi bi-credit-card-fill"></i> Pagos digitales
+        </a>
+        <a href="<?= APP_URL ?>/modules/configuracion/tiendas.php" class="tab-btn">
+          <i class="bi bi-shop"></i> Tiendas beneficiarias
+        </a>
+      </div>
     </div>
 
     <div class="pf-content">
