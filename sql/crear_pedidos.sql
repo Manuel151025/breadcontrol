@@ -12,9 +12,12 @@ CREATE TABLE IF NOT EXISTS `pedido_cliente` (
   `estado` varchar(20) NOT NULL DEFAULT 'pendiente',
   `estado_pago` varchar(20) NOT NULL DEFAULT 'pendiente',
   `id_pago_activo` int(11) DEFAULT NULL,
+  `mensaje_propietario` varchar(255) DEFAULT NULL,
+  `id_tienda_destino` int(11) DEFAULT NULL,
   PRIMARY KEY (`id_pedido`),
   KEY `id_cliente` (`id_cliente`),
-  KEY `id_creador` (`id_creador`)
+  KEY `id_creador` (`id_creador`),
+  KEY `id_tienda_destino` (`id_tienda_destino`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `pedido_cliente_detalle` (
@@ -41,6 +44,9 @@ CREATE TABLE IF NOT EXISTS `pago_pedido` (
   `estado` varchar(20) NOT NULL DEFAULT 'PENDING',
   `fecha_expiracion` datetime DEFAULT NULL,
   `fecha_pago` datetime DEFAULT NULL,
+  `nota` varchar(255) DEFAULT NULL,
+  `metodo_pago` varchar(50) DEFAULT NULL,
+  `fecha_creacion` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_pago`),
   KEY `id_pedido` (`id_pedido`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

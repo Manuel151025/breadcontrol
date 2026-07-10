@@ -52,7 +52,7 @@ class ConfiguracionModel {
      * Actualizar la configuración de pagos del sistema
      */
     public function updateConfiguracion(?string $link, ?string $titular, int $habilitar, int $auto): bool {
-        $stmt = $this->pdo->prepare("UPDATE configuracion SET nequi_link_pago = ?, nequi_titular = ?, wompi_habilitado = ?, wompi_confirmar_auto = ?");
+        $stmt = $this->pdo->prepare("UPDATE configuracion SET nequi_link_pago = ?, nequi_titular = ?, wompi_habilitado = ?, wompi_confirmar_auto = ? WHERE id_config = 1");
         return $stmt->execute([$link, $titular, $habilitar, $auto]);
     }
 
