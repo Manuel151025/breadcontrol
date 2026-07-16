@@ -31,7 +31,7 @@
 ## 1. Introducción
 
 ### 1.1 Propósito
-El propósito de este documento es definir la Especificación de Requisitos de Software (SRS) para el sistema **BreadControl**, una plataforma web de gestión integral diseñada específicamente para optimizar, controlar y digitalizar las operaciones de panaderías artesanales colombianas y entornos educativos relacionados (como el SENA). 
+El propósito de este documento es definir la Especificación de Requisitos de Software (SRS) para el sistema **BreadControl**, una plataforma web de gestión integral diseñada específicamente para optimizar, controlar y digitalizar las operaciones de panaderías artesanales colombianas y entornos educativos relacionados (como el SENA).
 
 Está dirigido al autor del proyecto, instructores, evaluadores del programa de formación ADSO, y desarrolladores que den mantenimiento o escalabilidad al sistema.
 
@@ -56,6 +56,7 @@ El sistema se denomina **BreadControl**. Su objetivo primordial es centralizar y
 * **COP**: Peso Colombiano (moneda local).
 * **CSRF (Cross-Site Request Forgery)**: Vulnerabilidad de falsificación de petición en sitios cruzados.
 * **XSS (Cross-Site Scripting)**: Inyección de código malicioso en páginas web vistas por usuarios.
+* **Lote sintético (`EST-*`)**: Registro de lote generado automáticamente por el sistema (sin compra real asociada) para dar trazabilidad de costo a un remanente de producción que no alcanzó a cubrirse con lotes reales.
 
 ### 1.4 Referencias
 * Estándar IEEE Std 830-1998 para la Especificación de Requisitos de Software.
@@ -76,17 +77,41 @@ El resto de este documento está organizado de la siguiente manera:
 ## 2. Descripción General
 
 ### 2.1 Perspectiva del Producto
-BreadControl es un sistema web independiente configurado en una arquitectura MVC clásica implementada en PHP y MySQL, desplegado en contenedores Docker (imagen `php:8.2-apache` + `mysql:8.0`) sobre un VPS con Nginx como proxy reverso y SSL de Let's Encrypt. El sistema se comunica externamente con servicios de correo (API HTTP de SendGrid) y APIs externas (Open-Meteo y Wompi).
+BreadControl es un sistema web independiente configurado en una arquitectura MVC clásica implementada en PHP y MySQL, desplegado mediante **Dokploy v0.29.8 sobre Docker Swarm** en un VPS. Topología de despliegue verificada directamente en el VPS:
+
+1. El dominio resuelve, vía DNS de Hostinger, a la IP pública del VPS (`2.25.154.18`).
+2. **Nginx** (fuera de Docker, en el host, puertos 80/443, SSL de Certbot) recibe la petición y hace `proxy_pass` hacia **Traefik**, que escucha en `localhost:9080`.
+3. **Traefik** (contenedor `dokploy-traefik`, versión 3.6.7) enruta la petición por dominio hacia el contenedor de la aplicación, gestionado por Dokploy.
+4. La aplicación corre en un contenedor `php:8.2-apache` con OPcache deshabilitado (ver `Dockerfile`). Su conexión a base de datos usa el nombre del servicio de Docker Swarm como host (ej. `DB_HOST=breadcontrol-breadcontroldb-q3t4q1`, con sufijo autogenerado por Dokploy), resuelto por la red *overlay* interna de Swarm — no `localhost` ni una IP fija.
+5. La base de datos corre en un contenedor `mysql:8`, igualmente gestionado como servicio de Docker Swarm bajo Dokploy.
+
+> **Nota**: `docker-compose.yml` en la raíz del repositorio quedó **obsoleto** — correspondía a un esquema de despliegue manual previo (contenedores `panaderia_app`/`panaderia_db` con nombre fijo, puerto `8092` expuesto directamente, sin Traefik ni Swarm) que ya no se usa. Dokploy gestiona sus propias definiciones de servicio y red sobre Swarm de forma independiente a ese archivo. El `Dockerfile` sí sigue vigente: Dokploy lo usa para construir la imagen de la aplicación, y `config/db.php` sigue leyendo `DB_HOST` desde variable de entorno (`get_env('DB_HOST', '127.0.0.1')`), por lo que apuntar al nombre de servicio de Swarm en producción no requiere cambios de código, solo de configuración de entorno.
+
+El sistema se comunica externamente con servicios de correo (API HTTP de SendGrid) y APIs externas (Open-Meteo y Wompi).
 
 ```
-┌────────────────┐     ┌──────────────┐     ┌──────────────┐
-│   Navegador    │────▶│   PHP 8      │────▶│   MySQL 8    │
-│  (Client Side) │◀────│  (MVC App)   │◀────│ (BD Relación)│
-└────────────────┘     └──────────────┘     └──────────────┘
-       │                      │
-       ├─ (Clima API)         ├─ (SendGrid API)
-       └─ (Wompi/Nequi        └─ (Wompi Webhook —
-          Checkout manual)       disponible, no activo en producción)
+Usuario ── DNS (Hostinger) ──▶ 2.25.154.18
+                                     │
+                                     ▼
+                Nginx (host, fuera de Docker, :80/:443, SSL Certbot)
+                                     │  proxy_pass
+                                     ▼
+                Traefik (dokploy-traefik v3.6.7, localhost:9080)
+                                     │  enrutamiento por dominio
+                                     ▼
+┌─────────────────────── Docker Swarm (Dokploy v0.29.8) ───────────────────────┐
+│                                                                              │
+│   ┌──────────────────┐                          ┌──────────────────┐        │
+│   │   PHP 8.2         │ ── DB_HOST = nombre ──▶ │   MySQL 8         │        │
+│   │  + Apache          │    de servicio Swarm    │  (BD Relacional)  │        │
+│   │ (OPcache off)      │ ◀──────────────────────│                   │        │
+│   └──────────────────┘                          └──────────────────┘        │
+│            │                                                                │
+└────────────┼────────────────────────────────────────────────────────────────┘
+             │
+             ├─ (Clima API — Open-Meteo)
+             ├─ (SendGrid API — correo transaccional)
+             └─ (Wompi/Nequi — checkout manual; webhook disponible, no activo en producción)
 ```
 
 ### 2.2 Funciones del Producto
@@ -94,7 +119,7 @@ El sistema BreadControl se divide en los siguientes subsistemas funcionales:
 1. **Seguridad y Accesos**: Autenticación de roles (propietario, cliente/aprendiz, instructor), control de inactividad, recuperación de PIN y cifrado bcrypt.
 2. **Gestión de Inventario**: Registro de insumos, alertas de stock bajo y control FIFO de lotes.
 3. **Registro de Compras**: Registro de compras asignando número de lote autogenerado, alertas de variación de precio y ajuste por mermas.
-4. **Producción**: Registro de tandas basadas en recetas vigentes, descuento automático de insumos por FIFO y distribución por precio.
+4. **Producción**: Registro de tandas basadas en recetas vigentes, descuento automático de insumos por FIFO, costeo del remanente sin lote y distribución por precio.
 5. **Ventas y Facturación**: Venta directa en mostrador, carrito detallado por variedad de pan, bonificaciones y ñapas para tiendas.
 6. **Gastos Operativos**: Registro y control de egresos diarios.
 7. **Cierre de Caja**: Balance diario financiero de ingresos, gastos, costo de producción y utilidad neta con sugerencias.
@@ -109,14 +134,14 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 ### 2.4 Restricciones Generales
 * **Desarrollo**: Backend implementado en PHP 8.0 o superior en estilo modular.
 * **Base de Datos**: MySQL 8.0.
-* **Frontend**: Uso exclusivo de vanilla HTML5, CSS3 personalizado y JavaScript vanilla. Sin frameworks como Bootstrap CSS (excepto para iconos) o Tailwind CSS, priorizando estilos propios de alto impacto estético.
+* **Frontend**: Uso exclusivo de vanilla HTML5, CSS3 personalizado (con variables `:root` propias por vista) y JavaScript vanilla. El layout compartido (`views/layouts/header.php`) solo carga Bootstrap Icons (para iconografía) y las hojas propias `main.css`/`responsive.css` — **no carga en ningún punto la hoja de estilos de Bootstrap CSS**. `views/layouts/footer.php` sí carga el bundle JS de Bootstrap 5.3.0, sin uso funcional confirmado fuera de esa carga. **Excepción confirmada y verificada visualmente en navegador**: `views/inventario/crear_insumo.php` y `views/inventario/editar_insumo.php` son remanentes de una versión anterior del módulo de Inventario (el propio `InventarioController.php` las rotula como "creación/edición de insumo clásica", líneas 131 y 171) — usan clases de Bootstrap 5 puro (`.row`, `.col-md-6`, `.btn`, `.btn-outline-secondary`, `.form-control`, `.form-select`, `.form-check`) que, al no existir la hoja de Bootstrap CSS en ningún layout cargado, **no aplican ningún estilo**: los campos se ven como inputs planos del navegador y los botones sin color (gris por defecto). Ninguna vista del sistema enlaza hacia estas dos páginas (confirmado por búsqueda en todo el proyecto) — solo son alcanzables escribiendo la URL a mano, igual que ocurría con `pagos.php`/`tiendas.php` antes de conectarlas desde Mi Perfil. El resto de la creación/edición de insumos ocurre mediante el modal inline de `views/inventario/index.php`, con el sistema de diseño propio.
 * **Tiempo de Expiración**: Cierre de sesión automático por inactividad tras 6 minutos.
 * **Cancelación de Pedidos**: Límite de 48 horas de anticipación a la fecha de entrega acordada para que el cliente cancele una solicitud.
 
 ### 2.5 Suposiciones y Dependencias
 * Se asume que el servidor cuenta con conexión constante a internet para realizar la validación del clima (API Open-Meteo) y el envío de correos vía SendGrid.
 * La recuperación de credenciales por email depende de la disponibilidad del servidor de envío configurado (SendGrid), y del remitente utilizado estar verificado ante el proveedor.
-* El pago digital depende de que el propietario mantenga vigente y correctamente configurado el link de checkout de Wompi/Nequi; la confirmación del pago es un paso manual del propietario, no automático.
+* El pago digital depende de que el propietario mantenga vigente y correctamente configurado el link de checkout de Wompi/Nequi; la confirmación del pago es un paso manual del propietario, no automático. Este flujo depende además de que la tabla `configuracion` y la tabla `pago_pedido` tengan las columnas descritas en RF-26.
 
 ---
 
@@ -145,14 +170,17 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 * **RF-12 (Catálogo de Recetas)**: El sistema debe registrar recetas para los productos especificando la cantidad necesaria de cada insumo por tanda de producción.
 * **RF-13 (Cálculo e Ingreso de Producción)**: El sistema debe permitir el registro de producciones diarias especificando producto, cantidad de tandas y cantidad de unidades obtenidas.
 * **RF-14 (Descuento Automático FIFO)**: Al guardar una producción, el sistema debe descontar de manera automática y secuencial los insumos de la receta de los lotes activos en orden cronológico FIFO.
-* **RF-15 (Cálculo del Costo de Tanda)**: El sistema debe calcular el costo de la producción sumando el costo de adquisición de los lotes de insumos consumidos. Debe registrar en la base de datos el `costo_total` y el `costo_unitario` de la producción correspondiente.
+* **RF-14b (Aviso de Divergencia de Stock antes de Producir)**: Antes de registrar una producción, el sistema debe comparar, para cada ingrediente de la receta, el valor de `insumo.stock_actual` contra la suma real de `lote.cantidad_disponible` de los lotes activos de ese insumo. Si ambos valores difieren, el sistema debe mostrar un aviso informativo señalando los insumos afectados, sin bloquear el registro de la producción (a diferencia de la falta de stock, que sí bloquea salvo que el usuario decida forzar el registro).
+* **RF-14c (Costo Estimado para Remanente de Producción sin Lote)**: Cuando el descuento FIFO (RF-14) no alcance a cubrir la cantidad requerida de un ingrediente por falta de lotes activos con saldo, el sistema debe generar un lote sintético (`numero_lote` con prefijo `EST-`) usando el último precio unitario conocido de ese insumo a la fecha de la producción (sin considerar compras registradas después de esa fecha), y registrar el consumo del remanente con costo trazable en vez de descontarlo sin costo. Si no existe ningún precio de referencia previo para el insumo, el remanente queda con costo cero, pero el sistema debe agregar una advertencia visible en las observaciones de la producción indicando el insumo sin precio histórico.
+* **RF-15 (Cálculo del Costo de Tanda)**: El sistema debe calcular el costo de la producción sumando el costo de adquisición de los lotes de insumos consumidos (incluyendo los lotes sintéticos de RF-14c). Debe registrar en la base de datos el `costo_total` y el `costo_unitario` de la producción correspondiente.
 * **RF-16 (Distribución de Producción por Precios)**: El sistema debe permitir distribuir las unidades totales producidas de un producto entre diferentes categorías de precio ($500, $1.000, etc.) para habilitar su stock en ventas.
 * **RF-16b (Acceso Directo a Compra desde Alerta de Faltante)**: Cuando el cálculo de una producción detecte que un insumo no alcanza para la tanda solicitada, la alerta de faltante debe incluir un enlace directo al módulo de Compras con dicho insumo preseleccionado (`modules/compras/index.php?id_insumo=`), evitando que el propietario tenga que buscarlo manualmente.
 
 #### Módulo de Ventas y Facturación
 * **RF-17 (Venta Rápida)**: El sistema debe permitir registrar ventas rápidas cobradas en mostrador seleccionando la categoría de precio y especificando la cantidad de unidades vendidas.
 * **RF-18 (Pedidos Detallados por Carrito)**: El sistema debe proveer una interfaz de carrito de compras detallado donde se seleccionen variedades de pan con imágenes y cantidades.
-* **RF-19 (Bonificación Automática)**: Al seleccionar un cliente clasificado como "tienda", el sistema debe aplicar una bonificación del 20% en unidades adicionales del pedido sin costo.
+* **RF-18b (Validación de Pedido Detallado)**: Al registrar o editar un pedido detallado, el sistema debe: (a) validar que la cantidad de cada variedad en el carrito y en las bonificaciones/ñapas sea un número entero entre 1 y 999, rechazando toda la operación si no lo es (sin recortar el valor silenciosamente); (b) revalidar el precio unitario de cada variedad contra `categoria_precio.precio_unitario` en base de datos, ignorando cualquier precio recibido desde el cliente; (c) validar que el stock disponible hoy (ver Fórmula/Consulta de stock por categoría) alcance para la demanda agregada por categoría de precio, rechazando la operación si no alcanza. Toda la operación se ejecuta dentro de una única transacción con `rollback` ante cualquier fallo.
+* **RF-19 (Bonificación Automática)**: Al seleccionar un cliente clasificado como "tienda" (o al aplicar la ñapa de mostrador), el sistema debe calcular un crédito monetario proporcional al valor del pedido y convertirlo en unidades gratis de la variedad que el cliente elija (ver Fórmula D).
 * **RF-20 (Asignación de Ñapa)**: El sistema debe permitir configurar unidades de "ñapa" (unidades gratis adicionales) por variedad en los pedidos detallados de las tiendas.
 * **RF-21 (Salidas Especiales)**: El sistema debe admitir tres tipos de salidas de producto: "Venta" (genera ingreso financiero), "Bonificación" (regalo registrado sin costo) y "Consumo interno" (descuento del stock para consumo de empleados).
 
@@ -161,7 +189,7 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 * **RF-23 (Límite de Cupo Semanal para Aprendices)**: Al procesar un pedido de un aprendiz, el sistema debe sumar el total del pedido actual más los pedidos del aprendiz en la semana en curso y bloquear la transacción si supera el `cupo_semanal` definido en su ficha.
 * **RF-24 (Aprobación del Instructor)**: El sistema debe requerir que los pedidos realizados por aprendices sean marcados como aprobados por su instructor asignado antes de quedar en estado de confirmación operativa.
 * **RF-25 (Restricción de Cancelación)**: El sistema debe prohibir la cancelación o modificación de pedidos por parte del cliente si faltan menos de 48 horas para la fecha y hora de entrega pactada.
-* **RF-26 (Pago Consolidado vía Link de Pago)**: El sistema debe permitir consolidar múltiples pedidos de un mismo cliente en una sola referencia de pago, mostrando el link de checkout (Wompi/Nequi) configurado por el propietario junto con el monto total a pagar. La confirmación del pago la realiza manualmente el propietario desde el panel de "Pedidos de clientes" (acción "Confirmar Cobro Tienda"), marcando los pedidos asociados como pagados. El módulo `includes/wompi.php` provee además un endpoint de webhook (`wompiWebhook()`) y funciones para generar links de pago vía API de Wompi, quedando disponible para activarse en producción una vez se configuren las llaves `WOMPI_PUBLIC_KEY`, `WOMPI_PRIVATE_KEY` y `WOMPI_EVENTS_SECRET`; mientras tanto el flujo operativo es 100% manual.
+* **RF-26 (Pago Consolidado vía Link de Pago)**: El sistema debe permitir consolidar múltiples pedidos de un mismo cliente en una sola referencia de pago, mostrando el link de checkout (Wompi/Nequi) configurado por el propietario junto con el monto total a pagar. La confirmación del pago la realiza manualmente el propietario desde el panel de "Pedidos de clientes" (acción "Confirmar Cobro Tienda"), marcando los pedidos asociados como pagados. El módulo `includes/wompi.php` provee además un endpoint de webhook (`wompiWebhook()`) y funciones para generar links de pago vía API de Wompi, quedando disponible para activarse en producción una vez se configuren las llaves `WOMPI_PUBLIC_KEY`, `WOMPI_PRIVATE_KEY` y `WOMPI_EVENTS_SECRET`; mientras tanto el flujo operativo es 100% manual. **Nota de dependencia de esquema**: este flujo requiere las columnas `configuracion.nequi_link_pago`, `configuracion.nequi_titular`, `configuracion.wompi_habilitado`, `configuracion.wompi_confirmar_auto`, y `pago_pedido.nota`, `pago_pedido.metodo_pago` — columnas que el código asumía existentes desde su implementación original pero que no se habían creado en ningún script hasta la migración `sql/agregar_columnas_faltantes.sql`.
 
 #### Módulo de Gastos y Cierre de Caja
 * **RF-27 (Registro de Gastos Operativos)**: El propietario debe poder registrar gastos operativos del día detallando concepto y valor.
@@ -178,8 +206,8 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 * **RNF-04 (Diseño Adaptable)**: La interfaz gráfica debe adaptarse a pantallas móviles (360px de ancho) y pantallas panorámicas (1920px de ancho) utilizando CSS flexible (Grid y Flexbox) sin frameworks.
 * **RNF-05 (Compatibilidad Cruzada)**: La aplicación web debe ser totalmente operable en Chrome, Firefox, Safari y Edge sin pérdida de estilos o de interactividad.
 * **RNF-06 (Modularidad de Código)**: Los archivos de lógica del backend no deben mezclar consultas SQL en las vistas directas, utilizando la abstracción provista por la carpeta `models/`.
-* **RNF-07 (Separación de Diseño y Lógica en Frontend)**: La maquetación de estilos y los scripts de interactividad deben estar completamente aislados de las plantillas HTML, referenciándose como recursos estáticos externos (`.css` y `.js`) alojados en el directorio `/assets/` para facilitar la cacheabilidad y el mantenimiento independiente.
-* **RNF-08 (Responsabilidad Única en Vistas - SRP)**: Las vistas deben limitarse a desplegar información formateada provista por el controlador. Cualquier cálculo matemático complejo de negocio (ej. balance de deudas o consolidación de saldos de pedidos) debe delegarse a componentes auxiliares en el backend (`helpers/` o clases de servicio).
+* **RNF-07 (Separación de Diseño y Lógica en Frontend)**: La maquetación de estilos y los scripts de interactividad deben estar aislados de las plantillas HTML, referenciándose como recursos estáticos externos (`.css` y `.js`) alojados en el directorio `/assets/` para facilitar la cacheabilidad y el mantenimiento independiente. **Excepción confirmada**: `views/ventas/index.php` no cumple esta regla — contiene un bloque `<script>` inline de aproximadamente 796 líneas con la lógica completa de catálogo, carrito y bonificaciones, en vez de estar extraída a `assets/js/`. Se documenta como deuda técnica pendiente de refactorizar, no como comportamiento esperado del sistema.
+* **RNF-08 (Responsabilidad Única en Vistas - SRP)**: Las vistas deben limitarse a desplegar información formateada provista por el controlador. Cualquier cálculo matemático complejo de negocio (ej. balance de deudas, consolidación de saldos de pedidos, o cálculo de utilidad financiera) debe delegarse a componentes auxiliares en el backend (`helpers/` o clases de servicio).
 
 ---
 
@@ -192,9 +220,9 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 
 ### 3.4 Requisitos de Seguridad
 * **RS-01**: Cifrado de contraseñas mediante hash seguro `bcrypt` (`password_hash`).
-* **RS-02**: Prevención de CSRF mediante tokens inyectados en la sesión y validados de manera estricta usando `hash_equals()`.
+* **RS-02**: Prevención de CSRF mediante tokens inyectados en la sesión y validados de manera estricta usando `hash_equals()` (`generar_token_csrf()`/`validar_token_csrf()` en `includes/sesion.php`). **Limitación confirmada**: esta protección solo está implementada en el Portal de Clientes (`controllers/PortalClienteController.php` y sus vistas: login, registro, recuperación de contraseña, pedidos, perfil, pago consolidado). Ninguno de los aproximadamente 13 controladores administrativos (Inventario, Compras, Producción, Recetas, Ventas, Gastos, Finanzas, Cierre, Configuración, Pedidos de Clientes admin, entre otros) valida token CSRF en sus formularios POST.
 * **RS-03**: Prevención de SQL Injection a través del uso de PDO bind parameters nativos y la desactivación de emulación de consultas.
-* **RS-04**: Prevención de XSS mediante sanitización del DOM usando `htmlspecialchars()` y funciones personalizadas de limpieza de tags HTML.
+* **RS-04**: Prevención de XSS mediante sanitización del DOM usando `htmlspecialchars()` en el servidor y una función `escHtml()` centralizada en `assets/js/utils.js` para el escapado en el cliente antes de insertar datos dinámicos en el DOM.
 
 ---
 
@@ -211,14 +239,22 @@ Al ingresar un lote de harina, el peso registrado en inventario se reduce en un 
 $$\text{Cantidad Inventariada} = \text{Cantidad Comprada} \times (1 - 0.06) = \text{Cantidad Comprada} \times 0.94$$
 
 ### C. Costo de Producción de una Tanda
-El costo acumulado se obtiene consumiendo lotes FIFO individuales:
+El costo acumulado se obtiene consumiendo lotes FIFO individuales, incluyendo el lote sintético que cubre el remanente sin stock real (RF-14c):
 $$\text{Costo Total Producción} = \sum_{i \in \text{Ingredientes}} \left( \sum_{j \in \text{Lotes FIFO}} \text{Cantidad Consumida}_{i,j} \times \text{Precio Unitario}_{i,j} \right)$$
 El costo unitario por producto terminado se formula así:
 $$\text{Costo Unitario} = \frac{\text{Costo Total Producción}}{\text{Unidades Producidas}}$$
 
-### D. Bonificación Automática a Tiendas (20%)
-Cálculo de unidades gratis añadidas automáticamente al pedido:
-$$\text{Unidades Bonificadas} = \lfloor \text{Unidades Solicitadas} \times 0.20 \rfloor$$
+### D. Bonificación/Ñapa Automática por Crédito Monetario
+No es un porcentaje fijo de unidades: el sistema calcula un **crédito en pesos** proporcional al valor del pedido, y ese crédito se convierte en unidades gratis de la variedad que el cliente elija, dividiendo el crédito entre el precio unitario de esa variedad. Verificado en `controllers/VentaController.php` y replicado en `models/PortalClienteModel.php::crearPedido()`.
+
+Para clientes tipo **tienda**:
+$$\text{Crédito (COP)} = \left\lfloor \frac{\text{Total del Pedido (COP)}}{5000} \right\rfloor \times 1000$$
+
+Para clientes tipo **mostrador / ñapa**:
+$$\text{Crédito (COP)} = \left\lfloor \frac{\text{Total del Pedido (COP)}}{5000} \right\rfloor \times 500$$
+
+En ambos casos:
+$$\text{Unidades Bonificadas} = \left\lfloor \frac{\text{Crédito (COP)}}{\text{Precio Unitario de la Variedad Elegida}} \right\rfloor$$
 
 ### E. Límite de Cupo Semanal de Aprendiz
 Validación ejecutada antes del registro de cualquier pedido:
@@ -228,6 +264,8 @@ $$\left( \sum_{k \in \text{Pedidos Semanales}} \text{Total Estimado}_k \right) +
 Cálculo de balance neto del día:
 $$\text{Utilidad Bruta} = \text{Total Ingresos por Ventas} - \text{Costo de Producción (Consumo FIFO)}$$
 $$\text{Utilidad Neta} = \text{Utilidad Bruta} - \text{Total Gastos Operativos}$$
+
+**Nota de centralización**: esta fórmula se calcula ahora en un único punto (`helpers/FinanzasHelper.php::calcularUtilidad()`) y es consumida por las 5 pantallas que muestran utilidad — Portada (`models/AuthModel.php`), Cierre del día, Finanzas, Tablero y Gastos — eliminando implementaciones divergentes que existían antes en cada pantalla (algunas restaban el dinero gastado en "compras" en vez del costo real de insumos consumidos, o no restaban gastos operativos).
 
 ### G. Conversión de Divisa para Pasarela Wompi
 La API de Wompi requiere el cobro expresado en centavos:
@@ -253,29 +291,41 @@ Calcula la suma de todos los pedidos activos y confirmados que el aprendiz ha so
 ```sql
 SELECT COALESCE(SUM(total_estimado), 0) AS consumido_semana
 FROM pedido_cliente
-WHERE id_creador = ? 
+WHERE id_creador = ?
   AND id_cliente = ?
   AND estado NOT IN ('rechazado', 'cancelado')
   AND fecha_solicitud >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), '%Y-%m-%d 00:00:00');
 ```
 
-### C. Cálculo de Stock de Ventas por Categoría de Precio
-Obtiene la diferencia neta de unidades producidas contra unidades vendidas para determinar el stock físico listo para comercializar hoy:
+### C. Cálculo de Stock Disponible Hoy por Categoría de Precio
+Reemplaza la consulta acumulada (sin filtro de fecha) por el cálculo real vigente en `VentaModel::getStockDisponibleHoy()`: producido **hoy** menos vendido **hoy**, considerando tanto venta rápida (`venta`) como pedido detallado (`venta_detalle`), con exclusión opcional de la propia venta cuando se está editando un pedido:
 ```sql
-SELECT cp.id_categoria, cp.nombre, cp.precio_unitario,
-    COALESCE((SELECT SUM(pp.unidades) FROM produccion_precio pp WHERE pp.id_categoria_precio = cp.id_categoria), 0) -
-    COALESCE((SELECT SUM(v.unidades_vendidas) FROM venta v WHERE v.id_categoria_precio = cp.id_categoria), 0) AS stock_hoy
-FROM categoria_precio cp 
-WHERE cp.activo = 1 
-ORDER BY cp.precio_unitario;
+SELECT
+  COALESCE((SELECT SUM(pp.unidades)
+            FROM produccion_precio pp
+            INNER JOIN produccion p ON p.id_produccion = pp.id_produccion
+            WHERE pp.id_categoria_precio = ? AND DATE(p.fecha_produccion) = CURDATE()), 0)
+  - COALESCE((SELECT SUM(v.unidades_vendidas)
+              FROM venta v
+              WHERE v.id_categoria_precio = ? AND DATE(v.fecha_hora) = CURDATE()
+              -- AND v.id_venta != ?  (solo al editar, excluye la venta propia)
+              ), 0)
+  - COALESCE((SELECT SUM(vd.cantidad + vd.napa + vd.bonificacion)
+              FROM venta_detalle vd
+              INNER JOIN venta v2 ON v2.id_venta = vd.id_venta
+              INNER JOIN variedad_pan vp ON vp.id_variedad = vd.id_variedad
+              WHERE vp.id_categoria_precio = ? AND DATE(v2.fecha_hora) = CURDATE()
+              -- AND vd.id_venta != ?  (solo al editar, excluye la venta propia)
+              ), 0)
+  AS disponible;
 ```
 
 ### D. Cálculo de Costo Real de Producción del Día
-Suma el costo total acumulado en base a los descuentos de lotes FIFO aplicados en las preparaciones del día seleccionado:
+Suma el costo total acumulado en base a los descuentos de lotes FIFO aplicados en las preparaciones del día seleccionado (incluye los lotes sintéticos `EST-*` de RF-14c, ya que estos también generan filas en `consumo_lote`):
 ```sql
 SELECT COALESCE(SUM(cl.costo_consumo), 0) AS costo_produccion
-FROM consumo_lote cl 
-INNER JOIN produccion pr ON pr.id_produccion = cl.id_produccion 
+FROM consumo_lote cl
+INNER JOIN produccion pr ON pr.id_produccion = cl.id_produccion
 WHERE DATE(pr.fecha_produccion) = ?;
 ```
 
@@ -284,20 +334,21 @@ WHERE DATE(pr.fecha_produccion) = ?;
 ## 6. Historias de Usuario (HU)
 
 ### HU-01: Gestión de Inventario FIFO y Alertas
-**COMO** Propietario de la panadería  
-**QUIERO** que el sistema descuente los insumos de forma automática usando el método FIFO  
+**COMO** Propietario de la panadería
+**QUIERO** que el sistema descuente los insumos de forma automática usando el método FIFO
 **PARA** garantizar que los ingredientes más antiguos se consuman primero y evitar mermas por vencimiento.
 
 * **Criterios de Aceptación:**
   1. Al registrar una producción de pan, el sistema debe leer la receta del producto y descontar de la tabla `lote` la cantidad requerida del insumo empezando por el lote de menor fecha de ingreso.
   2. Si el stock actual del insumo queda por debajo del punto de reposición, el sistema debe registrar automáticamente una alerta de tipo `stock_bajo` visible en el panel.
   3. Si la disminución física se registra mediante un ajuste manual, el sistema debe registrar el motivo y aplicar el descuento FIFO a los lotes.
+  4. Si al momento de producir un ingrediente no tiene lotes activos suficientes, el sistema debe generar un lote sintético `EST-*` con el último precio conocido para no perder trazabilidad de costo (ver RF-14c).
 
 ---
 
 ### HU-02: Control de Cupo Semanal de Aprendiz
-**COMO** Aprendiz del SENA  
-**QUIERO** solicitar pedidos para mi taller de panadería desde el portal del cliente  
+**COMO** Aprendiz del SENA
+**QUIERO** solicitar pedidos para mi taller de panadería desde el portal del cliente
 **PARA** no exceder mi presupuesto semanal asignado por la institución.
 
 * **Criterios de Aceptación:**
@@ -308,8 +359,8 @@ WHERE DATE(pr.fecha_produccion) = ?;
 ---
 
 ### HU-03: Aprobación de Pedidos por Instructor
-**COMO** Instructor a cargo del taller  
-**QUIERO** validar y autorizar los pedidos generados por mis aprendices  
+**COMO** Instructor a cargo del taller
+**QUIERO** validar y autorizar los pedidos generados por mis aprendices
 **PARA** confirmar que los insumos y variedades de pan solicitados son los correctos antes de la producción.
 
 * **Criterios de Aceptación:**
@@ -320,14 +371,14 @@ WHERE DATE(pr.fecha_produccion) = ?;
 ---
 
 ### HU-04: Cierre Diario de Caja y Utilidades
-**COMO** Propietario de la panadería  
-**QUIERO** realizar el cierre financiero al finalizar la jornada  
+**COMO** Propietario de la panadería
+**QUIERO** realizar el cierre financiero al finalizar la jornada
 **PARA** calcular de forma exacta la utilidad bruta y neta obtenida.
 
 * **Criterios de Aceptación:**
   1. Al iniciar el cierre, el sistema debe calcular la suma total de ingresos por ventas cobradas hoy.
   2. El sistema debe calcular el costo de insumos consumidos hoy sumando los registros asociados de `consumo_lote` en las producciones del día.
-  3. Se deben deducir los gastos registrados del día, mostrando en pantalla las utilidades neta y bruta.
+  3. Se deben deducir los gastos registrados del día, mostrando en pantalla las utilidades neta y bruta, calculadas mediante `helpers/FinanzasHelper.php` (ver Fórmula F).
   4. Al guardar el cierre, las observaciones ingresadas deben quedar guardadas para mostrarse en el banner principal del dashboard del día siguiente.
 
 ---
@@ -342,3 +393,4 @@ WHERE DATE(pr.fecha_produccion) = ?;
   2. El sistema muestra el link de checkout de Wompi/Nequi configurado por el propietario para que el cliente complete el pago externamente, digitando el monto indicado.
   3. El propietario verifica el pago recibido y lo confirma manualmente desde "Pedidos de clientes" (acción "Confirmar Cobro Tienda"), lo que marca los pedidos asociados como pagados; opcionalmente puede configurarse (`wompi_confirmar_auto`) para que además avancen automáticamente a estado "confirmado".
   4. El sistema cuenta con un endpoint de webhook (`wompiWebhook()`) y funciones de la API de Wompi (`includes/wompi.php`) capaces de automatizar el paso 3 (generación de link único por transacción, validación de firma, confirmación automática), pendientes de activar en producción con llaves reales de Wompi (`WOMPI_PUBLIC_KEY`, `WOMPI_PRIVATE_KEY`, `WOMPI_EVENTS_SECRET`).
+  5. Este flujo depende de que existan las columnas `configuracion.nequi_link_pago`, `configuracion.nequi_titular`, `configuracion.wompi_habilitado`, `configuracion.wompi_confirmar_auto` y `pago_pedido.nota`, `pago_pedido.metodo_pago`. Sin ellas (esquema previo a `sql/agregar_columnas_faltantes.sql`), generar o registrar un pago consolidado fallaba con error de base de datos ("Unknown column") en los pasos 1 y 3.

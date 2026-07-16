@@ -19,17 +19,24 @@ class GastoController {
         
         $msg_ok  = '';
         $msg_err = '';
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
         
-        // ── 1. Eliminar gasto (GET ?del=ID) ──────────────────────────────────────
-        if (!empty($_GET['del'])) {
-            $id_g = (int)$_GET['del'];
+        // ── 1. Eliminar gasto (POST ?del=ID) ─────────────────────────────────────
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['del'])) {
+            $redir_fecha = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_POST['fecha'] ?? '') ? $_POST['fecha'] : $hoy;
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                header('Location: index.php?fecha=' . $redir_fecha . '&err=csrf');
+                exit;
+            }
+            $id_g = (int)$_POST['del'];
             try {
                 $this->model->eliminarGasto($id_g);
             } catch (Exception $e) {
                 // Silencioso o log_error según se prefiera
                 log_error($e);
             }
-            $redir_fecha = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha'] ?? '') ? $_GET['fecha'] : $hoy;
             header('Location: index.php?fecha=' . $redir_fecha);
             exit;
         }

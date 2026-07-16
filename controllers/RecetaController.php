@@ -18,9 +18,12 @@ class RecetaController {
         $user = usuarioActual();
 
         // ── 1. Desactivar Producto ──────────────────────────────────────────
-        if (!empty($_GET['del'])) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['del'])) {
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                redirigir(APP_URL . '/modules/recetas/index.php?err=csrf');
+            }
             try {
-                $this->model->desactivarProducto((int)$_GET['del']);
+                $this->model->desactivarProducto((int)$_POST['del']);
             } catch (Exception $e) {
                 log_error($e);
             }
@@ -39,6 +42,11 @@ class RecetaController {
         $msg_ok = '';
         if (!empty($_GET['ok'])) {
             $msg_ok = 'Receta guardada correctamente.';
+        }
+
+        $msg_err = '';
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Recarga la página e intenta de nuevo.';
         }
 
         $page_title = 'Recetas';
@@ -240,6 +248,9 @@ class RecetaController {
 
         $msg_ok  = '';
         $msg_err = '';
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
 
         $upload_dir = __DIR__ . '/../assets/img/variedades/';
         if (!is_dir($upload_dir)) {
@@ -247,9 +258,12 @@ class RecetaController {
         }
 
         // ── 1. Eliminar variedad ─────────────────────────────────────────────
-        if (!empty($_GET['del_var'])) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['del_var'])) {
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                redirigir(APP_URL . '/modules/recetas/variedades.php?err=csrf');
+            }
             try {
-                $this->model->desactivarVariedadPan((int)$_GET['del_var']);
+                $this->model->desactivarVariedadPan((int)$_POST['del_var']);
             } catch (Exception $e) {
                 log_error($e);
             }

@@ -178,6 +178,7 @@
             </div>
 
             <form method="POST" id="form-cobro-<?= $idx ?>">
+                <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                 <input type="hidden" name="accion" value="confirmar_cobro_tienda">
 
                 <!-- Barra seleccionar todos + total -->
@@ -308,6 +309,7 @@
 
     <div class="card">
         <form id="form-pedidos" method="POST" action="index.php">
+            <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
             <input type="hidden" name="accion"        id="input-accion"       value="">
             <input type="hidden" name="nuevo_estado"  id="input-nuevo-estado" value="">
             <div style="padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); background: var(--clight); display:flex; gap: 0.5rem; justify-content: flex-end;">

@@ -333,11 +333,14 @@
                   onclick="abrirEditGasto(<?= $g['id_gasto'] ?>, '<?= $g['categoria'] ?>', '<?= htmlspecialchars(addslashes($g['descripcion']),ENT_QUOTES) ?>', <?= (int)$g['valor'] ?>)">
                   <i class="bi bi-pencil"></i>
                 </button>
-                <a href="?del=<?= $g['id_gasto'] ?>&fecha=<?= $fecha_fil ?>"
-                   class="btn-act btn-del" title="Eliminar"
-                   onclick="return confirm('¿Eliminar este gasto?')">
-                  <i class="bi bi-trash3"></i>
-                </a>
+                <form method="POST" style="display:contents;" onsubmit="return confirm('¿Eliminar este gasto?')">
+                  <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
+                  <input type="hidden" name="del" value="<?= $g['id_gasto'] ?>">
+                  <input type="hidden" name="fecha" value="<?= $fecha_fil ?>">
+                  <button type="submit" class="btn-act btn-del" title="Eliminar">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </form>
                 <?php else: ?>
                 <span style="font-size:.7rem;color:var(--ink3)">—</span>
                 <?php endif; ?>

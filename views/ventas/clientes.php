@@ -228,10 +228,13 @@
             <td>
               <div style="display:flex;gap:.3rem">
                 <a href="clientes.php?edit=<?= $t['id_cliente'] ?>" class="btn-act btn-edit" title="Editar"><i class="bi bi-pencil"></i></a>
-                <a href="clientes.php?del=<?= $t['id_cliente'] ?>" class="btn-act btn-del" title="Desactivar"
-                   onclick="return confirm('¿Desactivar a <?= addslashes(htmlspecialchars($t['nombre'])) ?>?')">
-                  <i class="bi bi-trash3"></i>
-                </a>
+                <form method="POST" style="display:contents;" onsubmit="return confirm('¿Desactivar a <?= addslashes(htmlspecialchars($t['nombre'])) ?>?')">
+                  <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
+                  <input type="hidden" name="del" value="<?= $t['id_cliente'] ?>">
+                  <button type="submit" class="btn-act btn-del" title="Desactivar">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </form>
               </div>
             </td>
           </tr>

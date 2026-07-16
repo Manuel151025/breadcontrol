@@ -128,7 +128,11 @@
                   data-nombre="<?= htmlspecialchars($v['nombre'], ENT_QUOTES) ?>"
                   data-img="<?= $v['imagen'] ? htmlspecialchars(APP_URL.'/'.$v['imagen'], ENT_QUOTES) : '' ?>"
                   onclick="abrirEdit(this)"><i class="bi bi-pencil"></i></button>
-                <a href="?del_var=<?= $v['id_variedad'] ?>" class="btn-act btn-del" title="Eliminar" onclick="return confirm('¿Eliminar esta variedad?')"><i class="bi bi-trash3"></i></a>
+                <form method="POST" style="display:contents;" onsubmit="return confirm('¿Eliminar esta variedad?')">
+                  <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
+                  <input type="hidden" name="del_var" value="<?= $v['id_variedad'] ?>">
+                  <button type="submit" class="btn-act btn-del" title="Eliminar"><i class="bi bi-trash3"></i></button>
+                </form>
               </div>
             </div>
           </div>

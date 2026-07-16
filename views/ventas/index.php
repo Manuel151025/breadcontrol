@@ -1435,8 +1435,8 @@
                             onclick="abrirEdit(<?= $r['id_venta'] ?>,<?= $r['id_categoria_precio'] ?? 0 ?>,'<?= $r['tipo_salida'] ?>',<?= $r['unidades_vendidas'] ?>,<?= $r['id_cliente'] ?? 0 ?>,<?= (int) $r['bonificacion'] ?>)"><i
                               class="bi bi-pencil"></i></button>
                         <?php endif; ?>
-                        <a href="?del_venta=<?= $r['id_venta'] ?>" class="btn-act btn-del" title="Eliminar"
-                          onclick="return confirm('¿Eliminar?')"><i class="bi bi-trash3"></i></a>
+                        <button type="button" class="btn-act btn-del" title="Eliminar"
+                          onclick="eliminarVentaRapida(<?= $r['id_venta'] ?>, '<?= generar_token_csrf() ?>')"><i class="bi bi-trash3"></i></button>
                       </div>
                     </td>
                   </tr>
@@ -1999,6 +1999,16 @@
   var epCatalogVars = [];
   var epCurrentPrice = 0;
   var epCurrentCatId = 0;
+
+  function eliminarVentaRapida(idVenta, token) {
+    if (!confirm('¿Eliminar?')) return;
+    var body = new URLSearchParams();
+    body.set('csrf_token', token);
+    body.set('del_venta', idVenta);
+    fetch('index.php', { method: 'POST', body: body })
+      .then(function (r) { window.location.href = r.url; })
+      .catch(function () { alert('Error de red al eliminar. Intenta de nuevo.'); });
+  }
 
   function editarPedido(idVenta) {
     epCart = [];

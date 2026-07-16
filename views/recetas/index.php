@@ -63,6 +63,8 @@
   .empty i{font-size:2.5rem;opacity:.3;}
   .msg-ok{background:#e8f5e9;border:1px solid #a5d6a7;border-left:4px solid #2e7d32;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#1b5e20;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
   .msg-ok i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}.msg-ok span{flex:1;}
+  .msg-err{background:#ffebee;border:1px solid #ef9a9a;border-left:4px solid #c62828;border-radius:10px;padding:.7rem 1rem;font-size:.8rem;color:#c62828;font-weight:600;margin-bottom:.65rem;display:flex;align-items:flex-start;gap:.5rem;line-height:1.5;}
+  .msg-err i{flex-shrink:0;font-size:.95rem;margin-top:.12rem;}.msg-err span{flex:1;}
   @media(max-width:768px){.page{height:auto;overflow:visible;margin-top:60px;}.inp-search{width:130px;}}
 </style>
 
@@ -106,6 +108,12 @@
     <?php if ($msg_ok): ?>
     <div style="padding:.7rem 1.1rem 0;">
       <div class="msg-ok"><i class="bi bi-check-circle-fill"></i><span><?= $msg_ok ?></span></div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($msg_err): ?>
+    <div style="padding:.7rem 1.1rem 0;">
+      <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i><span><?= $msg_err ?></span></div>
     </div>
     <?php endif; ?>
 
@@ -165,10 +173,14 @@
             <i class="bi bi-plus-circle"></i> <span>Receta</span>
           </a>
           <?php endif; ?>
-          <a href="index.php?del=<?= $p['id_producto'] ?>" class="btn-act btn-del" title="Desactivar"
-             onclick="return confirm('¿Desactivar «<?= htmlspecialchars($p['nombre']) ?>»?')">
-            <i class="bi bi-trash3"></i>
-          </a>
+          <?php boton_eliminar([
+              'accion'  => 'index.php',
+              'campo'   => 'del',
+              'valor'   => $p['id_producto'],
+              'confirm' => '¿Desactivar «' . $p['nombre'] . '»?',
+              'title'   => 'Desactivar',
+              'icono'   => 'bi-trash3',
+          ]); ?>
         </div>
       </div>
       <?php endforeach; ?>

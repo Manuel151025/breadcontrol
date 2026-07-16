@@ -58,6 +58,9 @@ class VentaController {
         // ── 2. Mensajes ──────────────────────────────────────────────────────────
         $msg_ok  = $_GET['msg_ok']  ?? '';
         $msg_err = $_GET['msg_err'] ?? '';
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
 
         // ── 3. POST — Registrar Venta Rápida (guardar_venta) ─────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_venta'])) {
@@ -279,9 +282,13 @@ class VentaController {
             }
         }
 
-        // ── 7. GET — Eliminar Venta Rápida (del_venta) ───────────────────────────
-        if (!empty($_GET['del_venta'])) {
-            $id_del = (int)$_GET['del_venta'];
+        // ── 7. POST — Eliminar Venta Rápida (del_venta) ──────────────────────────
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['del_venta'])) {
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                header('Location: index.php?err=csrf');
+                exit;
+            }
+            $id_del = (int)$_POST['del_venta'];
             try {
                 $this->model->eliminarVenta($id_del);
             } catch (Exception $e) {
@@ -332,6 +339,9 @@ class VentaController {
         $msg_ok  = '';
         $msg_err = '';
         $editando = null;
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
 
         // ── 1. POST — Guardar Cliente/Tienda ─────────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_cliente'])) {
@@ -372,9 +382,13 @@ class VentaController {
             }
         }
 
-        // ── 2. GET — Desactivar (soft delete) Cliente ────────────────────────────
-        if (!empty($_GET['del'])) {
-            $id_del = (int)$_GET['del'];
+        // ── 2. POST — Desactivar (soft delete) Cliente ───────────────────────────
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['del'])) {
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                header('Location: clientes.php?err=csrf');
+                exit;
+            }
+            $id_del = (int)$_POST['del'];
             try {
                 $this->model->desactivarCliente($id_del);
             } catch (Exception $e) {

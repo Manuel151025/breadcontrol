@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config/app.php';
 require_once __DIR__ . '/../../includes/sesion.php';
+require_once __DIR__ . '/../../includes/boton_eliminar.php';
 $user = usuarioActual();
 
 $current = $_SERVER['REQUEST_URI'];

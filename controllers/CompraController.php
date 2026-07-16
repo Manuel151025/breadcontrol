@@ -128,10 +128,13 @@ class CompraController {
             }
         }
 
-        // ── 2. Desactivar Proveedor (GET desactivar) ─────────────────────────────
-        if (isset($_GET['desactivar'])) {
+        // ── 2. Desactivar Proveedor (POST desactivar) ────────────────────────────
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desactivar'])) {
             requerirPropietario();
-            $id_des = (int)$_GET['desactivar'];
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                redirigir(APP_URL . '/modules/compras/proveedores.php', 'error', 'Token de seguridad inválido o expirado. Intenta de nuevo.');
+            }
+            $id_des = (int)$_POST['desactivar'];
             try {
                 $this->model->desactivarProveedor($id_des);
                 redirigir(APP_URL . '/modules/compras/proveedores.php', 'alerta', 'Proveedor desactivado.');

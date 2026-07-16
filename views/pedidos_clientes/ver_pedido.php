@@ -77,6 +77,7 @@
         <div class="card">
             <h3><i class="bi bi-pencil-square"></i> Gestión</h3>
             <form method="post">
+                <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                 <div class="form-group">
                     <label>Estado del pedido</label>
                     <select name="estado">
@@ -153,6 +154,7 @@
                 Al habilitar el pago digital, el cliente verá en su portal un botón <strong>"Pagar ahora"</strong> que lo llevará a tu link de Nequi Negocios para pagar <strong>$<?= number_format($pedido['total_estimado'], 0, ',', '.') ?></strong>.
             </p>
             <form method="post">
+                <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                 <button type="submit" name="habilitar_pago" class="btn-habilitar">
                     <i class="bi bi-cash-coin"></i> Habilitar pago digital
                 </button>
@@ -213,6 +215,7 @@
             <hr style="border:none;border-top:1px solid var(--border);margin:1.2rem 0;">
 
             <form method="post">
+                <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                 <h4 style="font-family:'Fraunces',serif;color:var(--c1);font-size:1.05rem;margin-bottom:.8rem;">
                     Confirmar abono recibido
                 </h4>
@@ -256,6 +259,7 @@
             </form>
 
             <form method="post" style="margin-top:1.2rem;">
+                <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                 <p style="font-size:.77rem;color:#9ca3af;margin-bottom:.5rem;line-height:1.5;">
                     <i class="bi bi-info-circle"></i> Deshabilitar retira el botón de pago del portal del cliente. El pedido queda sin pago hasta que lo vuelvas a habilitar.
                 </p>
@@ -327,6 +331,7 @@
             <details class="revertir">
                 <summary>Revertir este pago (solo si fue un error)</summary>
                 <form method="post" style="margin-top:.6rem;">
+                    <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                     <p style="font-size:.8rem;color:var(--ink2);margin-bottom:.6rem;">
                         Esto desmarca el pago como recibido. El pedido vuelve al estado "sin pago".
                     </p>

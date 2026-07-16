@@ -187,7 +187,8 @@
               <div style="display:flex;gap:.3rem;">
                 <a href="ajuste.php?id=<?= $ins['id_insumo'] ?>" class="btn-act" style="border-color:rgba(198,113,36,.25);color:var(--c3);" title="Ajuste manual"><i class="bi bi-arrow-left-right"></i></a>
                 <a href="index.php?edit=<?= $ins['id_insumo'] ?>" class="btn-act btn-edit" title="Editar"><i class="bi bi-pencil"></i></a>
-                <a href="index.php?del=<?= $ins['id_insumo'] ?>" class="btn-act btn-del" title="Eliminar" onclick="return confirm('¿Eliminar este insumo?')"><i class="bi bi-trash3-fill"></i></a>
+                <button type="button" class="btn-act btn-del" title="Eliminar"
+                  onclick="eliminarInsumo(<?= $ins['id_insumo'] ?>, '<?= generar_token_csrf() ?>')"><i class="bi bi-trash3-fill"></i></button>
               </div>
             </td>
           </tr>
@@ -219,6 +220,15 @@ if (selAll) {
   document.querySelectorAll('.chk-ins').forEach(function(c){
     c.addEventListener('change', updateBatch);
   });
+}
+function eliminarInsumo(id, token){
+  if (!confirm('¿Eliminar este insumo?')) return;
+  var body = new URLSearchParams();
+  body.set('csrf_token', token);
+  body.set('del', id);
+  fetch('index.php', { method: 'POST', body: body })
+    .then(function (r) { window.location.href = r.url; })
+    .catch(function () { alert('Error de red al eliminar. Intenta de nuevo.'); });
 }
 function updateBatch(){
   var checked = document.querySelectorAll('.chk-ins:checked').length;

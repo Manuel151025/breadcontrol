@@ -19,6 +19,9 @@ class InventarioController {
 
         $msg_ok  = '';
         $msg_err = '';
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
 
         // ── 1. Guardar/Editar insumo (POST guardar_insumo) ───────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_insumo'])) {
@@ -74,9 +77,13 @@ class InventarioController {
             }
         }
 
-        // ── 2. Desactivar insumo individual (GET del) ──────────────────────────
-        if (!empty($_GET['del'])) {
-            $id_del = (int)$_GET['del'];
+        // ── 2. Desactivar insumo individual (POST del) ─────────────────────────
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['del'])) {
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                header('Location: index.php?err=csrf');
+                exit;
+            }
+            $id_del = (int)$_POST['del'];
             try {
                 $this->model->desactivarInsumo($id_del);
             } catch (Exception $e) {
