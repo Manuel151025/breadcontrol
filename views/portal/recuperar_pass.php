@@ -94,6 +94,7 @@
       <!-- ── PASO 1: usuario + método ── -->
       <?php if ($paso == 1): ?>
       <form method="POST">
+        <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
         <div class="field" style="margin-bottom:1rem;">
           <label>Nombre de Usuario</label>
           <div class="inp-wrap">
@@ -138,6 +139,7 @@
       <?php endif; ?>
 
       <form method="POST">
+        <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
         <div class="pin-wrap" id="pin-display">
           <?php for ($i = 0; $i < 6; $i++): ?>
           <input type="text" class="pin-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="<?= $i ?>" autocomplete="off">
@@ -167,6 +169,7 @@
         <i class="bi bi-patch-check-fill"></i> Identidad verificada. Crea tu nueva contraseña.
       </div>
       <form method="POST">
+        <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
         <div class="field" style="margin-bottom:.9rem;">
           <label>Nueva contraseña</label>
           <div class="inp-wrap">

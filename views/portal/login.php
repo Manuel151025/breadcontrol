@@ -173,6 +173,7 @@
 
 <div class="login-wrap">
   <form method="POST" class="glass-card">
+    <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
     <div class="card-logo"><img src="<?= APP_URL ?>/assets/img/logo.png" alt="Logo"></div>
     <div class="card-title">
       <h1>Iniciar Sesión</h1>

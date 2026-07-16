@@ -182,6 +182,7 @@
     </div>
     <?php else: ?>
     <form method="POST" style="width:100%; display:flex; flex-direction:column; gap:1.3rem;">
+        <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
         <div class="field">
             <label>Nombre de Tienda o Persona</label>
             <input type="text" name="nombre" placeholder="Ej: Panadería El Buen Sabor" required maxlength="100">

@@ -74,22 +74,26 @@ class PortalClienteController {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $usuario = trim($_POST['usuario'] ?? '');
-            $contrasena = $_POST['contrasena'] ?? '';
-            
-            if ($usuario && $contrasena) {
-                $cliente = $this->model->getClienteByUsuario($usuario);
-                
-                if ($cliente && password_verify($contrasena, $cliente['contrasena_hash'])) {
-                    $_SESSION['cliente_id'] = $cliente['id_cliente'];
-                    $_SESSION['cliente_nombre'] = $cliente['nombre'];
-                    header('Location: dashboard.php');
-                    exit;
-                } else {
-                    $error = 'Usuario o contraseña incorrectos.';
-                }
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                $error = 'Token de seguridad inválido o expirado. Recarga la página e intenta de nuevo.';
             } else {
-                $error = 'Completa todos los campos.';
+                $usuario = trim($_POST['usuario'] ?? '');
+                $contrasena = $_POST['contrasena'] ?? '';
+
+                if ($usuario && $contrasena) {
+                    $cliente = $this->model->getClienteByUsuario($usuario);
+
+                    if ($cliente && password_verify($contrasena, $cliente['contrasena_hash'])) {
+                        $_SESSION['cliente_id'] = $cliente['id_cliente'];
+                        $_SESSION['cliente_nombre'] = $cliente['nombre'];
+                        header('Location: dashboard.php');
+                        exit;
+                    } else {
+                        $error = 'Usuario o contraseña incorrectos.';
+                    }
+                } else {
+                    $error = 'Completa todos los campos.';
+                }
             }
         }
 
@@ -238,46 +242,50 @@ class PortalClienteController {
         $success = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $nombre = trim($_POST['nombre'] ?? '');
-            $telefono = preg_replace('/\D/', '', $_POST['telefono'] ?? '');
-            if (strlen($telefono) > 15) {
-                $telefono = substr($telefono, 0, 15);
-            }
-            $tipo = 'mostrador';
-            $es_aprendiz = isset($_POST['es_aprendiz']) ? 1 : 0;
-            $id_instructor = $es_aprendiz && !empty($_POST['id_instructor']) ? (int)$_POST['id_instructor'] : null;
-            $usuario = trim($_POST['usuario'] ?? '');
-            $contrasena = $_POST['contrasena'] ?? '';
-            
-            if ($nombre && $usuario && $contrasena) {
-                if (!preg_match('/^[a-z0-9_]+$/', $usuario)) {
-                    $error = 'El nombre de usuario solo puede contener letras minúsculas, números y guiones bajos.';
-                } elseif (strlen($usuario) > 50) {
-                    $error = 'El nombre de usuario no puede superar los 50 caracteres.';
-                } elseif (mb_strlen($nombre) > 100) {
-                    $error = 'El nombre de tienda o persona no puede superar los 100 caracteres.';
-                } elseif (strlen($contrasena) < 4) {
-                    $error = 'La contraseña debe tener al menos 4 caracteres.';
-                } else {
-                    $existente = $this->model->getClienteByUsuario($usuario);
-                    if ($existente) {
-                        $error = 'El nombre de usuario ya está en uso. Elige otro.';
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                $error = 'Token de seguridad inválido o expirado. Recarga la página e intenta de nuevo.';
+            } else {
+                $nombre = trim($_POST['nombre'] ?? '');
+                $telefono = preg_replace('/\D/', '', $_POST['telefono'] ?? '');
+                if (strlen($telefono) > 15) {
+                    $telefono = substr($telefono, 0, 15);
+                }
+                $tipo = 'mostrador';
+                $es_aprendiz = isset($_POST['es_aprendiz']) ? 1 : 0;
+                $id_instructor = $es_aprendiz && !empty($_POST['id_instructor']) ? (int)$_POST['id_instructor'] : null;
+                $usuario = trim($_POST['usuario'] ?? '');
+                $contrasena = $_POST['contrasena'] ?? '';
+
+                if ($nombre && $usuario && $contrasena) {
+                    if (!preg_match('/^[a-z0-9_]+$/', $usuario)) {
+                        $error = 'El nombre de usuario solo puede contener letras minúsculas, números y guiones bajos.';
+                    } elseif (strlen($usuario) > 50) {
+                        $error = 'El nombre de usuario no puede superar los 50 caracteres.';
+                    } elseif (mb_strlen($nombre) > 100) {
+                        $error = 'El nombre de tienda o persona no puede superar los 100 caracteres.';
+                    } elseif (strlen($contrasena) < 4) {
+                        $error = 'La contraseña debe tener al menos 4 caracteres.';
                     } else {
-                        $hash = password_hash($contrasena, PASSWORD_DEFAULT);
-                        try {
-                            $res = $this->model->registrarCliente($nombre, $tipo, $telefono, $usuario, $hash, $es_aprendiz, $id_instructor);
-                            if ($res) {
-                                $success = 'Registro exitoso. Ya puedes iniciar sesión y hacer pedidos.';
-                            } else {
+                        $existente = $this->model->getClienteByUsuario($usuario);
+                        if ($existente) {
+                            $error = 'El nombre de usuario ya está en uso. Elige otro.';
+                        } else {
+                            $hash = password_hash($contrasena, PASSWORD_DEFAULT);
+                            try {
+                                $res = $this->model->registrarCliente($nombre, $tipo, $telefono, $usuario, $hash, $es_aprendiz, $id_instructor);
+                                if ($res) {
+                                    $success = 'Registro exitoso. Ya puedes iniciar sesión y hacer pedidos.';
+                                } else {
+                                    $error = 'Error al registrar. Verifica los datos.';
+                                }
+                            } catch (Exception $e) {
                                 $error = 'Error al registrar. Verifica los datos.';
                             }
-                        } catch (Exception $e) {
-                            $error = 'Error al registrar. Verifica los datos.';
                         }
                     }
+                } else {
+                    $error = 'Completa los campos obligatorios.';
                 }
-            } else {
-                $error = 'Completa los campos obligatorios.';
             }
         }
 
@@ -315,111 +323,115 @@ class PortalClienteController {
         $metodo = $_SESSION['recover_metodo'] ?? 'pin';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // ── PASO 1: identificar usuario y elegir método
-            if (isset($_POST['verificar_usuario'])) {
-                $usuario_input = trim($_POST['usuario'] ?? '');
-                $metodo_sel    = $_POST['metodo'] ?? 'pin';
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                $error = 'Token de seguridad inválido o expirado. Recarga la página e intenta de nuevo.';
+            } else {
+                // ── PASO 1: identificar usuario y elegir método
+                if (isset($_POST['verificar_usuario'])) {
+                    $usuario_input = trim($_POST['usuario'] ?? '');
+                    $metodo_sel    = $_POST['metodo'] ?? 'pin';
 
-                if (!$usuario_input) {
-                    $error = 'Ingresa tu nombre de usuario.';
-                } else {
-                    $cliente = $this->model->getClienteByUsuario($usuario_input);
+                    if (!$usuario_input) {
+                        $error = 'Ingresa tu nombre de usuario.';
+                    } else {
+                        $cliente = $this->model->getClienteByUsuario($usuario_input);
 
-                    if (!$cliente) {
-                        $error = 'Usuario no encontrado.';
-                    } elseif ($metodo_sel === 'email') {
-                        if (empty($cliente['email'])) {
-                            $error = 'Tu cuenta no tiene correo registrado. Usa el método PIN o contacta al administrador.';
+                        if (!$cliente) {
+                            $error = 'Usuario no encontrado.';
+                        } elseif ($metodo_sel === 'email') {
+                            if (empty($cliente['email'])) {
+                                $error = 'Tu cuenta no tiene correo registrado. Usa el método PIN o contacta al administrador.';
+                            } else {
+                                $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                                $expira = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+                                $this->model->registrarCodigoRecuperacion($cliente['id_cliente'], $codigo, $expira);
+
+                                $html    = correo_codigo_html($cliente['nombre'], $codigo, 'Solicitaste recuperar tu contraseña en el portal BreadControl. Tu código es:');
+                                $enviado = enviar_correo($cliente['email'], $cliente['nombre'], 'BreadControl — Código de recuperación', $html);
+
+                                if ($enviado) {
+                                    $_SESSION['recover_cid']     = $cliente['id_cliente'];
+                                    $_SESSION['recover_cnombre'] = $cliente['nombre'];
+                                    $_SESSION['recover_cemail']  = preg_replace('/(?<=.{2}).(?=.*@)/', '*', $cliente['email']);
+                                    $_SESSION['recover_metodo']  = 'email';
+                                    $paso   = 2;
+                                    $metodo = 'email';
+                                } else {
+                                    $error = 'No se pudo enviar el correo. Intenta con el método PIN.';
+                                }
+                            }
                         } else {
-                            $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-                            $expira = date('Y-m-d H:i:s', strtotime('+10 minutes'));
-                            $this->model->registrarCodigoRecuperacion($cliente['id_cliente'], $codigo, $expira);
-
-                            $html    = correo_codigo_html($cliente['nombre'], $codigo, 'Solicitaste recuperar tu contraseña en el portal BreadControl. Tu código es:');
-                            $enviado = enviar_correo($cliente['email'], $cliente['nombre'], 'BreadControl — Código de recuperación', $html);
-
-                            if ($enviado) {
+                            if (empty($cliente['pin_recuperacion'])) {
+                                $error = 'Tu cuenta no tiene PIN configurado. Usa el método correo o contacta al administrador.';
+                            } else {
                                 $_SESSION['recover_cid']     = $cliente['id_cliente'];
                                 $_SESSION['recover_cnombre'] = $cliente['nombre'];
-                                $_SESSION['recover_cemail']  = preg_replace('/(?<=.{2}).(?=.*@)/', '*', $cliente['email']);
-                                $_SESSION['recover_metodo']  = 'email';
+                                $_SESSION['recover_metodo']  = 'pin';
                                 $paso   = 2;
-                                $metodo = 'email';
-                            } else {
-                                $error = 'No se pudo enviar el correo. Intenta con el método PIN.';
+                                $metodo = 'pin';
                             }
                         }
-                    } else {
-                        if (empty($cliente['pin_recuperacion'])) {
-                            $error = 'Tu cuenta no tiene PIN configurado. Usa el método correo o contacta al administrador.';
+                    }
+                }
+                // ── PASO 2: verificar código / PIN
+                elseif (isset($_POST['verificar_codigo'])) {
+                    $codigo = trim($_POST['codigo'] ?? '');
+                    $cid    = $_SESSION['recover_cid']    ?? 0;
+                    $metodo = $_SESSION['recover_metodo'] ?? '';
+
+                    if (!$cid || !preg_match('/^\d{6}$/', $codigo)) {
+                        $error = 'Ingresa el código de 6 dígitos.';
+                        $paso  = 2;
+                    } elseif ($metodo === 'email') {
+                        $cliente = $this->model->getClienteById($cid);
+                        if (!$cliente || $cliente['codigo_recuperacion'] !== $codigo) {
+                            $error = 'Código incorrecto.';
+                            $paso  = 2;
+                        } elseif (strtotime($cliente['codigo_expira']) < time()) {
+                            $error = 'El código expiró. Vuelve a empezar.';
+                            $paso  = 1;
+                            unset($_SESSION['recover_cid'], $_SESSION['recover_cnombre'], $_SESSION['recover_metodo']);
                         } else {
-                            $_SESSION['recover_cid']     = $cliente['id_cliente'];
-                            $_SESSION['recover_cnombre'] = $cliente['nombre'];
-                            $_SESSION['recover_metodo']  = 'pin';
-                            $paso   = 2;
-                            $metodo = 'pin';
+                            $this->model->limpiarCodigoRecuperacion($cid);
+                            $_SESSION['recover_pin_ok'] = true;
+                            $paso = 3;
+                        }
+                    } else {
+                        $cliente = $this->model->getClienteById($cid);
+                        $hash = $cliente['pin_recuperacion'] ?? '';
+                        if ($hash && password_verify($codigo, $hash)) {
+                            $_SESSION['recover_pin_ok'] = true;
+                            $paso = 3;
+                        } else {
+                            $error = 'PIN incorrecto.';
+                            $paso  = 2;
                         }
                     }
                 }
-            }
-            // ── PASO 2: verificar código / PIN
-            elseif (isset($_POST['verificar_codigo'])) {
-                $codigo = trim($_POST['codigo'] ?? '');
-                $cid    = $_SESSION['recover_cid']    ?? 0;
-                $metodo = $_SESSION['recover_metodo'] ?? '';
+                // ── PASO 3: nueva contraseña
+                elseif (isset($_POST['cambiar_pass'])) {
+                    $nueva   = $_POST['nueva']   ?? '';
+                    $confirm = $_POST['confirm'] ?? '';
+                    $cid     = $_SESSION['recover_cid']    ?? 0;
+                    $pin_ok  = $_SESSION['recover_pin_ok'] ?? false;
 
-                if (!$cid || !preg_match('/^\d{6}$/', $codigo)) {
-                    $error = 'Ingresa el código de 6 dígitos.';
-                    $paso  = 2;
-                } elseif ($metodo === 'email') {
-                    $cliente = $this->model->getClienteById($cid);
-                    if (!$cliente || $cliente['codigo_recuperacion'] !== $codigo) {
-                        $error = 'Código incorrecto.';
-                        $paso  = 2;
-                    } elseif (strtotime($cliente['codigo_expira']) < time()) {
-                        $error = 'El código expiró. Vuelve a empezar.';
-                        $paso  = 1;
-                        unset($_SESSION['recover_cid'], $_SESSION['recover_cnombre'], $_SESSION['recover_metodo']);
+                    if (!$cid || !$pin_ok) {
+                        header('Location: recuperar_pass.php?reiniciar=1');
+                        exit;
+                    } elseif (strlen($nueva) < 6) {
+                        $error = 'Mínimo 6 caracteres.';
+                        $paso  = 3;
+                    } elseif ($nueva !== $confirm) {
+                        $error = 'Las contraseñas no coinciden.';
+                        $paso  = 3;
                     } else {
-                        $this->model->limpiarCodigoRecuperacion($cid);
-                        $_SESSION['recover_pin_ok'] = true;
-                        $paso = 3;
+                        $hash = password_hash($nueva, PASSWORD_DEFAULT);
+                        $this->model->actualizarPassword($cid, $hash);
+                        unset($_SESSION['recover_cid'], $_SESSION['recover_cnombre'], $_SESSION['recover_cemail'],
+                              $_SESSION['recover_metodo'], $_SESSION['recover_pin_ok']);
+                        $ok   = '¡Contraseña restablecida! Ya puedes iniciar sesión.';
+                        $paso = 4;
                     }
-                } else {
-                    $cliente = $this->model->getClienteById($cid);
-                    $hash = $cliente['pin_recuperacion'] ?? '';
-                    if ($hash && password_verify($codigo, $hash)) {
-                        $_SESSION['recover_pin_ok'] = true;
-                        $paso = 3;
-                    } else {
-                        $error = 'PIN incorrecto.';
-                        $paso  = 2;
-                    }
-                }
-            }
-            // ── PASO 3: nueva contraseña
-            elseif (isset($_POST['cambiar_pass'])) {
-                $nueva   = $_POST['nueva']   ?? '';
-                $confirm = $_POST['confirm'] ?? '';
-                $cid     = $_SESSION['recover_cid']    ?? 0;
-                $pin_ok  = $_SESSION['recover_pin_ok'] ?? false;
-
-                if (!$cid || !$pin_ok) {
-                    header('Location: recuperar_pass.php?reiniciar=1');
-                    exit;
-                } elseif (strlen($nueva) < 6) {
-                    $error = 'Mínimo 6 caracteres.';
-                    $paso  = 3;
-                } elseif ($nueva !== $confirm) {
-                    $error = 'Las contraseñas no coinciden.';
-                    $paso  = 3;
-                } else {
-                    $hash = password_hash($nueva, PASSWORD_DEFAULT);
-                    $this->model->actualizarPassword($cid, $hash);
-                    unset($_SESSION['recover_cid'], $_SESSION['recover_cnombre'], $_SESSION['recover_cemail'],
-                          $_SESSION['recover_metodo'], $_SESSION['recover_pin_ok']);
-                    $ok   = '¡Contraseña restablecida! Ya puedes iniciar sesión.';
-                    $paso = 4;
                 }
             }
         }

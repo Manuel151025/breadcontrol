@@ -225,31 +225,6 @@ class InventarioController {
     }
 
     /**
-     * Desactivación rápida clásica (desactivar_insumo.php)
-     */
-    public function desactivarInsumo() {
-        requerirPropietario();
-        $id = (int)($_GET['id'] ?? 0);
-
-        $insumo = $this->model->getInsumoActivoById($id);
-        if (!$insumo) {
-            redirigir(APP_URL . '/modules/inventario/index.php', 'error', 'Insumo no encontrado.');
-        }
-
-        try {
-            $this->model->desactivarInsumo($id);
-            redirigir(
-                APP_URL . '/modules/inventario/index.php',
-                'alerta',
-                "Insumo <strong>{$insumo['nombre']}</strong> desactivado. Puedes reactivarlo desde Editar."
-            );
-        } catch (Exception $e) {
-            log_error($e);
-            redirigir(APP_URL . '/modules/inventario/index.php', 'error', 'Error al desactivar el insumo.');
-        }
-    }
-
-    /**
      * Ajuste manual de inventario e historial (ajuste.php)
      */
     public function ajuste() {
