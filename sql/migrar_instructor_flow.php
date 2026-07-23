@@ -32,16 +32,26 @@ try {
         echo "La columna 'aprobado_instructor' ya existe en 'pedido_cliente'.\n";
     }
 
-    // 3. Vincular aprendices existentes a la Tienda ADSO por defecto
-    $stmt_adso = $pdo->query("SELECT id_cliente FROM cliente WHERE nombre LIKE '%ADSO%' AND tipo='tienda' LIMIT 1");
-    $id_adso = $stmt_adso->fetchColumn();
-    if ($id_adso) {
-        $stmt_upd = $pdo->prepare("UPDATE cliente SET id_instructor = ? WHERE es_aprendiz = 1 AND id_instructor IS NULL");
-        $stmt_upd->execute([$id_adso]);
-        $affected = $stmt_upd->rowCount();
-        echo "Vinculados $affected aprendices existentes al instructor ID $id_adso (Tienda ADSO).\n";
+    // 3. Vincular aprendices existentes a la cuenta ADSO por defecto.
+    //    Se lee la clave explicita configuracion.id_cliente_adso (nunca por nombre).
+    $col = $pdo->query("SHOW COLUMNS FROM configuracion LIKE 'id_cliente_adso'")->fetch();
+    $id_adso = $col ? (int)$pdo->query("SELECT id_cliente_adso FROM configuracion LIMIT 1")->fetchColumn() : 0;
+    if ($id_adso > 0) {
+        // Verificar que la cuenta exista y este activa antes de usarla.
+        $chk = $pdo->prepare("SELECT activo FROM cliente WHERE id_cliente = ?");
+        $chk->execute([$id_adso]);
+        $activo = $chk->fetchColumn();
+        if ($activo === false) {
+            echo "ADVERTENCIA: configuracion.id_cliente_adso = $id_adso no existe; no se vinculan aprendices.\n";
+        } elseif ((int)$activo !== 1) {
+            echo "ADVERTENCIA: la cuenta ADSO $id_adso esta inactiva; no se vinculan aprendices.\n";
+        } else {
+            $stmt_upd = $pdo->prepare("UPDATE cliente SET id_instructor = ? WHERE es_aprendiz = 1 AND id_instructor IS NULL");
+            $stmt_upd->execute([$id_adso]);
+            echo "Vinculados {$stmt_upd->rowCount()} aprendices existentes al instructor ID $id_adso.\n";
+        }
     } else {
-        echo "No se encontró una tienda 'ADSO' para vincular aprendices existentes por defecto.\n";
+        echo "ADVERTENCIA: configuracion.id_cliente_adso no esta configurada; ejecuta antes la migracion sql/migraciones/2026-07-23_05_id_cliente_adso.sql.\n";
     }
 
     echo "MIGRACIÓN COMPLETADA CON ÉXITO.\n";

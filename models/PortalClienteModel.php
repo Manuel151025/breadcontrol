@@ -934,6 +934,45 @@ class PortalClienteModel {
     }
 
     // ══════════════════════════════════════════════════════════════════════
+    //  Cuenta del instructor ADSO (enrutamiento por id, nunca por nombre)
+    // ══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Resuelve la cuenta del instructor ADSO leyendo configuracion.id_cliente_adso,
+     * validando que exista y esté activa. Devuelve ['id'=>int, 'error'=>string].
+     * NUNCA busca por nombre. Si la clave falta o apunta a una cuenta inexistente o
+     * inactiva, devuelve id=0 con un mensaje claro para mostrar al usuario (falla
+     * de forma visible, jamás en silencio ni con un fallback por nombre).
+     */
+    public function getClienteAdso(): array {
+        static $cache = null;
+        if ($cache !== null) return $cache;
+
+        $val = $this->pdo->query("SELECT id_cliente_adso FROM configuracion LIMIT 1")->fetchColumn();
+        if ($val === false || $val === null || (int)$val <= 0) {
+            return $cache = ['id' => 0, 'error' => 'La cuenta del instructor ADSO no está configurada (configuracion.id_cliente_adso). Contacta al administrador.'];
+        }
+        $id = (int)$val;
+        $stmt = $this->pdo->prepare("SELECT id_cliente, activo FROM cliente WHERE id_cliente = ?");
+        $stmt->execute([$id]);
+        $c = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$c) {
+            return $cache = ['id' => 0, 'error' => "La cuenta del instructor ADSO configurada (id $id) no existe. Contacta al administrador."];
+        }
+        if ((int)$c['activo'] !== 1) {
+            return $cache = ['id' => 0, 'error' => "La cuenta del instructor ADSO configurada (id $id) está inactiva. Contacta al administrador."];
+        }
+        return $cache = ['id' => $id, 'error' => ''];
+    }
+
+    /**
+     * Id de la cuenta ADSO válida, o 0 si no está bien configurada.
+     */
+    public function getIdClienteAdso(): int {
+        return $this->getClienteAdso()['id'];
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
     //  Registro de aprendices por código del instructor
     // ══════════════════════════════════════════════════════════════════════
 

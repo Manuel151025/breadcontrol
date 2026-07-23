@@ -820,28 +820,32 @@ class PortalClienteController {
                 } elseif (empty($cart)) {
                     $error = 'El carrito está vacío. Debes pedir al menos un producto.';
                 } else {
-                    // Determinar el cliente destino
+                    // Determinar el cliente destino (facturado) del pedido.
                     $id_cli_destino = $cliente_id;
                     $pedido_para = $_POST['pedido_para'] ?? 'adso';
                     if ($es_aprendiz && $pedido_para === 'adso') {
                         if (!empty($cliente_info['id_instructor'])) {
                             $id_cli_destino = (int)$cliente_info['id_instructor'];
                         } else {
-                            // Tienda ADSO Fallback
-                            $stmt_tienda_adso = $this->pdo->prepare("SELECT id_cliente FROM cliente WHERE nombre LIKE '%Tienda ADSO%' AND tipo='tienda' LIMIT 1");
-                            $stmt_tienda_adso->execute();
-                            $id_tienda_adso = $stmt_tienda_adso->fetchColumn();
-                            if ($id_tienda_adso) {
-                                $id_cli_destino = (int)$id_tienda_adso;
+                            // Enrutamiento a ADSO por id (configuracion.id_cliente_adso).
+                            // Nunca por nombre: si la clave falta o apunta a una cuenta
+                            // inexistente o inactiva, se falla con mensaje claro y visible.
+                            $adso = $this->model->getClienteAdso();
+                            if ($adso['id'] > 0) {
+                                $id_cli_destino = $adso['id'];
+                            } else {
+                                $error = 'No se pudo enviar tu pedido a la cuenta ADSO: ' . $adso['error'];
                             }
                         }
                     }
 
-                    try {
-                        $id_ped_creado = $this->model->crearPedido($id_cli_destino, $cliente_id, $datetime_entrega, $cart, $bonif_items, $edit_id > 0 ? $edit_id : null);
-                        $success = $edit_id > 0 ? "Pedido actualizado exitosamente." : "Pedido enviado exitosamente a la panadería.";
-                    } catch (Exception $e) {
-                        $error = 'Hubo un error al procesar tu pedido: ' . $e->getMessage();
+                    if (empty($error)) {
+                        try {
+                            $id_ped_creado = $this->model->crearPedido($id_cli_destino, $cliente_id, $datetime_entrega, $cart, $bonif_items, $edit_id > 0 ? $edit_id : null);
+                            $success = $edit_id > 0 ? "Pedido actualizado exitosamente." : "Pedido enviado exitosamente a la panadería.";
+                        } catch (Exception $e) {
+                            $error = 'Hubo un error al procesar tu pedido: ' . $e->getMessage();
+                        }
                     }
                 }
             }

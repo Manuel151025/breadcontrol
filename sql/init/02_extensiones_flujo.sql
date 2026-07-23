@@ -101,7 +101,14 @@ CREATE TABLE `pago_abono` (
   CONSTRAINT `fk_abono_pago` FOREIGN KEY (`id_pago`) REFERENCES `pago_pedido` (`id_pago`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- 3. Codigos de invitacion de aprendices (registro por codigo del instructor) --
+-- 3. Enrutamiento ADSO por id: clave explicita en configuracion --------------
+-- El valor concreto se configura por entorno (que cuenta cliente es el instructor
+-- ADSO). Se deja NULL en un despliegue nuevo; el portal falla con mensaje claro
+-- hasta que un administrador la configure (nunca busca por nombre).
+ALTER TABLE `configuracion`
+  ADD COLUMN `id_cliente_adso` INT NULL DEFAULT NULL;
+
+-- 4. Codigos de invitacion de aprendices (registro por codigo del instructor) --
 CREATE TABLE `codigo_aprendiz` (
   `id_codigo`      int(11)      NOT NULL AUTO_INCREMENT,
   `id_instructor`  int(11)      NOT NULL,
