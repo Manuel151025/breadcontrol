@@ -1,6 +1,8 @@
 <?php
 // models/PortalClienteModel.php
 
+require_once __DIR__ . '/../includes/estados_pago.php';
+
 class PortalClienteModel {
     private $pdo;
 
@@ -513,7 +515,7 @@ class PortalClienteModel {
             if (!empty($pedido['id_pago_activo'])) {
                 $id_pago = (int)$pedido['id_pago_activo'];
                 
-                $stmt_pay = $this->pdo->prepare("UPDATE pago_pedido SET estado = 'EXPIRED' WHERE id_pago = ? AND estado IN ('PENDING', 'pendiente')");
+                $stmt_pay = $this->pdo->prepare("UPDATE pago_pedido SET estado = '" . EstadoPagoPedido::EXPIRED . "' WHERE id_pago = ? AND estado IN (" . EstadoPagoPedido::pendientesSql() . ")");
                 $stmt_pay->execute([$id_pago]);
                 
                 $stmt_ped = $this->pdo->prepare("UPDATE pedido_cliente SET id_pago_activo = NULL, estado_pago = 'no_aplica' WHERE id_pago_activo = ?");
@@ -570,7 +572,7 @@ class PortalClienteModel {
      * Obtiene un pago pendiente por su ID.
      */
     public function getPagoPendientePorId(int $id_pago): ?array {
-        $stmt = $this->pdo->prepare("SELECT * FROM pago_pedido WHERE id_pago = ? AND estado IN ('PENDING','PENDIENTE','pendiente')");
+        $stmt = $this->pdo->prepare("SELECT * FROM pago_pedido WHERE id_pago = ? AND estado IN (" . EstadoPagoPedido::pendientesSql() . ")");
         $stmt->execute([$id_pago]);
         $res = $stmt->fetch(PDO::FETCH_ASSOC);
         return $res ?: null;
@@ -587,7 +589,7 @@ class PortalClienteModel {
             $pagos_pendientes_previos = array_unique(array_filter(array_column($pedidos, 'id_pago_activo')));
             if (!empty($pagos_pendientes_previos)) {
                 $ph_prev = implode(',', array_fill(0, count($pagos_pendientes_previos), '?'));
-                $stmt_exp = $this->pdo->prepare("UPDATE pago_pedido SET estado = 'EXPIRED' WHERE id_pago IN ($ph_prev) AND estado IN ('PENDING', 'pendiente')");
+                $stmt_exp = $this->pdo->prepare("UPDATE pago_pedido SET estado = '" . EstadoPagoPedido::EXPIRED . "' WHERE id_pago IN ($ph_prev) AND estado IN (" . EstadoPagoPedido::pendientesSql() . ")");
                 $stmt_exp->execute($pagos_pendientes_previos);
             }
 
@@ -599,7 +601,7 @@ class PortalClienteModel {
                 INSERT INTO pago_pedido
                   (id_pedido, referencia, wompi_link_id, wompi_link_url, monto, monto_centavos, estado, fecha_expiracion, nota)
                 VALUES
-                  (?, ?, ?, ?, ?, ?, 'PENDING', DATE_ADD(NOW(), INTERVAL 7 DAY), ?)
+                  (?, ?, ?, ?, ?, ?, '" . EstadoPagoPedido::PENDING . "', DATE_ADD(NOW(), INTERVAL 7 DAY), ?)
             ");
             $stmt_pago->execute([
                 $id_pedido_referencia,

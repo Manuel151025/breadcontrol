@@ -1,6 +1,8 @@
 <?php
 // models/PedidoClienteModel.php
 
+require_once __DIR__ . '/../includes/estados_pago.php';
+
 class PedidoClienteModel {
     private $pdo;
 
@@ -163,12 +165,14 @@ class PedidoClienteModel {
             $upd = $this->pdo->prepare($sql_upd);
             $upd->execute($ids_pedidos);
 
-            // Actualizar pago_pedido vinculados
+            // Actualizar pago_pedido vinculados al enum canonico APPROVED. El WHERE es
+            // tolerante a datos historicos en minuscula ('pendiente') ademas de 'PENDING'
+            // (B3): antes filtraba solo 'pendiente' y nunca casaba con las filas 'PENDING'.
             $this->pdo->prepare("
                 UPDATE pago_pedido pp
                 INNER JOIN pedido_cliente pc ON pc.id_pago_activo = pp.id_pago
-                SET pp.estado = 'aprobado'
-                WHERE pc.id_pedido IN ($ph) AND pp.estado = 'pendiente'
+                SET pp.estado = '" . EstadoPagoPedido::APPROVED . "'
+                WHERE pc.id_pedido IN ($ph) AND pp.estado IN (" . EstadoPagoPedido::pendientesSql() . ")
             ")->execute($ids_pedidos);
 
             $this->pdo->commit();
@@ -197,7 +201,7 @@ class PedidoClienteModel {
             $stmt = $this->pdo->prepare("
                 INSERT INTO pago_pedido
                   (id_pedido, referencia, wompi_link_id, wompi_link_url, monto, monto_centavos, estado, fecha_expiracion)
-                VALUES (?, ?, ?, ?, ?, ?, 'PENDING', DATE_ADD(NOW(), INTERVAL 7 DAY))
+                VALUES (?, ?, ?, ?, ?, ?, '" . EstadoPagoPedido::PENDING . "', DATE_ADD(NOW(), INTERVAL 7 DAY))
             ");
             $stmt->execute([$id_pedido, $referencia, $link_id, $link_url, $monto, $monto_centavos]);
             $id_pago_nuevo = (int) $this->pdo->lastInsertId();
@@ -239,7 +243,7 @@ class PedidoClienteModel {
             // 4. Determinar estado
             $es_pago_parcial = ($total_abonado < ($total_esperado - 1));
             $nuevo_estado_pago = $es_pago_parcial ? 'parcial' : 'aprobado';
-            $nuevo_estado_pago_pedido = $es_pago_parcial ? 'PARTIAL' : 'APPROVED';
+            $nuevo_estado_pago_pedido = $es_pago_parcial ? EstadoPagoPedido::PARTIAL : EstadoPagoPedido::APPROVED;
 
             $total_abonado_centavos = (int) round($total_abonado * 100);
 
@@ -273,7 +277,7 @@ class PedidoClienteModel {
     public function deshabilitarPagoDigital(int $id_pago): bool {
         $this->pdo->beginTransaction();
         try {
-            $this->pdo->prepare("UPDATE pago_pedido SET estado = 'EXPIRED' WHERE id_pago = ?")->execute([$id_pago]);
+            $this->pdo->prepare("UPDATE pago_pedido SET estado = '" . EstadoPagoPedido::EXPIRED . "' WHERE id_pago = ?")->execute([$id_pago]);
             $this->pdo->prepare("UPDATE pedido_cliente SET estado_pago = 'no_aplica', id_pago_activo = NULL WHERE id_pago_activo = ?")->execute([$id_pago]);
             $this->pdo->commit();
             return true;
@@ -289,7 +293,7 @@ class PedidoClienteModel {
     public function revertirPagoDigital(int $id_pago): bool {
         $this->pdo->beginTransaction();
         try {
-            $this->pdo->prepare("UPDATE pago_pedido SET estado = 'VOIDED' WHERE id_pago = ?")->execute([$id_pago]);
+            $this->pdo->prepare("UPDATE pago_pedido SET estado = '" . EstadoPagoPedido::VOIDED . "' WHERE id_pago = ?")->execute([$id_pago]);
             $this->pdo->prepare("UPDATE pedido_cliente SET estado_pago = 'no_aplica', id_pago_activo = NULL WHERE id_pago_activo = ?")->execute([$id_pago]);
             $this->pdo->commit();
             return true;
