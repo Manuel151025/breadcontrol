@@ -465,22 +465,17 @@ class PortalClienteController {
 
         $es_tienda = ($cliente_info['tipo'] === 'tienda');
 
-        // Detectar si es instructor ADSO
-        $es_instructor = false;
+        // La capacidad de instructor se determina por id (configuracion.id_cliente_adso),
+        // NUNCA por tipo: solo la cuenta ADSO es instructor.
+        $es_instructor = $this->model->esInstructorCapaz($cliente_info);
         $resumen_fin   = [];
         $aprendices    = [];
         $total_reg     = 0;
 
-        if ($es_tienda) {
-            $aprendices_resumen = $this->model->getAprendicesResumen($cliente_id);
-            $stats_inst = $this->model->getInstructorStats($cliente_id);
-            $es_instructor = ($stats_inst['total_pedidos'] > 0 || $this->model->contarAprendices($cliente_id) > 0);
-            
-            if ($es_instructor) {
-                $resumen_fin = $stats_inst;
-                $aprendices = $aprendices_resumen;
-                $total_reg = $this->model->contarAprendices($cliente_id, true);
-            }
+        if ($es_instructor) {
+            $resumen_fin = $this->model->getInstructorStats($cliente_id);
+            $aprendices  = $this->model->getAprendicesResumen($cliente_id);
+            $total_reg   = $this->model->contarAprendices($cliente_id, true);
         }
 
         $success_msg = '';
@@ -520,7 +515,7 @@ class PortalClienteController {
                             $success_msg = $n > 1 
                                 ? "$n pedidos aprobados y programados con éxito." 
                                 : "Pedido aprobado y programado con éxito.";
-                            if ($es_tienda) {
+                            if ($es_instructor) {
                                 $resumen_fin = $this->model->getInstructorStats($cliente_id);
                                 $aprendices = $this->model->getAprendicesResumen($cliente_id);
                             }
@@ -541,10 +536,10 @@ class PortalClienteController {
                     } else {
                         try {
                             $n = $this->model->rechazarPedidosInstructorLote($ids, $cliente_id);
-                            $success_msg = $n > 1 
-                                ? "$n pedidos rechazados con éxito." 
+                            $success_msg = $n > 1
+                                ? "$n pedidos rechazados con éxito."
                                 : "Pedido rechazado con éxito.";
-                            if ($es_tienda) {
+                            if ($es_instructor) {
                                 $resumen_fin = $this->model->getInstructorStats($cliente_id);
                                 $aprendices = $this->model->getAprendicesResumen($cliente_id);
                             }
@@ -574,9 +569,9 @@ class PortalClienteController {
                     $stmt_u = $this->pdo->prepare("UPDATE cliente SET cupo_semanal = ? WHERE id_cliente = ?");
                     $stmt_u->execute([$nuevo_cupo, $id_apr]);
                     $success_msg = "Cupo semanal del aprendiz actualizado con éxito.";
-                    
+
                     // Recargar datos
-                    if ($es_tienda) {
+                    if ($es_instructor) {
                         $resumen_fin = $this->model->getInstructorStats($cliente_id);
                         $aprendices = $this->model->getAprendicesResumen($cliente_id);
                     }
@@ -647,12 +642,8 @@ class PortalClienteController {
         $cliente_info = $this->model->getClienteById($cliente_id);
         $es_aprendiz = $cliente_info ? ((int)$cliente_info['es_aprendiz'] === 1) : false;
 
-        $es_tienda_logueada = $cliente_info ? ($cliente_info['tipo'] === 'tienda') : false;
-        $es_instructor = false;
-        if ($es_tienda_logueada) {
-            $stats_inst = $this->model->getInstructorStats($cliente_id);
-            $es_instructor = ($stats_inst['total_pedidos'] > 0 || $this->model->contarAprendices($cliente_id) > 0);
-        }
+        // Instructor por id (configuracion.id_cliente_adso), nunca por tipo.
+        $es_instructor = $this->model->esInstructorCapaz($cliente_info);
 
         $pedido = $this->model->getPedido($id_pedido, $cliente_id);
         if (!$pedido) {
@@ -742,14 +733,13 @@ class PortalClienteController {
             exit;
         }
 
+        // $es_tienda se conserva SOLO para la tarifa de bonificación/ñapa (tienda vs
+        // mostrador), que es lógica de precios, no de instructor.
         $es_tienda = ($cliente_info['tipo'] === 'tienda');
         $es_aprendiz = (int)$cliente_info['es_aprendiz'] === 1;
 
-        $es_instructor = false;
-        if ($es_tienda) {
-            $stats_inst = $this->model->getInstructorStats($cliente_id);
-            $es_instructor = ($stats_inst['total_pedidos'] > 0 || $this->model->contarAprendices($cliente_id) > 0);
-        }
+        // Instructor por id (configuracion.id_cliente_adso), nunca por tipo.
+        $es_instructor = $this->model->esInstructorCapaz($cliente_info);
 
         // ══ AJAX: TODAS las variedades (para bonificación) ══
         if (isset($_GET['ajax_all_variedades'])) {
@@ -974,17 +964,13 @@ class PortalClienteController {
             exit;
         }
 
-        $es_tienda = ($cliente['tipo'] === 'tienda');
-        $es_instructor = false;
-        if ($es_tienda) {
-            $stats_inst = $this->model->getInstructorStats($cliente_id);
-            $es_instructor = ($stats_inst['total_pedidos'] > 0 || $this->model->contarAprendices($cliente_id) > 0);
-        }
+        // Instructor por id (configuracion.id_cliente_adso), NUNCA por tipo.
+        $es_instructor = $this->model->esInstructorCapaz($cliente);
 
         // El vínculo aprendiz-instructor ya NO se edita a mano aquí: se hace canjeando
-        // un código del instructor. Se calcula si este cliente puede canjear uno y, si ya
-        // es aprendiz, el nombre de su instructor (solo para mostrarlo).
-        $puede_canjear = (!$es_tienda && (int)$cliente['es_aprendiz'] !== 1);
+        // un código del instructor. Puede canjear cualquiera que no sea el instructor ni
+        // ya un aprendiz (no se filtra por 'tipo': todas las cuentas son tipo='tienda').
+        $puede_canjear = (!$es_instructor && (int)$cliente['es_aprendiz'] !== 1);
         $mi_instructor_nombre = '';
         if ((int)$cliente['es_aprendiz'] === 1 && !empty($cliente['id_instructor'])) {
             $inst = $this->model->getClienteById((int)$cliente['id_instructor']);
@@ -1020,8 +1006,8 @@ class PortalClienteController {
                     if ($ahora < $bloqueo) {
                         $mins = (int)ceil(($bloqueo - $ahora) / 60);
                         $msg_err = "Demasiados intentos con códigos. Espera $mins minuto(s) e intenta de nuevo.";
-                    } elseif ($es_tienda) {
-                        $msg_err = 'Las cuentas de tienda no pueden registrarse como aprendices.';
+                    } elseif ($es_instructor) {
+                        $msg_err = 'La cuenta del instructor no puede registrarse como aprendiz.';
                     } elseif ((int)$cliente['es_aprendiz'] === 1) {
                         $msg_err = 'Ya estás registrado como aprendiz de un instructor.';
                     } else {

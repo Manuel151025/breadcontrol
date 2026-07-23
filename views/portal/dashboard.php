@@ -318,7 +318,7 @@
                 <div class="n-urole"><?= $es_instructor ? 'Instructor' : 'Cliente' ?></div>
             </div>
         </a>
-        <?php if ($es_tienda): ?>
+        <?php if ($es_instructor): ?>
         <a href="mis_aprendices.php" class="n-logout" title="Mis aprendices"><i class="bi bi-mortarboard-fill"></i></a>
         <?php endif; ?>
         <a href="<?= APP_URL ?>/assets/docs/Manual_BreadControl_Clientes.pdf" target="_blank" rel="noopener" class="n-logout" title="Manual de Usuario"><i class="bi bi-question-circle"></i></a>

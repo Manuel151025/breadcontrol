@@ -983,13 +983,16 @@ class PortalClienteModel {
     // ══════════════════════════════════════════════════════════════════════
 
     /**
-     * ¿Este cliente puede actuar como instructor? Solo una cuenta de tipo tienda que
-     * no sea ella misma un aprendiz. Los clientes de mostrador nunca gestionan aprendices.
+     * ¿Este cliente puede actuar como instructor? EXCLUSIVAMENTE la cuenta indicada por
+     * configuracion.id_cliente_adso, comparando por id. NO se usa 'tipo' como criterio:
+     * en producción las 46 cuentas son tipo='tienda' (incluidas personas), así que 'tipo'
+     * no discrimina y habilitaría a todas. Si más adelante hay varios instructores, se
+     * amplía aquí; por ahora es una sola cuenta.
      */
     public function esInstructorCapaz(?array $cliente): bool {
-        return $cliente !== null
-            && ($cliente['tipo'] ?? '') === 'tienda'
-            && (int)($cliente['es_aprendiz'] ?? 0) === 0;
+        if ($cliente === null) return false;
+        $idAdso = $this->getIdClienteAdso();
+        return $idAdso > 0 && (int)($cliente['id_cliente'] ?? 0) === $idAdso;
     }
 
     /**
@@ -1134,8 +1137,12 @@ class PortalClienteModel {
             }
 
             $instructor_id = (int)$cod['id_instructor'];
+            $id_adso = $this->getIdClienteAdso();
 
-            $stmtc = $this->pdo->prepare("SELECT tipo, es_aprendiz FROM cliente WHERE id_cliente = ?");
+            // NO se filtra por 'tipo' (todas las cuentas son tipo='tienda' en producción,
+            // así que ese criterio bloquearía a todos). Lo único que no puede volverse
+            // aprendiz es la propia cuenta de instructor, identificada por id.
+            $stmtc = $this->pdo->prepare("SELECT es_aprendiz FROM cliente WHERE id_cliente = ?");
             $stmtc->execute([$cliente_id]);
             $cli = $stmtc->fetch(PDO::FETCH_ASSOC);
 
@@ -1143,13 +1150,9 @@ class PortalClienteModel {
                 $this->pdo->rollBack();
                 return ['ok' => false, 'error' => 'Tu cuenta no es válida.'];
             }
-            if ($cliente_id === $instructor_id) {
+            if ($cliente_id === $instructor_id || ($id_adso > 0 && $cliente_id === $id_adso)) {
                 $this->pdo->rollBack();
-                return ['ok' => false, 'error' => 'No puedes canjear tu propio código de instructor.'];
-            }
-            if ($cli['tipo'] === 'tienda') {
-                $this->pdo->rollBack();
-                return ['ok' => false, 'error' => 'Las cuentas de tienda no pueden registrarse como aprendices.'];
+                return ['ok' => false, 'error' => 'La cuenta del instructor no puede registrarse como aprendiz.'];
             }
             if ((int)$cli['es_aprendiz'] === 1) {
                 $this->pdo->rollBack();

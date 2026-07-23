@@ -119,7 +119,7 @@
             </div>
         </a>
         <div class="n-right">
-            <?php if ($es_tienda): ?>
+            <?php if ($es_instructor): ?>
             <a href="mis_aprendices.php" class="n-navlink" title="Mis aprendices"><i class="bi bi-mortarboard-fill"></i> Aprendices</a>
             <?php endif; ?>
             <a href="perfil.php" class="n-user" title="Mi Perfil">
@@ -264,7 +264,7 @@
                 </div>
             </div>
         </div>
-        <?php elseif ($es_tienda): ?>
+        <?php elseif ($es_instructor): ?>
         <div class="sena-card">
             <div class="sena-title"><i class="bi bi-people-fill"></i> Gestión de aprendices</div>
             <div class="sena-hint" style="margin-bottom:1rem;">
