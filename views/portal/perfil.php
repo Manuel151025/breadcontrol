@@ -78,6 +78,22 @@
         .sec-tip { background: var(--clight); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--ink3); line-height: 1.5; }
         .sec-tip strong { display: block; color: var(--ink); margin-bottom: 0.2rem; }
 
+        /* ── Bloque aprendiz SENA ── */
+        --sena:#39A900; --sena-dk:#2b7d00; --sena-bg:#eef8e6; --sena-bd:#bfe6a3;
+        .sena-card { background:#fff; border:1px solid var(--sena-bd); border-radius:14px; box-shadow:0 1px 8px rgba(43,125,0,.09); padding:1.5rem; margin-top:1.5rem; }
+        .sena-title { font-family:'Fraunces',serif; font-size:1.2rem; font-weight:800; color:var(--sena-dk); margin-bottom:1rem; display:flex; align-items:center; gap:.55rem; }
+        .sena-title i { color:var(--sena); }
+        .sena-hint { background:var(--sena-bg); border:1px solid var(--sena-bd); border-radius:10px; padding:.85rem 1rem; font-size:.82rem; color:var(--sena-dk); line-height:1.5; margin-bottom:1rem; }
+        .sena-code-row { display:flex; gap:.6rem; flex-wrap:wrap; align-items:flex-end; }
+        .sena-code-row .form-group { flex:1; min-width:180px; margin-bottom:0; }
+        .sena-code-input { text-transform:uppercase; letter-spacing:.18em; font-weight:700; font-family:'Fraunces',serif; }
+        .btn-sena { background:linear-gradient(135deg,var(--sena),var(--sena-dk)); color:#fff; border:none; padding:.8rem 1.2rem; border-radius:10px; font-size:.9rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:.5rem; text-decoration:none; }
+        .btn-sena:hover { transform:translateY(-2px); box-shadow:0 4px 20px rgba(43,125,0,.2); }
+        .sena-status { display:flex; align-items:center; gap:.75rem; background:var(--sena-bg); border-radius:10px; padding:1rem; }
+        .sena-status i { font-size:1.6rem; color:var(--sena); }
+        .n-navlink { display:inline-flex; align-items:center; gap:.35rem; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.22); border-radius:9px; padding:.4rem .75rem; color:#fff; font-size:.78rem; font-weight:700; text-decoration:none; }
+        .n-navlink:hover { background:rgba(255,255,255,.25); }
+
         .profile-grid-full { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
         @media(max-width:1100px) { .profile-grid-full { grid-template-columns: 1fr 1fr; } }
         @media(max-width:768px) { 
@@ -103,6 +119,9 @@
             </div>
         </a>
         <div class="n-right">
+            <?php if ($es_tienda): ?>
+            <a href="mis_aprendices.php" class="n-navlink" title="Mis aprendices"><i class="bi bi-mortarboard-fill"></i> Aprendices</a>
+            <?php endif; ?>
             <a href="perfil.php" class="n-user" title="Mi Perfil">
                 <div class="n-avatar">
                     <?php if (!empty($cliente['foto_url'])): ?>
@@ -159,22 +178,6 @@
                         <label>Teléfono de Contacto</label>
                         <input type="text" name="telefono" class="form-control" value="<?= htmlspecialchars($cliente['telefono']) ?>" maxlength="15" oninput="this.value=this.value.replace(/\D/g,'')">
                     </div>
-                    <?php if (!$es_tienda): ?>
-                    <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; margin-top:1rem; margin-bottom:1rem;">
-                        <input type="checkbox" name="es_aprendiz" id="es_aprendiz" value="1" <?= ((int)$cliente['es_aprendiz'] === 1) ? 'checked' : '' ?> style="width:16px; height:16px; accent-color:var(--c3);">
-                        <label for="es_aprendiz" style="margin-bottom:0; color:var(--ink); font-weight:700; cursor:pointer; text-transform:none;">Soy aprendiz SENA</label>
-                    </div>
-
-                    <div class="form-group" id="field_instructor" style="display:none;">
-                        <label>Mi Instructor (Tienda ADSO)</label>
-                        <select name="id_instructor" class="form-control">
-                            <option value="">-- Selecciona tu Instructor --</option>
-                            <?php foreach ($instructores as $inst): ?>
-                                <option value="<?= $inst['id_cliente'] ?>" <?= ((int)$cliente['id_instructor'] === (int)$inst['id_cliente']) ? 'selected' : '' ?>><?= htmlspecialchars($inst['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <?php endif; ?>
                     <button type="submit" name="actualizar_datos" class="btn-save">
                         <i class="bi bi-check2-circle"></i> Guardar Cambios
                     </button>
@@ -232,23 +235,45 @@
                 </form>
             </div>
         </div>
+
+        <!-- ══ APRENDIZ SENA (canje de código) ══ -->
+        <?php if ($puede_canjear): ?>
+        <div class="sena-card">
+            <div class="sena-title"><i class="bi bi-mortarboard-fill"></i> ¿Eres aprendiz SENA?</div>
+            <div class="sena-hint">
+                <i class="bi bi-info-circle-fill"></i>
+                Si tu instructor te dio un código, ingrésalo aquí para unirte a su grupo. Quedarás registrado como aprendiz con tu cupo semanal.
+            </div>
+            <form method="post" class="sena-code-row">
+                <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
+                <div class="form-group">
+                    <label>Código de aprendiz</label>
+                    <input type="text" name="codigo_aprendiz" class="form-control sena-code-input" maxlength="16" placeholder="Ej: K7M4P2QR" required>
+                </div>
+                <button type="submit" name="canjear_codigo" class="btn-sena"><i class="bi bi-check2-circle"></i> Canjear código</button>
+            </form>
+        </div>
+        <?php elseif ((int)$cliente['es_aprendiz'] === 1): ?>
+        <div class="sena-card">
+            <div class="sena-title"><i class="bi bi-mortarboard-fill"></i> Aprendiz SENA</div>
+            <div class="sena-status">
+                <i class="bi bi-patch-check-fill"></i>
+                <div>
+                    <div style="font-weight:700; color:var(--ink);">Estás registrado como aprendiz<?= $mi_instructor_nombre ? ' de ' . htmlspecialchars($mi_instructor_nombre) : '' ?>.</div>
+                    <div style="font-size:.8rem; color:var(--ink3); margin-top:.2rem;">Si necesitas salir del grupo, pídeselo a tu instructor.</div>
+                </div>
+            </div>
+        </div>
+        <?php elseif ($es_tienda): ?>
+        <div class="sena-card">
+            <div class="sena-title"><i class="bi bi-people-fill"></i> Gestión de aprendices</div>
+            <div class="sena-hint" style="margin-bottom:1rem;">
+                <i class="bi bi-info-circle-fill"></i>
+                Como instructor, genera un código y compártelo para que tus aprendices se registren en tu grupo.
+            </div>
+            <a href="mis_aprendices.php" class="btn-sena"><i class="bi bi-mortarboard-fill"></i> Ir a Mis aprendices</a>
+        </div>
+        <?php endif; ?>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const esAprendizChk = document.getElementById('es_aprendiz');
-            const fieldInstructor = document.getElementById('field_instructor');
-            if (esAprendizChk && fieldInstructor) {
-                const toggleInstructor = () => {
-                    fieldInstructor.style.display = esAprendizChk.checked ? 'block' : 'none';
-                    const selectInst = fieldInstructor.querySelector('select');
-                    if (selectInst) {
-                        selectInst.required = esAprendizChk.checked;
-                    }
-                };
-                esAprendizChk.addEventListener('change', toggleInstructor);
-                toggleInstructor(); // init
-            }
-        });
-    </script>
 </body>
 </html>

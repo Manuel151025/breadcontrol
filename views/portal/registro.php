@@ -204,19 +204,9 @@
             </div>
         </div>
 
-        <div class="field" style="display:flex; align-items:center; gap:0.5rem; background: rgba(255,167,38,.1); padding: 0.8rem; border-radius: 8px; border: 1px solid rgba(255,167,38,.3);">
-            <input type="checkbox" name="es_aprendiz" id="es_aprendiz" value="1" style="width: auto; height: auto;">
-            <label for="es_aprendiz" style="margin-bottom:0; color: var(--honey); font-size: 0.85rem;">Soy aprendiz SENA</label>
-        </div>
-
-        <div class="field" id="field_instructor" style="display:none; margin-top: -0.5rem; margin-bottom: 0.5rem;">
-            <label style="color: var(--honey);">Selecciona tu Instructor (Tienda ADSO)</label>
-            <select name="id_instructor" style="width:100%; height:2.85rem; padding-left:1rem; padding-right:1rem; background:var(--input-bg); border:1px solid var(--border); border-radius:.75rem; color:var(--fg); outline:none;">
-                <option value="">-- Selecciona un Instructor --</option>
-                <?php foreach ($instructores as $inst): ?>
-                    <option value="<?= $inst['id_cliente'] ?>"><?= htmlspecialchars($inst['nombre']) ?></option>
-                <?php endforeach; ?>
-            </select>
+        <div class="field" style="background: rgba(57,169,0,.1); padding: 0.85rem; border-radius: 10px; border: 1px solid rgba(57,169,0,.3);">
+            <label style="color:#8fd66a;"><i class="bi bi-mortarboard-fill"></i> Código de aprendiz SENA <span style="color:rgba(255,255,255,.4); font-weight:400;">(opcional)</span></label>
+            <input type="text" name="codigo_aprendiz" placeholder="Si tu instructor te dio un código, ingrésalo" maxlength="16" style="text-transform:uppercase; letter-spacing:.12em;">
         </div>
 
         <button type="submit" class="btn-login">Registrarme</button>
@@ -256,19 +246,6 @@
             });
         }
 
-        const esAprendizChk = document.getElementById('es_aprendiz');
-        const fieldInstructor = document.getElementById('field_instructor');
-        if (esAprendizChk && fieldInstructor) {
-            const toggleInstructor = () => {
-                fieldInstructor.style.display = esAprendizChk.checked ? 'block' : 'none';
-                const selectInst = fieldInstructor.querySelector('select');
-                if (selectInst) {
-                    selectInst.required = esAprendizChk.checked;
-                }
-            };
-            esAprendizChk.addEventListener('change', toggleInstructor);
-            toggleInstructor(); // init
-        }
     });
 
 // ── Clock ──

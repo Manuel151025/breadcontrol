@@ -59,14 +59,17 @@ class PortalClienteModel {
     }
 
     /**
-     * Registra un cliente tradicional.
+     * Registra un cliente tradicional. Devuelve el id del nuevo cliente, o 0 si falla.
      */
-    public function registrarCliente(string $nombre, string $tipo, string $telefono, string $usuario, string $hash, int $es_aprendiz, ?int $id_instructor = null): bool {
+    public function registrarCliente(string $nombre, string $tipo, string $telefono, string $usuario, string $hash, int $es_aprendiz, ?int $id_instructor = null): int {
         $stmt = $this->pdo->prepare("
             INSERT INTO cliente (nombre, tipo, telefono, usuario, contrasena_hash, es_aprendiz, id_instructor, activo, fecha_creacion)
             VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW())
         ");
-        return $stmt->execute([$nombre, $tipo, $telefono, $usuario, $hash, $es_aprendiz, $id_instructor]);
+        if (!$stmt->execute([$nombre, $tipo, $telefono, $usuario, $hash, $es_aprendiz, $id_instructor])) {
+            return 0;
+        }
+        return (int)$this->pdo->lastInsertId();
     }
 
     /**
@@ -95,6 +98,15 @@ class PortalClienteModel {
     public function actualizarPerfil(int $id, string $nombre, string $telefono, int $es_aprendiz, ?int $id_instructor = null): bool {
         $stmt = $this->pdo->prepare("UPDATE cliente SET nombre = ?, telefono = ?, es_aprendiz = ?, id_instructor = ? WHERE id_cliente = ?");
         return $stmt->execute([$nombre, $telefono, $es_aprendiz, $id_instructor, $id]);
+    }
+
+    /**
+     * Actualiza solo nombre y teléfono, sin tocar el vínculo aprendiz/instructor
+     * (ese vínculo se gestiona por código, no desde la edición de datos del perfil).
+     */
+    public function actualizarDatosBasicos(int $id, string $nombre, string $telefono): bool {
+        $stmt = $this->pdo->prepare("UPDATE cliente SET nombre = ?, telefono = ? WHERE id_cliente = ?");
+        return $stmt->execute([$nombre, $telefono, $id]);
     }
 
     /**
@@ -919,6 +931,206 @@ class PortalClienteModel {
      */
     public function getInstructoresActivos(): array {
         return $this->pdo->query("SELECT id_cliente, nombre FROM cliente WHERE tipo = 'tienda' AND activo = 1 AND es_aprendiz = 0 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  Registro de aprendices por código del instructor
+    // ══════════════════════════════════════════════════════════════════════
+
+    /**
+     * ¿Este cliente puede actuar como instructor? Solo una cuenta de tipo tienda que
+     * no sea ella misma un aprendiz. Los clientes de mostrador nunca gestionan aprendices.
+     */
+    public function esInstructorCapaz(?array $cliente): bool {
+        return $cliente !== null
+            && ($cliente['tipo'] ?? '') === 'tienda'
+            && (int)($cliente['es_aprendiz'] ?? 0) === 0;
+    }
+
+    /**
+     * Código activo del instructor (el más reciente sin desactivar), o null.
+     */
+    public function getCodigoActivoInstructor(int $instructor_id): ?array {
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM codigo_aprendiz
+            WHERE id_instructor = ? AND activo = 1
+            ORDER BY fecha_creacion DESC, id_codigo DESC
+            LIMIT 1
+        ");
+        $stmt->execute([$instructor_id]);
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $res ?: null;
+    }
+
+    /**
+     * Desactiva todos los códigos activos de un instructor.
+     */
+    public function desactivarCodigosInstructor(int $instructor_id): int {
+        $stmt = $this->pdo->prepare("UPDATE codigo_aprendiz SET activo = 0 WHERE id_instructor = ? AND activo = 1");
+        $stmt->execute([$instructor_id]);
+        return $stmt->rowCount();
+    }
+
+    /**
+     * Genera un código nuevo (desactivando el anterior). Alfabeto sin caracteres
+     * ambiguos (nada de O/0, ni I/1/L); longitud 8. NO usa el número de ficha.
+     */
+    public function generarCodigoAprendiz(int $instructor_id, int $dias_vigencia, ?int $usos_maximos): string {
+        $alfabeto = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // sin O,0,I,1,L
+        $len = 8;
+        $fecha_expira = $dias_vigencia > 0
+            ? date('Y-m-d H:i:s', strtotime("+{$dias_vigencia} days"))
+            : null;
+
+        $this->pdo->beginTransaction();
+        try {
+            $this->desactivarCodigosInstructor($instructor_id);
+
+            $codigo = '';
+            for ($intento = 0; $intento < 15; $intento++) {
+                $c = '';
+                for ($i = 0; $i < $len; $i++) {
+                    $c .= $alfabeto[random_int(0, strlen($alfabeto) - 1)];
+                }
+                $chk = $this->pdo->prepare("SELECT 1 FROM codigo_aprendiz WHERE codigo = ?");
+                $chk->execute([$c]);
+                if (!$chk->fetchColumn()) { $codigo = $c; break; }
+            }
+            if ($codigo === '') {
+                throw new Exception("No se pudo generar un código único. Intenta de nuevo.");
+            }
+
+            $ins = $this->pdo->prepare("
+                INSERT INTO codigo_aprendiz (id_instructor, codigo, fecha_expira, usos_maximos, usos_actuales, activo)
+                VALUES (?, ?, ?, ?, 0, 1)
+            ");
+            $ins->execute([$instructor_id, $codigo, $fecha_expira, $usos_maximos]);
+
+            $this->pdo->commit();
+            return $codigo;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Aprendices vinculados a un instructor (para la pantalla "Mis aprendices").
+     */
+    public function getAprendicesGestion(int $instructor_id): array {
+        $stmt = $this->pdo->prepare("
+            SELECT id_cliente, nombre, telefono, email, fecha_aprendiz, cupo_semanal, fecha_creacion
+            FROM cliente
+            WHERE es_aprendiz = 1 AND id_instructor = ? AND activo = 1
+            ORDER BY nombre
+        ");
+        $stmt->execute([$instructor_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Quita a un aprendiz del grupo del instructor. Scoped: solo aprendices propios.
+     * Los pedidos históricos NO se tocan (se conservan con su id_creador).
+     */
+    public function quitarAprendiz(int $instructor_id, int $aprendiz_id): bool {
+        $stmt = $this->pdo->prepare("
+            UPDATE cliente
+            SET es_aprendiz = 0, id_instructor = NULL, fecha_aprendiz = NULL
+            WHERE id_cliente = ? AND id_instructor = ? AND es_aprendiz = 1
+        ");
+        $stmt->execute([$aprendiz_id, $instructor_id]);
+        return $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Actualiza el cupo semanal de un aprendiz propio del instructor (scoped).
+     */
+    public function actualizarCupoAprendizInstructor(int $instructor_id, int $aprendiz_id, float $cupo): bool {
+        $stmt = $this->pdo->prepare("
+            UPDATE cliente SET cupo_semanal = ?
+            WHERE id_cliente = ? AND id_instructor = ? AND es_aprendiz = 1
+        ");
+        $stmt->execute([$cupo, $aprendiz_id, $instructor_id]);
+        return $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Canjea un código de aprendiz. Devuelve ['ok'=>bool, 'error'=>string, 'instructor'=>string].
+     * Valida todo transaccionalmente con FOR UPDATE sobre la fila del código para que dos
+     * canjes simultáneos no excedan el límite de usos. cupo_semanal por defecto = 20000.
+     */
+    public function canjearCodigoAprendiz(int $cliente_id, string $codigo): array {
+        $codigo = strtoupper(trim($codigo));
+        if ($codigo === '') {
+            return ['ok' => false, 'error' => 'Ingresa un código de aprendiz.'];
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare("SELECT * FROM codigo_aprendiz WHERE codigo = ? FOR UPDATE");
+            $stmt->execute([$codigo]);
+            $cod = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$cod) {
+                $this->pdo->rollBack();
+                return ['ok' => false, 'error' => 'El código no existe. Verifícalo con tu instructor.'];
+            }
+            if ((int)$cod['activo'] !== 1) {
+                $this->pdo->rollBack();
+                return ['ok' => false, 'error' => 'Este código fue desactivado. Pídele uno nuevo a tu instructor.'];
+            }
+            if ($cod['fecha_expira'] !== null && strtotime($cod['fecha_expira']) < time()) {
+                $this->pdo->rollBack();
+                return ['ok' => false, 'error' => 'Este código ya venció. Pídele uno nuevo a tu instructor.'];
+            }
+            if ($cod['usos_maximos'] !== null && (int)$cod['usos_actuales'] >= (int)$cod['usos_maximos']) {
+                $this->pdo->rollBack();
+                return ['ok' => false, 'error' => 'Este código ya alcanzó su número máximo de usos.'];
+            }
+
+            $instructor_id = (int)$cod['id_instructor'];
+
+            $stmtc = $this->pdo->prepare("SELECT tipo, es_aprendiz FROM cliente WHERE id_cliente = ?");
+            $stmtc->execute([$cliente_id]);
+            $cli = $stmtc->fetch(PDO::FETCH_ASSOC);
+
+            if (!$cli) {
+                $this->pdo->rollBack();
+                return ['ok' => false, 'error' => 'Tu cuenta no es válida.'];
+            }
+            if ($cliente_id === $instructor_id) {
+                $this->pdo->rollBack();
+                return ['ok' => false, 'error' => 'No puedes canjear tu propio código de instructor.'];
+            }
+            if ($cli['tipo'] === 'tienda') {
+                $this->pdo->rollBack();
+                return ['ok' => false, 'error' => 'Las cuentas de tienda no pueden registrarse como aprendices.'];
+            }
+            if ((int)$cli['es_aprendiz'] === 1) {
+                $this->pdo->rollBack();
+                return ['ok' => false, 'error' => 'Ya estás registrado como aprendiz de un instructor.'];
+            }
+
+            $upd = $this->pdo->prepare("
+                UPDATE cliente
+                SET es_aprendiz = 1, id_instructor = ?, cupo_semanal = 20000.00, fecha_aprendiz = NOW()
+                WHERE id_cliente = ?
+            ");
+            $upd->execute([$instructor_id, $cliente_id]);
+
+            $this->pdo->prepare("UPDATE codigo_aprendiz SET usos_actuales = usos_actuales + 1 WHERE id_codigo = ?")
+                 ->execute([(int)$cod['id_codigo']]);
+
+            $stmti = $this->pdo->prepare("SELECT nombre FROM cliente WHERE id_cliente = ?");
+            $stmti->execute([$instructor_id]);
+            $nombre_inst = (string)$stmti->fetchColumn();
+
+            $this->pdo->commit();
+            return ['ok' => true, 'error' => '', 'instructor' => $nombre_inst];
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 
     /**

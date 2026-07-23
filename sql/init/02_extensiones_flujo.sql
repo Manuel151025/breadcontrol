@@ -27,6 +27,7 @@ ALTER TABLE `cliente`
   ADD COLUMN `email`           varchar(150)   DEFAULT NULL,
   ADD COLUMN `foto_url`        varchar(255)   DEFAULT NULL,
   ADD COLUMN `google_id`       varchar(100)   DEFAULT NULL,
+  ADD COLUMN `fecha_aprendiz`  datetime       DEFAULT NULL,
   ADD UNIQUE KEY `uq_cliente_usuario` (`usuario`),
   ADD UNIQUE KEY `uq_cliente_google` (`google_id`),
   ADD KEY `fk_cliente_instructor` (`id_instructor`),
@@ -98,4 +99,20 @@ CREATE TABLE `pago_abono` (
   PRIMARY KEY (`id_abono`),
   KEY `id_pago` (`id_pago`),
   CONSTRAINT `fk_abono_pago` FOREIGN KEY (`id_pago`) REFERENCES `pago_pedido` (`id_pago`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 3. Codigos de invitacion de aprendices (registro por codigo del instructor) --
+CREATE TABLE `codigo_aprendiz` (
+  `id_codigo`      int(11)      NOT NULL AUTO_INCREMENT,
+  `id_instructor`  int(11)      NOT NULL,
+  `codigo`         varchar(16)  NOT NULL,
+  `fecha_expira`   datetime     DEFAULT NULL,
+  `usos_maximos`   int(11)      DEFAULT NULL,
+  `usos_actuales`  int(11)      NOT NULL DEFAULT 0,
+  `activo`         tinyint(1)   NOT NULL DEFAULT 1,
+  `fecha_creacion` datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_codigo`),
+  UNIQUE KEY `uq_codigo_aprendiz` (`codigo`),
+  KEY `id_instructor` (`id_instructor`),
+  CONSTRAINT `fk_codigo_instructor` FOREIGN KEY (`id_instructor`) REFERENCES `cliente` (`id_cliente`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

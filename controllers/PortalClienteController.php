@@ -236,8 +236,6 @@ class PortalClienteController {
             'prompt'        => 'select_account',
         ]);
 
-        $instructores = $this->model->getInstructoresActivos();
-
         $error = '';
         $success = '';
 
@@ -251,10 +249,11 @@ class PortalClienteController {
                     $telefono = substr($telefono, 0, 15);
                 }
                 $tipo = 'mostrador';
-                $es_aprendiz = isset($_POST['es_aprendiz']) ? 1 : 0;
-                $id_instructor = $es_aprendiz && !empty($_POST['id_instructor']) ? (int)$_POST['id_instructor'] : null;
                 $usuario = trim($_POST['usuario'] ?? '');
                 $contrasena = $_POST['contrasena'] ?? '';
+                // El vínculo aprendiz-instructor ya NO es manual: se hace canjeando un
+                // código del instructor (campo opcional). Ver canjearCodigoAprendiz.
+                $codigo_canje = strtoupper(trim($_POST['codigo_aprendiz'] ?? ''));
 
                 if ($nombre && $usuario && $contrasena) {
                     if (!preg_match('/^[a-z0-9_]+$/', $usuario)) {
@@ -272,9 +271,21 @@ class PortalClienteController {
                         } else {
                             $hash = password_hash($contrasena, PASSWORD_DEFAULT);
                             try {
-                                $res = $this->model->registrarCliente($nombre, $tipo, $telefono, $usuario, $hash, $es_aprendiz, $id_instructor);
-                                if ($res) {
+                                $new_id = $this->model->registrarCliente($nombre, $tipo, $telefono, $usuario, $hash, 0, null);
+                                if ($new_id > 0) {
                                     $success = 'Registro exitoso. Ya puedes iniciar sesión y hacer pedidos.';
+                                    // Canje opcional del código de aprendiz.
+                                    if ($codigo_canje !== '') {
+                                        $r = $this->model->canjearCodigoAprendiz($new_id, $codigo_canje);
+                                        if ($r['ok']) {
+                                            $success = 'Registro exitoso. Quedaste vinculado como aprendiz de '
+                                                . htmlspecialchars($r['instructor']) . '. Ya puedes iniciar sesión.';
+                                        } else {
+                                            $success = 'Tu cuenta se creó, pero el código no se aplicó: '
+                                                . htmlspecialchars($r['error'])
+                                                . ' Podrás canjearlo luego desde tu perfil.';
+                                        }
+                                    }
                                 } else {
                                     $error = 'Error al registrar. Verifica los datos.';
                                 }
@@ -966,35 +977,74 @@ class PortalClienteController {
             $es_instructor = ($stats_inst['total_pedidos'] > 0 || $this->model->contarAprendices($cliente_id) > 0);
         }
 
-        $instructores = $this->model->getInstructoresActivos();
+        // El vínculo aprendiz-instructor ya NO se edita a mano aquí: se hace canjeando
+        // un código del instructor. Se calcula si este cliente puede canjear uno y, si ya
+        // es aprendiz, el nombre de su instructor (solo para mostrarlo).
+        $puede_canjear = (!$es_tienda && (int)$cliente['es_aprendiz'] !== 1);
+        $mi_instructor_nombre = '';
+        if ((int)$cliente['es_aprendiz'] === 1 && !empty($cliente['id_instructor'])) {
+            $inst = $this->model->getClienteById((int)$cliente['id_instructor']);
+            $mi_instructor_nombre = $inst['nombre'] ?? '';
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
                 $msg_err = 'Token de seguridad inválido o expirado. Por favor, intente de nuevo.';
             } else {
                 if (isset($_POST['actualizar_datos'])) {
-                $nombre = mb_substr(trim($_POST['nombre'] ?? ''), 0, 40);
-                $telefono = preg_replace('/\D/', '', $_POST['telefono'] ?? '');
-                $telefono = substr($telefono, 0, 15);
-                $es_aprendiz = (!$es_tienda && isset($_POST['es_aprendiz'])) ? 1 : 0;
-                $id_instructor = (!$es_tienda && $es_aprendiz && !empty($_POST['id_instructor'])) ? (int)$_POST['id_instructor'] : null;
-                
-                if ($nombre) {
-                    try {
-                        $this->model->actualizarPerfil($cliente_id, $nombre, $telefono, $es_aprendiz, $id_instructor);
-                        $_SESSION['cliente_nombre'] = $nombre;
-                        $msg_ok = 'Datos actualizados correctamente.';
-                        $cliente['nombre'] = $nombre;
-                        $cliente['telefono'] = $telefono;
-                        $cliente['es_aprendiz'] = $es_aprendiz;
-                        $cliente['id_instructor'] = $id_instructor;
-                    } catch (Exception $e) {
-                        $msg_err = 'Error al actualizar los datos.';
+                    $nombre = mb_substr(trim($_POST['nombre'] ?? ''), 0, 40);
+                    $telefono = preg_replace('/\D/', '', $_POST['telefono'] ?? '');
+                    $telefono = substr($telefono, 0, 15);
+
+                    if ($nombre) {
+                        try {
+                            $this->model->actualizarDatosBasicos($cliente_id, $nombre, $telefono);
+                            $_SESSION['cliente_nombre'] = $nombre;
+                            $msg_ok = 'Datos actualizados correctamente.';
+                            $cliente['nombre'] = $nombre;
+                            $cliente['telefono'] = $telefono;
+                        } catch (Exception $e) {
+                            $msg_err = 'Error al actualizar los datos.';
+                        }
+                    } else {
+                        $msg_err = 'El nombre es obligatorio.';
                     }
-                } else {
-                    $msg_err = 'El nombre es obligatorio.';
-                }
-            } elseif (isset($_POST['cambiar_pass'])) {
+                } elseif (isset($_POST['canjear_codigo'])) {
+                    // Límite de intentos por sesión para que nadie pruebe códigos al azar.
+                    $ahora   = time();
+                    $bloqueo = (int)($_SESSION['canje_bloqueo_hasta'] ?? 0);
+                    if ($ahora < $bloqueo) {
+                        $mins = (int)ceil(($bloqueo - $ahora) / 60);
+                        $msg_err = "Demasiados intentos con códigos. Espera $mins minuto(s) e intenta de nuevo.";
+                    } elseif ($es_tienda) {
+                        $msg_err = 'Las cuentas de tienda no pueden registrarse como aprendices.';
+                    } elseif ((int)$cliente['es_aprendiz'] === 1) {
+                        $msg_err = 'Ya estás registrado como aprendiz de un instructor.';
+                    } else {
+                        try {
+                            $r = $this->model->canjearCodigoAprendiz($cliente_id, $_POST['codigo_aprendiz'] ?? '');
+                            if ($r['ok']) {
+                                $_SESSION['canje_intentos'] = 0;
+                                $msg_ok = '¡Listo! Quedaste vinculado como aprendiz de ' . htmlspecialchars($r['instructor']) . '.';
+                                $cliente = $this->model->getClienteById($cliente_id);
+                                $puede_canjear = false;
+                                $mi_instructor_nombre = $r['instructor'];
+                            } else {
+                                $intentos = (int)($_SESSION['canje_intentos'] ?? 0) + 1;
+                                $_SESSION['canje_intentos'] = $intentos;
+                                if ($intentos >= 5) {
+                                    $_SESSION['canje_bloqueo_hasta'] = $ahora + 600; // 10 minutos
+                                    $_SESSION['canje_intentos'] = 0;
+                                    $msg_err = 'Demasiados intentos. Espera 10 minutos e intenta de nuevo.';
+                                } else {
+                                    $msg_err = $r['error'];
+                                }
+                            }
+                        } catch (Exception $e) {
+                            $msg_err = 'No se pudo canjear el código. Intenta de nuevo.';
+                        }
+                    }
+                } elseif (isset($_POST['cambiar_pass'])) {
                 $actual = $_POST['pass_actual'] ?? '';
                 $nueva = $_POST['pass_nueva'] ?? '';
                 $confirm = $_POST['pass_confirm'] ?? '';
@@ -1042,6 +1092,83 @@ class PortalClienteController {
     }
 
     /**
+     * Pantalla "Mis aprendices": el instructor genera/rota su código de invitación,
+     * ve su grupo y ajusta cupos o retira aprendices. Solo cuentas instructor-capaces
+     * (tienda que no es aprendiz); un instructor solo gestiona SUS aprendices.
+     */
+    public function misAprendices() {
+        $this->requireCliente();
+        $cliente_id = (int)$_SESSION['cliente_id'];
+
+        $cliente = $this->model->getClienteById($cliente_id);
+        if (!$cliente) {
+            header('Location: logout.php');
+            exit;
+        }
+
+        // Solo una cuenta instructor-capaz entra aquí (seguridad).
+        if (!$this->model->esInstructorCapaz($cliente)) {
+            header('Location: dashboard.php');
+            exit;
+        }
+
+        // Mensajes vía POST-Redirect-GET.
+        $msg_ok  = $_SESSION['flash_ok']  ?? '';
+        $msg_err = $_SESSION['flash_err'] ?? '';
+        unset($_SESSION['flash_ok'], $_SESSION['flash_err']);
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                $msg_err = 'Token de seguridad inválido o expirado. Recarga la página e intenta de nuevo.';
+            } elseif (isset($_POST['generar_codigo'])) {
+                $dias = (int)($_POST['dias_vigencia'] ?? 0);
+                $dias = max(0, min(365, $dias));
+                $sin_limite = isset($_POST['sin_limite_usos']);
+                $usos = $sin_limite ? null : max(1, min(1000, (int)($_POST['usos_maximos'] ?? 1)));
+                try {
+                    $codigo = $this->model->generarCodigoAprendiz($cliente_id, $dias, $usos);
+                    $msg_ok = 'Código generado: ' . $codigo . '. Compártelo con tus aprendices.';
+                } catch (Exception $e) {
+                    log_error($e);
+                    $msg_err = 'No se pudo generar el código. Intenta de nuevo.';
+                }
+            } elseif (isset($_POST['desactivar_codigo'])) {
+                $n = $this->model->desactivarCodigosInstructor($cliente_id);
+                $msg_ok = $n > 0 ? 'Código desactivado. Puedes generar uno nuevo cuando quieras.' : 'No había un código activo.';
+            } elseif (isset($_POST['quitar_aprendiz'])) {
+                $aid = (int)($_POST['aprendiz_id'] ?? 0);
+                if ($this->model->quitarAprendiz($cliente_id, $aid)) {
+                    $msg_ok = 'Aprendiz retirado de tu grupo. Sus pedidos anteriores se conservan.';
+                } else {
+                    $msg_err = 'No se pudo retirar: esa persona no es un aprendiz de tu grupo.';
+                }
+            } elseif (isset($_POST['actualizar_cupo'])) {
+                $aid  = (int)($_POST['aprendiz_id'] ?? 0);
+                $cupo = (float)($_POST['cupo_semanal'] ?? 0);
+                if ($cupo < 0 || $cupo > 100000) {
+                    $msg_err = 'El cupo semanal debe estar entre $0 y $100.000 COP.';
+                } elseif ((int)$cupo % 500 !== 0 || $cupo != (int)$cupo) {
+                    $msg_err = 'El cupo semanal debe ser múltiplo de $500 COP.';
+                } elseif ($this->model->actualizarCupoAprendizInstructor($cliente_id, $aid, $cupo)) {
+                    $msg_ok = 'Cupo semanal actualizado.';
+                } else {
+                    $msg_err = 'No se pudo actualizar: esa persona no es un aprendiz de tu grupo.';
+                }
+            }
+
+            $_SESSION['flash_ok']  = $msg_ok;
+            $_SESSION['flash_err'] = $msg_err;
+            redirigir(APP_URL . '/portal/mis_aprendices.php');
+        }
+
+        $codigo_activo = $this->model->getCodigoActivoInstructor($cliente_id);
+        $aprendices    = $this->model->getAprendicesGestion($cliente_id);
+        $es_instructor = true;
+
+        require_once __DIR__ . '/../views/portal/mis_aprendices.php';
+    }
+
+    /**
      * Completa el perfil social de Google OAuth.
      */
     public function completarPerfil() {
@@ -1049,20 +1176,20 @@ class PortalClienteController {
         $cliente_id = (int)$_SESSION['cliente_id'];
         
         $error = '';
-        $instructores = $this->model->getInstructoresActivos();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
                 $error = 'Token de seguridad inválido o expirado. Por favor, intente de nuevo.';
             } else {
-                $nombre      = trim($_POST['nombre'] ?? '');
-                $es_aprendiz = isset($_POST['es_aprendiz']) ? 1 : 0;
-                $id_instructor = $es_aprendiz && !empty($_POST['id_instructor']) ? (int)$_POST['id_instructor'] : null;
+                $nombre = trim($_POST['nombre'] ?? '');
 
                 if (empty($nombre)) {
                     $error = 'El nombre no puede estar vacío.';
                 } else {
-                    $this->model->completarPerfilCliente($cliente_id, $nombre, $es_aprendiz, $id_instructor);
+                    // El vínculo aprendiz-instructor NO se asigna aquí: se hace luego
+                    // canjeando un código del instructor desde el perfil. Se conserva el
+                    // estado actual del cliente (recién creado por Google: no es aprendiz).
+                    $this->model->completarPerfilCliente($cliente_id, $nombre, 0, null);
                     $_SESSION['cliente_nombre'] = $nombre;
                     header('Location: dashboard.php');
                     exit;

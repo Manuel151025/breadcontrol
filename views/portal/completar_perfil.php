@@ -93,7 +93,7 @@
 
   <div class="card-title">
     <h1>¡Casi listo!</h1>
-    <p>Confirma tu nombre y dinos si eres aprendiz SENA para que tus pedidos se registren correctamente.</p>
+    <p>Confirma tu nombre para entrar al portal. Si eres aprendiz SENA, luego podrás canjear el código de tu instructor desde tu perfil.</p>
   </div>
 
   <?php if ($error): ?>
@@ -108,45 +108,17 @@
       <input type="text" name="nombre" value="<?= htmlspecialchars($nombre_actual) ?>" placeholder="Ej: Tienda El Buen Sabor" required maxlength="100">
     </div>
 
-    <label class="aprendiz-box">
-      <input type="checkbox" name="es_aprendiz" id="es_aprendiz" value="1">
+    <div class="aprendiz-box" style="cursor:default;">
+      <i class="bi bi-mortarboard-fill" style="color:var(--honey); font-size:1.2rem; flex-shrink:0; margin-top:.1rem;"></i>
       <div class="aprendiz-text">
-        <span class="aprendiz-label">Soy aprendiz SENA</span>
-        <span class="aprendiz-desc">Mis pedidos se cobrarán a la cuenta de mi instructor, no a mí directamente.</span>
+        <span class="aprendiz-label">¿Eres aprendiz SENA?</span>
+        <span class="aprendiz-desc">Entra al portal y, desde <strong>Mi Perfil</strong>, canjea el código que te dio tu instructor para unirte a su grupo.</span>
       </div>
-    </label>
-
-    <div class="field" id="field_instructor" style="display:none; margin-top: -0.5rem; margin-bottom: 0.5rem;">
-      <label style="color: var(--honey);">Selecciona tu Instructor (Tienda ADSO)</label>
-      <select name="id_instructor" style="width:100%; height:2.85rem; padding: 0 1rem; background: var(--input-bg); border:1px solid var(--border); border-radius:.75rem; color:var(--fg); outline:none;">
-        <option value="">-- Selecciona un Instructor --</option>
-        <?php foreach ($instructores as $inst): ?>
-          <option value="<?= $inst['id_cliente'] ?>"><?= htmlspecialchars($inst['nombre']) ?></option>
-        <?php endforeach; ?>
-      </select>
     </div>
 
     <button type="submit" class="btn-submit">Entrar al portal</button>
   </form>
 
 </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const esAprendizChk = document.getElementById('es_aprendiz');
-        const fieldInstructor = document.getElementById('field_instructor');
-        if (esAprendizChk && fieldInstructor) {
-            const toggleInstructor = () => {
-                fieldInstructor.style.display = esAprendizChk.checked ? 'block' : 'none';
-                const selectInst = fieldInstructor.querySelector('select');
-                if (selectInst) {
-                    selectInst.required = esAprendizChk.checked;
-                }
-            };
-            esAprendizChk.addEventListener('change', toggleInstructor);
-            toggleInstructor(); // init
-        }
-    });
-</script>
 </body>
 </html>
