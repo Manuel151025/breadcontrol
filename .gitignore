@@ -34,6 +34,7 @@ error_log
 vendor/
 composer.lock
 
-# SQL (dumps ignorados, pero las migraciones de esquema SI se versionan)
+# SQL (dumps ignorados, pero las migraciones y scripts de init SI se versionan)
 *.sql
 !sql/migraciones/*.sql
+!sql/init/*.sql

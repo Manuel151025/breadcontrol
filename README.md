@@ -37,7 +37,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 - **Cierre del día** con observaciones que aparecen como banner al día siguiente en el tablero principal.
 - **Portal del Cliente** con registro tradicional o Google OAuth (Google Login).
 - **Flujo Educativo Aprendiz-Instructor:** Control estricto de cupo semanal para aprendices y portal del instructor para aprobar solicitudes y consolidar pagos.
-- **Integración de Pagos (Wompi):** Pagos de saldos de pedidos de forma consolidada mediante PSE o Nequi con webhook idempotente.
+- **Pagos con Nequi (link manual):** Consolidación de saldos de pedidos en un solo link de pago de Nequi Negocios; la panadería confirma el recibo manualmente desde el back-office.
 - **Finanzas** con gráficos, KPIs y exportación a PDF.
 - **Clima en tiempo real** integrado con la API de Open-Meteo.
 - **Responsive** — funciona en PC, tablet y celular de manera fluida.
@@ -60,7 +60,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 | 9 | **Cierre del día** | Cuadre de caja, observaciones para el tablero al día siguiente, historial de cierres |
 | 10 | **Portal del Cliente** | Registro con Google OAuth / tradicional, solicitud de pedidos y visualización de saldos |
 | 11 | **Flujo Educativo (Aprendiz-Instructor)** | Control de cupo semanal para aprendices, portal de instructor para aprobación de pedidos y cobro de cartera |
-| 12 | **Pasarela de Pagos (Wompi)** | Pagos unificados/consolidados por PSE o Nequi, webhook idempotente para abonos y conciliación automática |
+| 12 | **Pagos con Nequi (manual)** | Consolidación de saldos en un solo link de pago de Nequi Negocios; el propietario confirma el recibo desde el back-office |
 
 **Módulos adicionales:**
 - **Perfil de usuario** — Datos personales, cambiar contraseña, configurar PIN de recuperación
@@ -82,7 +82,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 | **Gráficos** | Chart.js (finanzas), CSS bars (tablero) |
 | **Email** | PHPMailer 6.9 (SMTP SSL/TLS) |
 | **Clima** | API Open-Meteo |
-| **Pagos** | Pasarela Wompi de Bancolombia (Widget + Webhook) |
+| **Pagos** | Nequi Negocios (link de pago estático; confirmación manual del propietario) |
 | **Autenticación externa** | Google API Client (OAuth 2.0) |
 | **Hosting** | Hostinger (PHP + MySQL) |
 | **Gestión** | Jira (Scrum), GitHub |
@@ -104,7 +104,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
        │
    ┌───┴──────────┐
    │ Open-Meteo   │
-   │ Wompi Widget │
+   │ Nequi (link) │
    └──────────────┘
 ```
 
@@ -135,8 +135,27 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
    ```
 
 2. **Configurar la base de datos**
-   - Crear una base de datos en MySQL
-   - Importar el archivo `sql/panaderia_bd.sql`
+
+   El esquema se compone del dump base **más** las extensiones del portal/flujo de
+   pedidos. Ejecuta los scripts **en este orden**:
+
+   1. `sql/panaderia_bd.sql` — dump base (tablas de inventario, producción, ventas, etc.).
+   2. `sql/init/02_extensiones_flujo.sql` — columnas del portal en `cliente` + tablas
+      `pedido_cliente`, `pedido_cliente_detalle`, `pago_pedido`, `pago_abono` + foreign keys.
+      **Solo para bases nuevas/vacías.**
+
+   Para una base de datos **ya existente** (p. ej. el VPS) no uses el paso 2; aplica en
+   su lugar los scripts incrementales de `sql/migraciones/` (ver más abajo).
+
+   **Con Docker:** `docker-compose.yml` monta ambos scripts en `docker-entrypoint-initdb.d`
+   (`01_base.sql` y `02_extensiones.sql`) y MySQL los ejecuta en orden automáticamente al
+   crear un contenedor con volumen vacío — un despliegue fresco levanta el esquema completo
+   sin pasos manuales.
+
+   **Migraciones incrementales** (para bases ya desplegadas, en orden por fecha):
+   - `sql/migraciones/2026-07-23_01_normalizar_estado_pago_pedido.sql`
+   - `sql/migraciones/2026-07-23_02_foreign_keys_flujo_pedido_pago.sql`
+   - `sql/migraciones/2026-07-23_03_default_estado_pago_no_aplica.sql`
 
 3. **Configurar conexión y entorno**
    - Crear y editar el archivo `config/db.php` con los datos de tu servidor:
@@ -158,7 +177,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
      * `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
      * `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
      * `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URL`
-     * `WOMPI_PUBLIC_KEY`, `WOMPI_PRIVATE_KEY`, `WOMPI_INTEGRITY_KEY`
+   - El link de pago de Nequi se configura desde la app (Configuración → Pagos), no por `.env`.
 
 6. **Acceder al sistema**
    - Abrir en el navegador: `https://tu-dominio.com/login.php`
@@ -204,7 +223,7 @@ BreadControl/
 │   ├── index.php            # Login de portal y Google OAuth callback
 │   ├── dashboard.php        # Panel de pedidos del cliente
 │   ├── nuevo_pedido.php     # Carrito de compras y cupo semanal
-│   └── wompi_webhook.php    # Callback de aprobación de pasarela Wompi
+│   └── pagar_consolidado.php # Registro del pago y enlace de Nequi
 │
 ├── views/                   # Vistas HTML/CSS/JS organizadas por entidad
 │   ├── layouts/             # Cabecera, Navbar y Pie de página comunes
@@ -249,7 +268,7 @@ BreadControl/
 | `cliente` | Registro de clientes (mostrador, tiendas, aprendices e instructores) |
 | `pedido_cliente` | Solicitudes de pedidos creadas por clientes/aprendices con estado de pedido/pago |
 | `pedido_cliente_detalle` | Detalle variedad por variedad de los pedidos de clientes |
-| `pago_pedido` | Referencias de pago vinculadas a la pasarela Wompi con estado y expiración |
+| `pago_pedido` | Registro del pago consolidado (link de Nequi) con estado, monto y expiración |
 | `pago_abono` | Abonos reales registrados a deudas de pedidos de clientes |
 | `proveedor` | Proveedores de insumos y datos de contacto |
 | `compra` | Registro de compras con lotes autogenerados |

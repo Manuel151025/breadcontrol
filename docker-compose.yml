@@ -1,5 +1,5 @@
 # Docker Compose file for the Panaderia application
-version: '3.8'
+# (la clave 'version' es obsoleta en Compose v2+ y se elimino para evitar el warning)
 
 services:
   app:
@@ -25,7 +25,10 @@ services:
       MYSQL_ROOT_PASSWORD: panaderia_root_password
     volumes:
       - panaderia_db_data:/var/lib/mysql
-      - ./sql/panaderia_bd.sql:/docker-entrypoint-initdb.d/init.sql
+      # initdb ejecuta los .sql en orden alfabetico SOLO en un volumen vacio (primer arranque).
+      # 01 = dump base; 02 = columnas del portal + tablas del flujo + FKs (E1/E2/C1).
+      - ./sql/panaderia_bd.sql:/docker-entrypoint-initdb.d/01_base.sql
+      - ./sql/init/02_extensiones_flujo.sql:/docker-entrypoint-initdb.d/02_extensiones.sql
 
 volumes:
   panaderia_db_data:
