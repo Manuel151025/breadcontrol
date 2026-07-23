@@ -633,62 +633,6 @@ class PortalClienteModel {
     }
 
     /**
-     * Procesa la notificación (webhook) de Wompi de manera transaccional.
-     */
-    public function procesarWebhookWompi(string $referencia, string $nuevo_estado, float $monto_recibido, string $metodo, string $tx_id): bool {
-        // Buscar el pago por referencia
-        $stmt = $this->pdo->prepare("SELECT id_pago, estado, monto FROM pago_pedido WHERE referencia = ? LIMIT 1");
-        $stmt->execute([$referencia]);
-        $pago = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$pago) {
-            throw new Exception("Referencia no encontrada: " . $referencia);
-        }
-
-        // Idempotencia
-        if ($pago['estado'] === $nuevo_estado) {
-            return true;
-        }
-
-        $id_pago = (int) $pago['id_pago'];
-        $monto_pago = (float) $pago['monto'];
-
-        try {
-            $this->pdo->beginTransaction();
-
-            // Registrar abono si es aprobado
-            if ($nuevo_estado === 'aprobado') {
-                $monto_abono = $monto_recibido > 0 ? $monto_recibido : $monto_pago;
-                
-                $stmt_abono = $this->pdo->prepare("
-                    INSERT INTO pago_abono (id_pago, monto, metodo_pago, nota, fecha_abono)
-                    VALUES (?, ?, ?, ?, NOW())
-                ");
-                $stmt_abono->execute([
-                    $id_pago, 
-                    $monto_abono, 
-                    $metodo, 
-                    'Aprobación automática Wompi Tx: ' . $tx_id
-                ]);
-            }
-
-            // Actualizar pago_pedido
-            $this->pdo->prepare("UPDATE pago_pedido SET estado = ? WHERE id_pago = ?")
-                ->execute([$nuevo_estado, $id_pago]);
-
-            // Actualizar pedidos vinculados
-            $this->pdo->prepare("UPDATE pedido_cliente SET estado_pago = ? WHERE id_pago_activo = ?")
-                ->execute([$nuevo_estado, $id_pago]);
-
-            $this->pdo->commit();
-            return true;
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-            throw $e;
-        }
-    }
-
-    /**
      * Transacción para crear o actualizar un pedido con su detalle y validaciones de bonificación/ñapa.
      */
     public function crearPedido(int $cliente_id, int $id_creador, string $fecha_entrega, array $cart, array $bonif_items, ?int $edit_id = null): int {

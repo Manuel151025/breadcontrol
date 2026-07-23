@@ -71,9 +71,9 @@ Por tus compras detalladas, el sistema te otorga crédito para llevar pan gratis
 * **Selección del Pan de Regalo**: Escoge qué panes deseas llevar gratis utilizando tu crédito disponible.
 * **Seguridad y Validación**: El sistema valida el costo real de los panes de regalo en el servidor. Si intentas alterar el JSON del navegador para pedir panes más caros o exceder tu saldo, el pedido será rechazado con un error por motivos de seguridad.
 
-## 4. Pagos Digitales con Wompi/Nequi
-BreadControl permite pagar tus pedidos pendientes usando el link de pago de Wompi (Nequi, Bancolombia, PSE o tarjeta) que configura la panadería.
-* **Habilitar Pago Consolidado**: Si tienes varios pedidos pendientes de pago, puedes agruparlos en una sola transacción desde el menú de pagos. El sistema calcula el total pendiente y muestra un botón de **Pagar ahora**.
-* **Completar la Transacción**: Al tocar "Pagar ahora" se abre el link de checkout de Wompi. Digita el monto exacto que te indica la pantalla y paga con Nequi, Bancolombia, PSE o tarjeta.
-* **Confirmación del Pago**: A diferencia de una pasarela totalmente automática, el pago **lo confirma manualmente la panadería** una vez verifica que el dinero llegó — por eso puede tardar unos minutos en reflejarse como pagado en tu portal. Si no ves el cambio de inmediato, no te preocupes, no significa que el pago falló.
+## 4. Pagos Digitales con Nequi
+BreadControl permite pagar tus pedidos pendientes usando el link de pago de Nequi Negocios (que también acepta Bancolombia, PSE o tarjeta) que configura la panadería.
+* **Habilitar Pago Consolidado**: Si tienes varios pedidos pendientes de pago, puedes agruparlos en una sola transacción desde el menú de pagos. El sistema calcula el total pendiente, deja registrado el pago y muestra un botón de **Pagar ahora**.
+* **Completar la Transacción**: Al tocar "Pagar ahora" se abre el link de pago de Nequi de la panadería. Digita el monto exacto que te indica la pantalla y paga con Nequi, Bancolombia, PSE o tarjeta.
+* **Confirmación del Pago**: El pago **lo confirma manualmente la panadería** una vez verifica que el dinero llegó — por eso puede tardar unos minutos en reflejarse como pagado en tu portal. Si no ves el cambio de inmediato, no te preocupes, no significa que el pago falló.
 * **Reintentar Pagos**: Si algo sale mal durante el pago, puedes volver a tu portal y generar el pago consolidado de nuevo sin problema.

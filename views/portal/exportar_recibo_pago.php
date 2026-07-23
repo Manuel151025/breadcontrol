@@ -104,12 +104,8 @@
             <strong><?= htmlspecialchars($pago_activo['referencia'] ?? 'Individual') ?></strong>
         </div>
         <div class="detail-item">
-            <span>ID de Transacción</span>
-            <strong><?= htmlspecialchars($pago_activo['wompi_transaction_id'] ?? 'Abono Manual') ?></strong>
-        </div>
-        <div class="detail-item">
             <span>Canal / Método</span>
-            <strong><?= htmlspecialchars($pago_activo['wompi_payment_method'] ?? 'Nequi / Digital') ?></strong>
+            <strong><?= htmlspecialchars($pago_activo['metodo_pago'] ?? 'Nequi / Digital') ?></strong>
         </div>
         <div class="detail-item">
             <span>Estado de Pago</span>
