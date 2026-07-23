@@ -41,7 +41,7 @@ CREATE TABLE `pedido_cliente` (
   `fecha_entrega` date NOT NULL,
   `fecha_solicitud` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `total_estimado` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `aprobado_instructor` tinyint(1) NOT NULL DEFAULT 1,
+  `aprobado_instructor` tinyint(1) NOT NULL DEFAULT 0,
   `estado` varchar(20) NOT NULL DEFAULT 'pendiente',
   `estado_pago` varchar(20) NOT NULL DEFAULT 'no_aplica',
   `id_pago_activo` int(11) DEFAULT NULL,

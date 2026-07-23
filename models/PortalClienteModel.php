@@ -778,6 +778,12 @@ class PortalClienteModel {
             } else {
                 // estado_pago = 'no_aplica' explicito (E3): un pedido recien creado no tiene
                 // pago asociado todavia; 'pendiente' se asigna solo cuando existe un pago_pedido.
+                //
+                // aprobado_instructor se fija SIEMPRE de forma explicita: un pedido dirigido a
+                // OTRA cuenta (aprendiz -> instructor, id_cliente != id_creador) nace en 0 y
+                // requiere la aprobacion del instructor; un pedido propio (id_cliente = id_creador,
+                // cliente normal o pedido personal del aprendiz) nace en 1. El DEFAULT de la
+                // columna (0) es solo una red de seguridad por si algun INSERT futuro lo omite.
                 $aprobado_instructor = ($cliente_id === $id_creador) ? 1 : 0;
                 $stmt_ped = $this->pdo->prepare("INSERT INTO pedido_cliente (id_cliente, id_creador, fecha_entrega, total_estimado, aprobado_instructor, estado_pago) VALUES (?, ?, ?, ?, ?, 'no_aplica')");
                 $stmt_ped->execute([$cliente_id, $id_creador, $fecha_entrega, $total_dinero, $aprobado_instructor]);
