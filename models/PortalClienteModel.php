@@ -446,6 +446,21 @@ class PortalClienteModel {
     }
 
     /**
+     * Cuenta los aprendices vinculados a un instructor. Metodo unico y parametrizado
+     * que reemplaza la interpolacion directa de $cliente_id repetida en 6 puntos del
+     * controlador (A2/C16): elimina el anti-patron de SQL concatenado.
+     */
+    public function contarAprendices(int $instructor_id, bool $soloActivos = false): int {
+        $sql = "SELECT COUNT(*) FROM cliente WHERE es_aprendiz = 1 AND id_instructor = ?";
+        if ($soloActivos) {
+            $sql .= " AND activo = 1";
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$instructor_id]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    /**
      * Obtiene pedidos de aprendices listos para ser pagados por el instructor.
      */
     public function getPedidosPagoInstructor(int $cliente_id): array {

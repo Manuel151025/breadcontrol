@@ -463,12 +463,12 @@ class PortalClienteController {
         if ($es_tienda) {
             $aprendices_resumen = $this->model->getAprendicesResumen($cliente_id);
             $stats_inst = $this->model->getInstructorStats($cliente_id);
-            $es_instructor = ($stats_inst['total_pedidos'] > 0 || (int)$this->pdo->query("SELECT COUNT(*) FROM cliente WHERE es_aprendiz = 1 AND id_instructor = $cliente_id")->fetchColumn() > 0);
+            $es_instructor = ($stats_inst['total_pedidos'] > 0 || $this->model->contarAprendices($cliente_id) > 0);
             
             if ($es_instructor) {
                 $resumen_fin = $stats_inst;
                 $aprendices = $aprendices_resumen;
-                $total_reg = (int)$this->pdo->query("SELECT COUNT(*) FROM cliente WHERE es_aprendiz = 1 AND activo = 1 AND id_instructor = $cliente_id")->fetchColumn();
+                $total_reg = $this->model->contarAprendices($cliente_id, true);
             }
         }
 
@@ -640,7 +640,7 @@ class PortalClienteController {
         $es_instructor = false;
         if ($es_tienda_logueada) {
             $stats_inst = $this->model->getInstructorStats($cliente_id);
-            $es_instructor = ($stats_inst['total_pedidos'] > 0 || (int)$this->pdo->query("SELECT COUNT(*) FROM cliente WHERE es_aprendiz = 1 AND id_instructor = $cliente_id")->fetchColumn() > 0);
+            $es_instructor = ($stats_inst['total_pedidos'] > 0 || $this->model->contarAprendices($cliente_id) > 0);
         }
 
         $pedido = $this->model->getPedido($id_pedido, $cliente_id);
@@ -737,7 +737,7 @@ class PortalClienteController {
         $es_instructor = false;
         if ($es_tienda) {
             $stats_inst = $this->model->getInstructorStats($cliente_id);
-            $es_instructor = ($stats_inst['total_pedidos'] > 0 || (int)$this->pdo->query("SELECT COUNT(*) FROM cliente WHERE es_aprendiz = 1 AND id_instructor = $cliente_id")->fetchColumn() > 0);
+            $es_instructor = ($stats_inst['total_pedidos'] > 0 || $this->model->contarAprendices($cliente_id) > 0);
         }
 
         // ══ AJAX: TODAS las variedades (para bonificación) ══
@@ -963,7 +963,7 @@ class PortalClienteController {
         $es_instructor = false;
         if ($es_tienda) {
             $stats_inst = $this->model->getInstructorStats($cliente_id);
-            $es_instructor = ($stats_inst['total_pedidos'] > 0 || (int)$this->pdo->query("SELECT COUNT(*) FROM cliente WHERE es_aprendiz = 1 AND id_instructor = $cliente_id")->fetchColumn() > 0);
+            $es_instructor = ($stats_inst['total_pedidos'] > 0 || $this->model->contarAprendices($cliente_id) > 0);
         }
 
         $instructores = $this->model->getInstructoresActivos();
@@ -1322,7 +1322,7 @@ class PortalClienteController {
         }
 
         // Validar si realmente es instructor ADSO o tiene aprendices
-        $total_reg = (int)$this->pdo->query("SELECT COUNT(*) FROM cliente WHERE es_aprendiz = 1 AND activo = 1 AND id_instructor = $cliente_id")->fetchColumn();
+        $total_reg = $this->model->contarAprendices($cliente_id, true);
         if ($total_reg === 0) {
             header('Location: dashboard.php');
             exit;

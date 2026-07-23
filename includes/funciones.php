@@ -75,7 +75,9 @@ function getConfiguracion(): array {
     if ($config === null) {
         $pdo    = getConexion();
         $stmt   = $pdo->query("SELECT * FROM configuracion LIMIT 1");
-        $config = $stmt->fetch() ?? [];
+        // fetch() devuelve false (no null) si la tabla esta vacia; ?? no lo capturaba (F3).
+        $fila   = $stmt->fetch();
+        $config = is_array($fila) ? $fila : [];
     }
     return $config;
 }

@@ -161,8 +161,11 @@ class PedidoClienteController {
         requerirPropietario();
         $user = usuarioActual();
         $id_pedido = (int)($_GET['id'] ?? 0);
-        $msg_ok = '';
-        $msg_err = '';
+
+        // Mensajes provenientes del POST-Redirect-GET (C5).
+        $msg_ok  = $_SESSION['flash_ok']  ?? '';
+        $msg_err = $_SESSION['flash_err'] ?? '';
+        unset($_SESSION['flash_ok'], $_SESSION['flash_err']);
 
         // Cargar pedido actual
         $pedido = $this->model->getPedido($id_pedido);
@@ -272,9 +275,13 @@ class PedidoClienteController {
                     }
                 }
 
-                // Recargar pedido tras mutaciones
-                $pedido = $this->model->getPedido($id_pedido);
             }
+
+            // PRG (C5): guardar el mensaje en flash y redirigir, para que un F5 no
+            // reenvie la accion (evita doble abono, doble habilitacion de pago, etc.).
+            $_SESSION['flash_ok']  = $msg_ok;
+            $_SESSION['flash_err'] = $msg_err;
+            redirigir(APP_URL . '/modules/pedidos_clientes/ver_pedido.php?id=' . $id_pedido);
         }
 
         // ── 2. Cargar Relaciones y Consolidados ──────────────────────────────
