@@ -1149,65 +1149,85 @@ class PortalClienteController {
         $link_pago_url = '';
         $pago_existente = null;
 
+        // ¿Todos los pedidos ya comparten un unico pago PENDING? (idempotencia D3/C5)
+        $pagos_activos = array_unique(array_filter(array_column($pedidos, 'id_pago_activo')));
+        $id_pago_compartido = 0;
+        if (count($pagos_activos) === 1) {
+            $candidato = (int)reset($pagos_activos);
+            $todos = true;
+            foreach ($pedidos as $p) {
+                if (empty($p['id_pago_activo']) || (int)$p['id_pago_activo'] !== $candidato) {
+                    $todos = false;
+                    break;
+                }
+            }
+            if ($todos && $this->model->getPagoPendientePorId($candidato)) {
+                $id_pago_compartido = $candidato;
+            }
+        }
+
+        // URL de redireccion (POST-Redirect-GET). Preserva el pedido especifico si aplica.
+        $redir = 'pagar_consolidado.php' . ($id_pedido_spec > 0 ? '?id_pedido=' . $id_pedido_spec . '&' : '?') . 'pago=ok';
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['generar_pago'])) {
             if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
                 $error = 'Token de seguridad inválido o expirado. Por favor, intente de nuevo.';
+            } elseif (!$pago_configurado) {
+                $error = 'La panadería aún no ha configurado el pago digital. Por favor contacta al propietario.';
+            } elseif ($id_pago_compartido > 0) {
+                // Idempotencia: ya existe un pago PENDING que cubre estos pedidos. No se
+                // crea otro; se redirige a mostrar el enlace (POST-Redirect-GET).
+                header('Location: ' . $redir);
+                exit;
             } else {
-                if (!$pago_configurado) {
-                    $error = 'La panadería aún no ha configurado el pago digital. Por favor contacta al propietario.';
-                } else {
-                    try {
-                        $referencia = sprintf('CON-%d-%d', $cliente_id, (int)(microtime(true) * 1000));
-                        
-                        // Extraer link_id
-                        $link_id = null;
-                        if (preg_match('#/l/([A-Za-z0-9_-]+)#', $config_pago['nequi_link_pago'], $m)) {
-                            $link_id = $m[1];
-                        }
+                try {
+                    $referencia = sprintf('CON-%d-%d', $cliente_id, (int)(microtime(true) * 1000));
 
-                        $nota_consolidado = sprintf('Pago consolidado de %d pedidos: %s',
-                            count($ids_pedidos),
-                            implode(', ', array_map(fn($id) => '#' . str_pad($id, 4, '0', STR_PAD_LEFT), $ids_pedidos))
-                        );
-
-                        $id_pago = $this->model->iniciarPagoConsolidado(
-                            $cliente_id, 
-                            $pedidos, 
-                            $ids_pedidos, 
-                            $total_saldo, 
-                            $referencia, 
-                            $link_id, 
-                            $config_pago['nequi_link_pago'], 
-                            $nota_consolidado
-                        );
-
-                        $link_pago_url = $config_pago['nequi_link_pago'];
-                        $success = 'Pago consolidado habilitado. Toca el botón verde de abajo para pagar.';
-                    } catch (Exception $e) {
-                        $error = 'Error al habilitar el pago: ' . $e->getMessage();
+                    // Extraer link_id del link estatico de Nequi (alojado en checkout.wompi.co)
+                    $link_id = null;
+                    if (preg_match('#/l/([A-Za-z0-9_-]+)#', $config_pago['nequi_link_pago'], $m)) {
+                        $link_id = $m[1];
                     }
+
+                    // Auditoria (D3): dejar constancia de quien inicio el pago.
+                    $pagador = trim($_SESSION['cliente_nombre'] ?? '');
+                    $nota_consolidado = sprintf('Pago de %d pedido(s) [%s] iniciado por %s (cliente #%d)',
+                        count($ids_pedidos),
+                        implode(', ', array_map(fn($id) => '#' . str_pad($id, 4, '0', STR_PAD_LEFT), $ids_pedidos)),
+                        $pagador !== '' ? $pagador : 'cliente',
+                        $cliente_id
+                    );
+
+                    $this->model->iniciarPagoConsolidado(
+                        $cliente_id,
+                        $pedidos,
+                        $ids_pedidos,
+                        $total_saldo,
+                        $referencia,
+                        $link_id,
+                        $config_pago['nequi_link_pago'],
+                        $nota_consolidado
+                    );
+
+                    // POST-Redirect-GET: evita re-registrar el pago con F5/doble submit (C5).
+                    header('Location: ' . $redir);
+                    exit;
+                } catch (Exception $e) {
+                    log_error($e);
+                    $error = 'Error al habilitar el pago. Intenta de nuevo.';
                 }
             }
         } else {
-            // GET: comprobar si hay un pago consolidado activo y único para todos
-            $pagos_activos = array_unique(array_filter(array_column($pedidos, 'id_pago_activo')));
-            $todos_tienen_mismo_pago = false;
-            if (count($pagos_activos) === 1) {
-                $todos_tienen_mismo_pago = true;
-                foreach ($pedidos as $p) {
-                    if (empty($p['id_pago_activo']) || (int)$p['id_pago_activo'] !== (int)reset($pagos_activos)) {
-                        $todos_tienen_mismo_pago = false;
-                        break;
-                    }
+            // GET: si ya existe el pago consolidado, mostrar el enlace de Nequi.
+            // El enlace SIEMPRE proviene de configuracion.nequi_link_pago (nunca hardcodeado).
+            if ($id_pago_compartido > 0) {
+                $pago_existente = $this->model->getPagoPendientePorId($id_pago_compartido);
+                if ($pago_existente) {
+                    $link_pago_url = $config_pago['nequi_link_pago'];
                 }
             }
-
-            if ($todos_tienen_mismo_pago) {
-                $id_pago_activo = (int)reset($pagos_activos);
-                $pago_existente = $this->model->getPagoPendientePorId($id_pago_activo);
-                if ($pago_existente && !empty($pago_existente['wompi_link_url'])) {
-                    $link_pago_url = $pago_existente['wompi_link_url'];
-                }
+            if (isset($_GET['pago']) && $_GET['pago'] === 'ok' && $link_pago_url) {
+                $success = 'Pago registrado. Toca el botón verde de abajo para pagar por Nequi.';
             }
         }
 

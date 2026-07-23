@@ -875,17 +875,20 @@
                     style="flex:1;padding:.72rem;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--ink3);font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer;">
                 Cancelar
             </button>
-            <a id="btn-ir-nequi" href="<?= htmlspecialchars($nequi_config['nequi_link_pago'] ?? '#') ?>" target="_blank" rel="noopener"
-               style="flex:2;padding:.72rem;border-radius:10px;border:none;background:linear-gradient(135deg,#2e7d32,#1b5e20);color:#fff;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;text-decoration:none;">
-                <i class="bi bi-phone-fill"></i> Ir a Nequi
-                <?php if (!empty($nequi_config['nequi_titular'])): ?>
-                    <span style="opacity:.7;font-weight:400;font-size:.72rem;">· <?= htmlspecialchars($nequi_config['nequi_titular']) ?></span>
-                <?php endif; ?>
-            </a>
+            <form method="post" action="pagar_consolidado.php" style="flex:2;display:flex;">
+                <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
+                <button type="submit" name="generar_pago" id="btn-ir-nequi"
+                   style="flex:1;padding:.72rem;border-radius:10px;border:none;background:linear-gradient(135deg,#2e7d32,#1b5e20);color:#fff;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;">
+                    <i class="bi bi-phone-fill"></i> Registrar y pagar por Nequi
+                    <?php if (!empty($nequi_config['nequi_titular'])): ?>
+                        <span style="opacity:.7;font-weight:400;font-size:.72rem;">· <?= htmlspecialchars($nequi_config['nequi_titular']) ?></span>
+                    <?php endif; ?>
+                </button>
+            </form>
         </div>
 
         <div style="padding:.6rem 1.2rem 1rem;font-size:.72rem;color:var(--ink3);text-align:center;line-height:1.5;">
-            <i class="bi bi-info-circle"></i> Transfiere el total seleccionado por Nequi. El propietario confirmará el recibo.
+            <i class="bi bi-info-circle"></i> Al continuar se registra el pago de <strong>todos</strong> tus pedidos pendientes y se abre el enlace de Nequi. Transfiere el total; el propietario confirmará el recibo.
         </div>
     </div>
 </div>
