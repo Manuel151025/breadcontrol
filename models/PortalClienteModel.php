@@ -420,7 +420,7 @@ class PortalClienteModel {
                     FROM pedido_cliente pc
                     WHERE pc.id_creador = c.id_cliente
                       AND pc.id_cliente = ?
-                      AND pc.estado NOT IN ('rechazado', 'cancelado')
+                      AND pc.estado != 'rechazado'
                       AND pc.fecha_solicitud >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), '%Y-%m-%d 00:00:00')
                 ) AS consumido_semana,
                 COUNT(CASE WHEN p.aprobado_instructor = 1 THEN p.id_pedido ELSE NULL END) AS total_pedidos,
@@ -689,7 +689,7 @@ class PortalClienteModel {
                     FROM pedido_cliente 
                     WHERE id_creador = ? 
                       AND id_cliente = ?
-                      AND estado NOT IN ('rechazado', 'cancelado')
+                      AND estado != 'rechazado'
                       AND fecha_solicitud >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), '%Y-%m-%d 00:00:00')
                 ";
                 $args_consumido = [$id_creador, $cliente_id];
@@ -749,8 +749,10 @@ class PortalClienteModel {
                 
                 $this->pdo->prepare("DELETE FROM pedido_cliente_detalle WHERE id_pedido = ?")->execute([$id_pedido]);
             } else {
+                // estado_pago = 'no_aplica' explicito (E3): un pedido recien creado no tiene
+                // pago asociado todavia; 'pendiente' se asigna solo cuando existe un pago_pedido.
                 $aprobado_instructor = ($cliente_id === $id_creador) ? 1 : 0;
-                $stmt_ped = $this->pdo->prepare("INSERT INTO pedido_cliente (id_cliente, id_creador, fecha_entrega, total_estimado, aprobado_instructor) VALUES (?, ?, ?, ?, ?)");
+                $stmt_ped = $this->pdo->prepare("INSERT INTO pedido_cliente (id_cliente, id_creador, fecha_entrega, total_estimado, aprobado_instructor, estado_pago) VALUES (?, ?, ?, ?, ?, 'no_aplica')");
                 $stmt_ped->execute([$cliente_id, $id_creador, $fecha_entrega, $total_dinero, $aprobado_instructor]);
                 $id_pedido = (int)$this->pdo->lastInsertId();
             }
