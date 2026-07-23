@@ -530,34 +530,31 @@ class PortalClienteModel {
 
     /**
      * Obtiene los pedidos pendientes de pago de un cliente.
+     *
+     * Regla unica de pago (D2): SOLO paga quien figura como id_cliente del pedido
+     * (destinatario/facturado). Nunca se habilita el pago por id_creador — un aprendiz
+     * que crea un pedido dirigido a la cuenta del instructor (id_cliente = instructor)
+     * no puede pagarlo; lo paga el instructor.
+     *
+     * Regla de aprobacion (D5): un pedido dirigido a OTRA cuenta (id_cliente != id_creador)
+     * solo es pagable si el instructor ya lo aprobo (aprobado_instructor = 1). Un pedido
+     * personal (id_cliente = id_creador) es pagable sin aprobacion previa.
      */
-    public function getPedidosPendientesPago(int $cliente_id, int $id_pedido_spec, bool $es_aprendiz): array {
+    public function getPedidosPendientesPago(int $cliente_id, int $id_pedido_spec = 0): array {
+        $cond = "id_cliente = ?
+                 AND estado != 'rechazado'
+                 AND (aprobado_instructor = 1 OR id_cliente = id_creador)
+                 AND (estado_pago IS NULL OR estado_pago IN ('no_aplica','pendiente','expirado','parcial','rechazado'))";
+
         if ($id_pedido_spec > 0) {
-            $stmt = $this->pdo->prepare("
-                SELECT *
-                FROM pedido_cliente
-                WHERE id_pedido = ?
-                  AND (id_cliente = ? OR id_creador = ?)
-                  AND estado != 'rechazado'
-                  AND (estado_pago IS NULL OR estado_pago = 'no_aplica' OR estado_pago = 'pendiente' OR estado_pago = 'expirado' OR estado_pago = 'parcial' OR estado_pago = 'rechazado')
-            ");
-            $stmt->execute([$id_pedido_spec, $cliente_id, $cliente_id]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } else {
-            if ($es_aprendiz) {
-                return [];
-            }
-            $stmt = $this->pdo->prepare("
-                SELECT *
-                FROM pedido_cliente
-                WHERE id_cliente = ?
-                  AND estado != 'rechazado'
-                  AND (estado_pago IS NULL OR estado_pago = 'no_aplica' OR estado_pago = 'pendiente' OR estado_pago = 'expirado' OR estado_pago = 'parcial' OR estado_pago = 'rechazado')
-                ORDER BY fecha_solicitud ASC
-            ");
-            $stmt->execute([$cliente_id]);
+            $stmt = $this->pdo->prepare("SELECT * FROM pedido_cliente WHERE id_pedido = ? AND $cond");
+            $stmt->execute([$id_pedido_spec, $cliente_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
+
+        $stmt = $this->pdo->prepare("SELECT * FROM pedido_cliente WHERE $cond ORDER BY fecha_solicitud ASC");
+        $stmt->execute([$cliente_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**

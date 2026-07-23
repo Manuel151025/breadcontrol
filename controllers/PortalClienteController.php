@@ -644,10 +644,14 @@ class PortalClienteController {
         }
 
         $pedido = $this->model->getPedido($id_pedido, $cliente_id);
-        if (!$pedido) { 
-            header('Location: dashboard.php'); 
-            exit; 
+        if (!$pedido) {
+            header('Location: dashboard.php');
+            exit;
         }
+
+        // Regla unica de pago (D2): solo puede pagar quien figura como id_cliente del
+        // pedido (destinatario/facturado). El id_creador puede VER el pedido pero nunca pagarlo.
+        $puede_pagar = ((int)$pedido['id_cliente'] === $cliente_id);
 
         $detalles = $this->model->getDetallesPedido($id_pedido);
 
@@ -1083,15 +1087,23 @@ class PortalClienteController {
         $config_pago = $this->model->getConfiguracionPago();
         $pago_configurado = !empty($config_pago['nequi_link_pago']) && !empty($config_pago['wompi_habilitado']);
 
-        $cliente_info = $this->model->getClienteById($cliente_id);
-        $es_aprendiz = $cliente_info ? ((int)$cliente_info['es_aprendiz'] === 1) : false;
-
         $id_pedido_spec = (int)($_GET['id_pedido'] ?? 0);
 
-        $pedidos = $this->model->getPedidosPendientesPago($cliente_id, $id_pedido_spec, $es_aprendiz);
+        // getPedidosPendientesPago aplica la regla unica de pago por id_cliente (D2/D5).
+        $pedidos = $this->model->getPedidosPendientesPago($cliente_id, $id_pedido_spec);
         if (empty($pedidos)) {
             header('Location: dashboard.php');
             exit;
+        }
+
+        // Defensa en profundidad (D2): ningun pedido del lote puede pertenecer a otra
+        // cuenta. Si alguno no factura a este usuario, se aborta el lote completo — nunca
+        // se filtra silenciosamente ni se expone el link de pago de otro.
+        foreach ($pedidos as $p) {
+            if ((int)$p['id_cliente'] !== $cliente_id) {
+                header('Location: dashboard.php?error=pago_no_autorizado');
+                exit;
+            }
         }
 
         $total_saldo = 0;

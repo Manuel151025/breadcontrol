@@ -440,11 +440,13 @@
                             </ol>
                         </div>
 
+                        <?php if ($puede_pagar): ?>
                         <a href="<?= htmlspecialchars($pago_activo['wompi_link_url']) ?>" target="_blank" rel="noopener" class="btn-pagar-ahora">
                             <i class="bi bi-shield-lock-fill"></i>
                             Pagar ahora
                             <i class="bi bi-box-arrow-up-right" style="font-size:.9rem; opacity:.85;"></i>
                         </a>
+                        <?php endif; ?>
 
                         <div class="pago-medios">
                             Aceptamos: <strong>Nequi · Bancolombia · PSE · Tarjeta débito/crédito</strong>
@@ -562,13 +564,15 @@
                             </div>
                         <?php endif; ?>
 
+                        <?php if ($puede_pagar): ?>
                         <a href="pagar_consolidado.php?id_pedido=<?= $pedido['id_pedido'] ?>" class="btn-pagar-ahora" style="margin-top: 1.2rem; background: linear-gradient(135deg, var(--c3), var(--c1)); text-decoration: none; animation: none; text-align: center;">
                             <i class="bi bi-cash-coin"></i> Pagar saldo restante ($<?= number_format($saldo_restante, 0, ',', '.') ?>)
                         </a>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
                 
-                <?php if (!$pago_activo && $pedido['estado'] !== 'rechazado' && $pedido['estado_pago'] !== 'aprobado'): ?>
+                <?php if ($puede_pagar && !$pago_activo && $pedido['estado'] !== 'rechazado' && $pedido['estado_pago'] !== 'aprobado'): ?>
                     <div class="pago-card-cta" style="margin-top: 1.5rem; background: linear-gradient(135deg, #fdf6ee, #fff); border: 2px solid var(--border); border-radius: 14px; padding: 1.4rem;">
                         <h4><i class="bi bi-credit-card-2-front"></i> Pagar este pedido</h4>
                         <div class="desc">
