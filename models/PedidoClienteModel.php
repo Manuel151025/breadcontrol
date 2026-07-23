@@ -223,22 +223,43 @@ class PedidoClienteModel {
     public function registrarAbonoPago(int $id_pago_activo, float $monto_recibido, string $metodo, ?string $nota): bool {
         $this->pdo->beginTransaction();
         try {
-            // 1. Insertar el abono
+            // 0. Bloquear la fila del pago para serializar abonos concurrentes (D1: evita
+            //    condicion de carrera entre dos confirmaciones casi simultaneas).
+            $stmt_lock = $this->pdo->prepare("SELECT id_pago FROM pago_pedido WHERE id_pago = ? FOR UPDATE");
+            $stmt_lock->execute([$id_pago_activo]);
+            if ($stmt_lock->fetchColumn() === false) {
+                throw new Exception("El pago ya no existe.");
+            }
+
+            // 1. Total ya abonado y total esperado ANTES de insertar (para validar el tope).
+            $stmt_prev = $this->pdo->prepare("SELECT COALESCE(SUM(monto), 0) FROM pago_abono WHERE id_pago = ?");
+            $stmt_prev->execute([$id_pago_activo]);
+            $abonado_previo = (float)$stmt_prev->fetchColumn();
+
+            $stmt_sum = $this->pdo->prepare("SELECT COALESCE(SUM(total_estimado), 0) FROM pedido_cliente WHERE id_pago_activo = ?");
+            $stmt_sum->execute([$id_pago_activo]);
+            $total_esperado = (float)$stmt_sum->fetchColumn();
+
+            // C3: el abono no puede exceder el saldo pendiente (con 1 peso de tolerancia
+            //     por redondeo). Antes solo se validaba monto_recibido > 0 en el controlador.
+            $saldo_restante = $total_esperado - $abonado_previo;
+            if ($monto_recibido > $saldo_restante + 1) {
+                throw new Exception(sprintf(
+                    'El monto recibido ($%s) excede el saldo pendiente ($%s).',
+                    number_format($monto_recibido, 0, ',', '.'),
+                    number_format(max(0, $saldo_restante), 0, ',', '.')
+                ));
+            }
+
+            // 2. Insertar el abono
             $stmt_abono = $this->pdo->prepare("
                 INSERT INTO pago_abono (id_pago, monto, metodo_pago, nota, fecha_abono)
                 VALUES (?, ?, ?, ?, NOW())
             ");
             $stmt_abono->execute([$id_pago_activo, $monto_recibido, $metodo, $nota ?: null]);
 
-            // 2. Suma acumulada de todos los abonos
-            $stmt_sum_ab = $this->pdo->prepare("SELECT COALESCE(SUM(monto), 0) FROM pago_abono WHERE id_pago = ?");
-            $stmt_sum_ab->execute([$id_pago_activo]);
-            $total_abonado = (float)$stmt_sum_ab->fetchColumn();
-
-            // 3. Total esperado consolidado de los pedidos
-            $stmt_sum = $this->pdo->prepare("SELECT SUM(total_estimado) FROM pedido_cliente WHERE id_pago_activo = ?");
-            $stmt_sum->execute([$id_pago_activo]);
-            $total_esperado = (float)$stmt_sum->fetchColumn();
+            // 3. Suma acumulada de todos los abonos (incluye el recien insertado)
+            $total_abonado = $abonado_previo + $monto_recibido;
 
             // 4. Determinar estado
             $es_pago_parcial = ($total_abonado < ($total_esperado - 1));

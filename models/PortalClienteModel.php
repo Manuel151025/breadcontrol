@@ -673,8 +673,10 @@ class PortalClienteModel {
                 throw new Exception("El carrito no contiene productos válidos.");
             }
 
-            // Validar cupo semanal de aprendiz
-            $stmt_creador = $this->pdo->prepare("SELECT es_aprendiz, cupo_semanal FROM cliente WHERE id_cliente = ?");
+            // Validar cupo semanal de aprendiz. Se bloquea la fila del creador (FOR UPDATE)
+            // para serializar pedidos concurrentes del mismo aprendiz y que dos pedidos casi
+            // simultaneos no lean el mismo consumo "antes" del commit y excedan el cupo (D1/L5).
+            $stmt_creador = $this->pdo->prepare("SELECT es_aprendiz, cupo_semanal FROM cliente WHERE id_cliente = ? FOR UPDATE");
             $stmt_creador->execute([$id_creador]);
             $creador_info = $stmt_creador->fetch(PDO::FETCH_ASSOC);
 
