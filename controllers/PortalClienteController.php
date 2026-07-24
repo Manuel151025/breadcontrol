@@ -106,10 +106,11 @@ class PortalClienteController {
 
         // Map callback errors to user-friendly messages
         $callback_errors = [
-            'google_cancelado' => 'Cancelaste el inicio de sesión con Google.',
-            'google_token'     => 'No se pudo conectar con Google. Intenta de nuevo.',
-            'google_perfil'    => 'No fue posible obtener tu perfil de Google.',
-            'google_registro'  => 'Hubo un problema al registrar tu cuenta. Intenta de nuevo.',
+            'google_cancelado'  => 'Cancelaste el inicio de sesión con Google.',
+            'google_token'      => 'No se pudo conectar con Google. Intenta de nuevo.',
+            'google_perfil'     => 'No fue posible obtener tu perfil de Google.',
+            'google_registro'   => 'Hubo un problema al registrar tu cuenta. Intenta de nuevo.',
+            'google_conflicto'  => 'Ese correo ya está vinculado a otra cuenta de Google. Inicia sesión con esa cuenta o contacta al administrador.',
         ];
         if (isset($_GET['error']) && isset($callback_errors[$_GET['error']])) {
             $error = $callback_errors[$_GET['error']];
@@ -218,11 +219,19 @@ class PortalClienteController {
         // 1. Try to find by google_id
         $cliente = $this->model->getClienteByGoogleId($google_id);
 
-        // 2. Try to find by email and link google_id
+        // 2. Buscar por email y enlazar el google_id a la cuenta existente (esto es lo
+        //    que evita el duplicado ahora que el registro tradicional sí guarda email;
+        //    la comparación de email es case-insensitive por la collation de la columna).
         if (!$cliente && $email) {
             $cliente = $this->model->getClienteByEmail($email);
 
             if ($cliente) {
+                // Caso borde: el correo ya pertenece a una cuenta enlazada a OTRO Google.
+                // No se reasigna (sería secuestrar la cuenta): se rechaza con mensaje claro.
+                if (!empty($cliente['google_id']) && $cliente['google_id'] !== $google_id) {
+                    header('Location: index.php?error=google_conflicto');
+                    exit;
+                }
                 $this->model->vincularGoogleId($cliente['id_cliente'], $google_id, $foto_url);
                 $cliente['google_id'] = $google_id;
                 $cliente['foto_url']  = $foto_url;
