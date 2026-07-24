@@ -1,6 +1,24 @@
 # Riesgo de cuenta duplicada al entrar con Google — análisis
 
-**Fecha:** 2026-07-23 · **Rama:** `master` · **Estado:** análisis, **NO implementado** (a decidir aparte).
+**Fecha:** 2026-07-23 · **Rama:** `master` · **Estado:** **RESUELTO en la causa raíz** (2026-07-24).
+
+> ## Solución implementada (2026-07-24)
+> Se atacó la causa raíz (había 0 aprendices y 0 pedidos reales, nada que reconciliar):
+> - **Email obligatorio y único en el registro tradicional** (Opción 1): `registro.php`
+>   pide correo, validado con `filter_var` y con índice único `uq_cliente_email`
+>   (los NULL no cuentan, así que las 47 cuentas históricas no se rompen).
+>   Migración `sql/migraciones/2026-07-24_01_email_unico_cliente.sql`.
+> - **Enlace automático en Google**: `googleCallback` ya enlazaba por email; ahora que el
+>   registro guarda email, sí encuentra la cuenta existente en vez de duplicar. Caso borde
+>   añadido: si el correo pertenece a una cuenta con **otro** `google_id`, se rechaza
+>   (`?error=google_conflicto`), no se reasigna.
+> - **Pantalla intermedia** `completar_email.php` (Opción 2 para lo existente): las cuentas
+>   de portal (usuario+contraseña) sin email lo proporcionan la próxima vez que entran,
+>   antes de continuar (bandera `falta_email` en `login()`/`requireCliente()`).
+> - **NO se migraron ni fusionaron** cuentas existentes (decisión del dueño). Las 46
+>   cuentas históricas sin usuario no se tocaron.
+>
+> Lo que sigue abajo es el análisis original que motivó la decisión.
 
 ## Pregunta (Tarea 4)
 
