@@ -60,16 +60,46 @@ class PortalClienteModel {
 
     /**
      * Registra un cliente tradicional. Devuelve el id del nuevo cliente, o 0 si falla.
+     * El email es obligatorio (clave para enlazar luego con Google y evitar duplicados).
      */
-    public function registrarCliente(string $nombre, string $tipo, string $telefono, string $usuario, string $hash, int $es_aprendiz, ?int $id_instructor = null): int {
+    public function registrarCliente(string $nombre, string $tipo, string $telefono, ?string $email, string $usuario, string $hash, int $es_aprendiz, ?int $id_instructor = null): int {
         $stmt = $this->pdo->prepare("
-            INSERT INTO cliente (nombre, tipo, telefono, usuario, contrasena_hash, es_aprendiz, id_instructor, activo, fecha_creacion)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW())
+            INSERT INTO cliente (nombre, tipo, telefono, email, usuario, contrasena_hash, es_aprendiz, id_instructor, activo, fecha_creacion)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
         ");
-        if (!$stmt->execute([$nombre, $tipo, $telefono, $usuario, $hash, $es_aprendiz, $id_instructor])) {
+        if (!$stmt->execute([$nombre, $tipo, $telefono, $email, $usuario, $hash, $es_aprendiz, $id_instructor])) {
             return 0;
         }
         return (int)$this->pdo->lastInsertId();
+    }
+
+    /**
+     * ¿El correo ya está registrado en alguna cuenta (activa o no)? Incluye NULL-safe:
+     * un email vacío nunca se considera "registrado". Sirve para el mensaje claro y como
+     * pre-chequeo del índice único uq_cliente_email.
+     */
+    public function emailRegistrado(string $email, ?int $excluirId = null): bool {
+        $email = trim($email);
+        if ($email === '') return false;
+        $sql = "SELECT 1 FROM cliente WHERE email = ?";
+        $params = [$email];
+        if ($excluirId !== null) {
+            $sql .= " AND id_cliente != ?";
+            $params[] = $excluirId;
+        }
+        $sql .= " LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    /**
+     * Actualiza el correo de un cliente (pantalla intermedia para cuentas de portal
+     * que aún no tienen email).
+     */
+    public function actualizarEmail(int $id, string $email): bool {
+        $stmt = $this->pdo->prepare("UPDATE cliente SET email = ? WHERE id_cliente = ?");
+        return $stmt->execute([$email, $id]);
     }
 
     /**

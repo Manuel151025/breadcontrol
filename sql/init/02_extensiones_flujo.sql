@@ -30,6 +30,7 @@ ALTER TABLE `cliente`
   ADD COLUMN `fecha_aprendiz`  datetime       DEFAULT NULL,
   ADD UNIQUE KEY `uq_cliente_usuario` (`usuario`),
   ADD UNIQUE KEY `uq_cliente_google` (`google_id`),
+  ADD UNIQUE KEY `uq_cliente_email` (`email`),
   ADD KEY `fk_cliente_instructor` (`id_instructor`),
   ADD CONSTRAINT `fk_cliente_instructor` FOREIGN KEY (`id_instructor`) REFERENCES `cliente` (`id_cliente`) ON DELETE SET NULL;
 

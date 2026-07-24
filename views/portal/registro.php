@@ -192,7 +192,12 @@
             <label>Teléfono</label>
             <input type="text" name="telefono" placeholder="Opcional" maxlength="15">
         </div>
-        
+
+        <div class="field">
+            <label>Correo electrónico</label>
+            <input type="email" name="email" placeholder="tucorreo@ejemplo.com" required maxlength="150">
+        </div>
+
         <div class="grid-2">
             <div class="field">
                 <label>Usuario</label>

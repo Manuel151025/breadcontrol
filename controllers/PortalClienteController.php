@@ -291,49 +291,53 @@ class PortalClienteController {
                     $telefono = substr($telefono, 0, 15);
                 }
                 $tipo = 'mostrador';
+                $email = trim($_POST['email'] ?? '');
                 $usuario = trim($_POST['usuario'] ?? '');
                 $contrasena = $_POST['contrasena'] ?? '';
                 // El vínculo aprendiz-instructor ya NO es manual: se hace canjeando un
                 // código del instructor (campo opcional). Ver canjearCodigoAprendiz.
                 $codigo_canje = strtoupper(trim($_POST['codigo_aprendiz'] ?? ''));
 
-                if ($nombre && $usuario && $contrasena) {
+                if ($nombre && $usuario && $contrasena && $email) {
                     if (!preg_match('/^[a-z0-9_]+$/', $usuario)) {
                         $error = 'El nombre de usuario solo puede contener letras minúsculas, números y guiones bajos.';
                     } elseif (strlen($usuario) > 50) {
                         $error = 'El nombre de usuario no puede superar los 50 caracteres.';
                     } elseif (mb_strlen($nombre) > 100) {
                         $error = 'El nombre de tienda o persona no puede superar los 100 caracteres.';
+                    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $error = 'El correo electrónico no es válido.';
+                    } elseif (mb_strlen($email) > 150) {
+                        $error = 'El correo electrónico es demasiado largo.';
                     } elseif (strlen($contrasena) < 4) {
                         $error = 'La contraseña debe tener al menos 4 caracteres.';
+                    } elseif ($this->model->getClienteByUsuario($usuario)) {
+                        $error = 'El nombre de usuario ya está en uso. Elige otro.';
+                    } elseif ($this->model->emailRegistrado($email)) {
+                        $error = 'Ese correo ya está registrado. Inicia sesión o usa otro correo.';
                     } else {
-                        $existente = $this->model->getClienteByUsuario($usuario);
-                        if ($existente) {
-                            $error = 'El nombre de usuario ya está en uso. Elige otro.';
-                        } else {
-                            $hash = password_hash($contrasena, PASSWORD_DEFAULT);
-                            try {
-                                $new_id = $this->model->registrarCliente($nombre, $tipo, $telefono, $usuario, $hash, 0, null);
-                                if ($new_id > 0) {
-                                    $success = 'Registro exitoso. Ya puedes iniciar sesión y hacer pedidos.';
-                                    // Canje opcional del código de aprendiz (único punto).
-                                    if ($codigo_canje !== '') {
-                                        $r = $this->intentarCanjeCodigo($new_id, $codigo_canje);
-                                        if ($r['ok']) {
-                                            $success = 'Registro exitoso. Quedaste vinculado como aprendiz de '
-                                                . htmlspecialchars($r['instructor']) . '. Ya puedes iniciar sesión.';
-                                        } else {
-                                            $success = 'Tu cuenta se creó, pero el código no se aplicó: '
-                                                . htmlspecialchars($r['error'])
-                                                . ' Podrás canjearlo luego desde tu perfil.';
-                                        }
+                        $hash = password_hash($contrasena, PASSWORD_DEFAULT);
+                        try {
+                            $new_id = $this->model->registrarCliente($nombre, $tipo, $telefono, $email, $usuario, $hash, 0, null);
+                            if ($new_id > 0) {
+                                $success = 'Registro exitoso. Ya puedes iniciar sesión y hacer pedidos.';
+                                // Canje opcional del código de aprendiz (único punto).
+                                if ($codigo_canje !== '') {
+                                    $r = $this->intentarCanjeCodigo($new_id, $codigo_canje);
+                                    if ($r['ok']) {
+                                        $success = 'Registro exitoso. Quedaste vinculado como aprendiz de '
+                                            . htmlspecialchars($r['instructor']) . '. Ya puedes iniciar sesión.';
+                                    } else {
+                                        $success = 'Tu cuenta se creó, pero el código no se aplicó: '
+                                            . htmlspecialchars($r['error'])
+                                            . ' Podrás canjearlo luego desde tu perfil.';
                                     }
-                                } else {
-                                    $error = 'Error al registrar. Verifica los datos.';
                                 }
-                            } catch (Exception $e) {
+                            } else {
                                 $error = 'Error al registrar. Verifica los datos.';
                             }
+                        } catch (Exception $e) {
+                            $error = 'Error al registrar. Verifica los datos.';
                         }
                     }
                 } else {
