@@ -93,7 +93,7 @@
 
   <div class="card-title">
     <h1>¡Casi listo!</h1>
-    <p>Confirma tu nombre para entrar al portal. Si eres aprendiz SENA, luego podrás canjear el código de tu instructor desde tu perfil.</p>
+    <p>Confirma tu nombre para entrar al portal. Si eres aprendiz SENA, ingresa el código de tu instructor.</p>
   </div>
 
   <?php if ($error): ?>
@@ -108,12 +108,9 @@
       <input type="text" name="nombre" value="<?= htmlspecialchars($nombre_actual) ?>" placeholder="Ej: Tienda El Buen Sabor" required maxlength="100">
     </div>
 
-    <div class="aprendiz-box" style="cursor:default;">
-      <i class="bi bi-mortarboard-fill" style="color:var(--honey); font-size:1.2rem; flex-shrink:0; margin-top:.1rem;"></i>
-      <div class="aprendiz-text">
-        <span class="aprendiz-label">¿Eres aprendiz SENA?</span>
-        <span class="aprendiz-desc">Entra al portal y, desde <strong>Mi Perfil</strong>, canjea el código que te dio tu instructor para unirte a su grupo.</span>
-      </div>
+    <div class="field" style="background: rgba(57,169,0,.1); padding: 0.85rem; border-radius: 10px; border: 1px solid rgba(57,169,0,.3);">
+      <label style="color:#8fd66a;"><i class="bi bi-mortarboard-fill"></i> Código de aprendiz SENA <span style="color:rgba(255,255,255,.4); font-weight:400;">(opcional)</span></label>
+      <input type="text" name="codigo_aprendiz" placeholder="Si tu instructor te dio un código, ingrésalo" maxlength="16" style="text-transform:uppercase; letter-spacing:.12em;">
     </div>
 
     <button type="submit" class="btn-submit">Entrar al portal</button>

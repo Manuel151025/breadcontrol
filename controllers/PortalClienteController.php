@@ -520,8 +520,10 @@ class PortalClienteController {
             $total_reg   = $this->model->contarAprendices($cliente_id, true);
         }
 
-        $success_msg = '';
-        $error_msg = '';
+        // Mensajes provenientes de un redirect (p. ej. el canje en completar_perfil.php).
+        $success_msg = $_SESSION['flash_ok'] ?? '';
+        $error_msg   = $_SESSION['flash_err'] ?? '';
+        unset($_SESSION['flash_ok'], $_SESSION['flash_err']);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
@@ -1194,11 +1196,26 @@ class PortalClienteController {
                 if (empty($nombre)) {
                     $error = 'El nombre no puede estar vacío.';
                 } else {
-                    // El vínculo aprendiz-instructor NO se asigna aquí: se hace luego
-                    // canjeando un código del instructor desde el perfil. Se conserva el
-                    // estado actual del cliente (recién creado por Google: no es aprendiz).
+                    // Se completa el perfil (nombre). El vínculo aprendiz-instructor se hace
+                    // por código: campo opcional aquí para quien entró con Google y no pasó
+                    // por registro.php. El estado del cliente recién creado por Google es
+                    // es_aprendiz=0.
                     $this->model->completarPerfilCliente($cliente_id, $nombre, 0, null);
                     $_SESSION['cliente_nombre'] = $nombre;
+
+                    // Canje opcional del código. NO bloquea el ingreso si falla: el perfil
+                    // queda completo igual y el motivo se muestra como aviso en el tablero.
+                    $codigo_canje = strtoupper(trim($_POST['codigo_aprendiz'] ?? ''));
+                    if ($codigo_canje !== '') {
+                        $r = $this->intentarCanjeCodigo($cliente_id, $codigo_canje);
+                        if ($r['ok']) {
+                            $_SESSION['flash_ok'] = 'Quedaste vinculado como aprendiz de ' . $r['instructor'] . '.';
+                        } else {
+                            $_SESSION['flash_err'] = 'Tu perfil quedó listo, pero el código no se aplicó: '
+                                . $r['error'] . ' Puedes canjearlo luego desde tu perfil.';
+                        }
+                    }
+
                     header('Location: dashboard.php');
                     exit;
                 }
