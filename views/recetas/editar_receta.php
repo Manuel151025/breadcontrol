@@ -160,7 +160,7 @@
       <div>
         <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Editar <em>Receta</em></div>
-        <div class="wc-sub"><?= htmlspecialchars($producto['nombre']) ?> · <?= $producto['unidad_produccion'] ?></div>
+        <div class="wc-sub"><?= htmlspecialchars($producto['nombre'] ?? '') ?> · <?= $producto['unidad_produccion'] ?></div>
       </div>
     </div>
     <div class="wc-pills">
@@ -178,7 +178,7 @@
   <!-- TOPBAR -->
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
-      <div class="mod-titulo"><i class="bi bi-journal-text"></i> <?= htmlspecialchars($producto['nombre']) ?></div>
+      <div class="mod-titulo"><i class="bi bi-journal-text"></i> <?= htmlspecialchars($producto['nombre'] ?? '') ?></div>
       <?php if ($producto['cantidad_por_tanda'] > 0): ?>
       <span class="mod-sub">Rinde <?= $producto['cantidad_por_tanda'] ?> unidades por tanda</span>
       <?php endif; ?>
@@ -235,7 +235,7 @@
                       data-id="<?= $ing['id_insumo'] ?>"
                       onclick="abrirModal(this)">
                 <i class="bi bi-bag-fill picker-ico" style="color:var(--c3)"></i>
-                <span class="picker-nombre"><?= htmlspecialchars($ing['nombre_insumo']) ?></span>
+                <span class="picker-nombre"><?= htmlspecialchars($ing['nombre_insumo'] ?? '') ?></span>
                 <?php if ($ing['es_harina']): ?>
                 <span class="picker-tag tag-harina">🌾 harina</span>
                 <?php endif; ?>

@@ -65,10 +65,10 @@
     </div>
 
     <?php if ($msg_ok): ?>
-        <div style="max-width:1000px;margin:0 auto;"><div class="msg-ok"><i class="bi bi-check-circle-fill"></i> <?= htmlspecialchars($msg_ok) ?></div></div>
+        <div style="max-width:1000px;margin:0 auto;"><div class="msg-ok"><i class="bi bi-check-circle-fill"></i> <?= htmlspecialchars($msg_ok ?? '') ?></div></div>
     <?php endif; ?>
     <?php if ($msg_err): ?>
-        <div style="max-width:1000px;margin:0 auto;"><div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($msg_err) ?></div></div>
+        <div style="max-width:1000px;margin:0 auto;"><div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($msg_err ?? '') ?></div></div>
     <?php endif; ?>
 
     <div class="pf-container">
@@ -91,13 +91,13 @@
                     <div class="tienda-item">
                         <div class="tienda-info">
                             <div class="nombre">
-                                <?= htmlspecialchars($b['nombre']) ?>
+                                <?= htmlspecialchars($b['nombre'] ?? '') ?>
                                 <?php if ($b['total_pedidos_destino'] > 0): ?>
                                     <span class="badge"><?= $b['total_pedidos_destino'] ?> pedido<?= $b['total_pedidos_destino']>1?'s':'' ?></span>
                                 <?php endif; ?>
                             </div>
                             <div class="meta">
-                                <?php if ($b['telefono']): ?><i class="bi bi-telephone"></i> <?= htmlspecialchars($b['telefono']) ?> · <?php endif; ?>
+                                <?php if ($b['telefono']): ?><i class="bi bi-telephone"></i> <?= htmlspecialchars($b['telefono'] ?? '') ?> · <?php endif; ?>
                                 Registrada el <?= date('d/m/Y', strtotime($b['fecha_creacion'])) ?>
                             </div>
                         </div>
@@ -120,9 +120,9 @@
                     <?php foreach ($candidatos as $c): ?>
                         <div class="tienda-item">
                             <div class="tienda-info">
-                                <div class="nombre"><?= htmlspecialchars($c['nombre']) ?></div>
+                                <div class="nombre"><?= htmlspecialchars($c['nombre'] ?? '') ?></div>
                                 <div class="meta">
-                                    <?php if ($c['telefono']): ?><i class="bi bi-telephone"></i> <?= htmlspecialchars($c['telefono']) ?><?php endif; ?>
+                                    <?php if ($c['telefono']): ?><i class="bi bi-telephone"></i> <?= htmlspecialchars($c['telefono'] ?? '') ?><?php endif; ?>
                                 </div>
                             </div>
                             <form method="post" style="margin:0;">

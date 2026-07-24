@@ -252,7 +252,7 @@
     <div class="fil-wrap">
       <span class="fil-lbl">Fecha:</span>
       <form method="get">
-        <input type="date" name="fecha" class="fil-date" value="<?= htmlspecialchars($fecha_fil) ?>" onchange="this.form.submit()">
+        <input type="date" name="fecha" class="fil-date" value="<?= htmlspecialchars($fecha_fil ?? '') ?>" onchange="this.form.submit()">
       </form>
       <a href="exportar_pdf.php?fecha=<?= urlencode($fecha_fil) ?>" target="_blank" class="btn-back" style="padding: 0.5rem 0.95rem; font-size: 0.82rem; font-weight: 700;"><i class="bi bi-printer-fill"></i> Imprimir Reporte</a>
       <a href="nueva_produccion.php" class="btn-grad"><i class="bi bi-plus-lg"></i> Nueva con receta</a>
@@ -289,7 +289,7 @@
           ?>
           <div class="top-prod-item">
             <div class="top-prod-info">
-              <span class="top-prod-name" title="<?= htmlspecialchars($tp['nombre']) ?>"><?= htmlspecialchars($tp['nombre']) ?></span>
+              <span class="top-prod-name" title="<?= htmlspecialchars($tp['nombre'] ?? '') ?>"><?= htmlspecialchars($tp['nombre'] ?? '') ?></span>
               <span class="top-prod-val"><?= $tp['tandas'] ?> tandas</span>
             </div>
             <div class="top-prod-bar-bg">
@@ -336,7 +336,7 @@
           <tr>
             <td><span style="font-family:'Fraunces',serif;font-weight:700;color:var(--ink3);"><?= $pr['id_produccion'] ?></span></td>
             <td>
-              <strong><?= htmlspecialchars($pr['producto']) ?></strong><br>
+              <strong><?= htmlspecialchars($pr['producto'] ?? '') ?></strong><br>
               <span style="font-size:.7rem;color:var(--ink3);"><?= $pr['unidad_produccion'] ?></span>
             </td>
             <td><span class="tanda-badge"><?= (int)$pr['cantidad_tandas'] ?></span></td>

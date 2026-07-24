@@ -358,7 +358,7 @@
           📅 <?= date('d/m/Y',strtotime($desde)) ?> — <?= date('d/m/Y',strtotime($hasta)) ?>
         </div>
         <div class="hdr-gen">
-          Generado el <?= date('d/m/Y H:i') ?> por <?= htmlspecialchars($user['nombre']) ?>
+          Generado el <?= date('d/m/Y H:i') ?> por <?= htmlspecialchars($user['nombre'] ?? '') ?>
         </div>
       </div>
     </div>
@@ -453,7 +453,7 @@
         ?>
         <div class="rank-row">
           <div class="rank-num <?= $clases_rank[$i] ?? '' ?>"><?= $i+1 ?></div>
-          <div class="rank-nombre"><?= htmlspecialchars($pp['nombre']) ?></div>
+          <div class="rank-nombre"><?= htmlspecialchars($pp['nombre'] ?? '') ?></div>
           <div class="rank-barra-w"><div class="rank-barra-f" style="width:<?=$pct?>%"></div></div>
           <div class="rank-und"><?= $pp['u'] ?> und</div>
           <div class="rank-val">$<?= number_format($pp['t'],0,',','.') ?></div>
@@ -597,7 +597,7 @@
       </div>
     </div>
     <div class="footer-info">
-      Generado por <?= htmlspecialchars($user['nombre']) ?> · <?= date('d/m/Y H:i') ?><br>
+      Generado por <?= htmlspecialchars($user['nombre'] ?? '') ?> · <?= date('d/m/Y H:i') ?><br>
       Período: <?= date('d/m/Y',strtotime($desde)) ?> — <?= date('d/m/Y',strtotime($hasta)) ?>
       <div class="footer-page">Sistema de Gestión BreadControl</div>
     </div>

@@ -54,10 +54,10 @@
 
     <div class="icono"><i class="bi bi-envelope-at-fill"></i></div>
     <h1>Confirma tu correo</h1>
-    <p class="sub">Hola <strong><?= htmlspecialchars($nombre_actual) ?></strong>, necesitamos tu correo electrónico para asegurar tu cuenta y que puedas entrar también con Google sin crear una cuenta duplicada.</p>
+    <p class="sub">Hola <strong><?= htmlspecialchars($nombre_actual ?? '') ?></strong>, necesitamos tu correo electrónico para asegurar tu cuenta y que puedas entrar también con Google sin crear una cuenta duplicada.</p>
 
     <?php if ($error): ?>
-    <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($error) ?></div>
+    <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($error ?? '') ?></div>
     <?php endif; ?>
 
     <form method="post">

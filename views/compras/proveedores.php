@@ -125,7 +125,7 @@
         <?php endif; ?>
 
         <?php if ($editando): ?>
-        <div class="edit-banner"><i class="bi bi-pencil-square"></i> Editando: <strong><?= htmlspecialchars($editando['nombre']) ?></strong></div>
+        <div class="edit-banner"><i class="bi bi-pencil-square"></i> Editando: <strong><?= htmlspecialchars($editando['nombre'] ?? '') ?></strong></div>
         <?php endif; ?>
 
         <form method="POST">
@@ -233,7 +233,7 @@
           $labelsMap = ['lunes'=>'Lun','martes'=>'Mar','miercoles'=>'Mié','jueves'=>'Jue','viernes'=>'Vie','sabado'=>'Sáb'];
           foreach ($proveedores as $p): ?>
           <tr>
-            <td><strong><?= htmlspecialchars($p['nombre']) ?></strong></td>
+            <td><strong><?= htmlspecialchars($p['nombre'] ?? '') ?></strong></td>
             <td><?= htmlspecialchars($p['telefono'] ?: '—') ?></td>
             <td>
               <?php if ($p['tipo_entrega'] === 'domicilio'): ?>
@@ -263,7 +263,7 @@
                 <a href="?editar=<?= $p['id_proveedor'] ?>" class="btn-act btn-edit" title="Editar">
                   <i class="bi bi-pencil"></i>
                 </a>
-                <form method="POST" style="display:contents;" onsubmit="return confirm('¿Desactivar a <?= htmlspecialchars($p['nombre']) ?>?')">
+                <form method="POST" style="display:contents;" onsubmit="return confirm('¿Desactivar a <?= htmlspecialchars($p['nombre'] ?? '') ?>?')">
                   <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                   <input type="hidden" name="desactivar" value="<?= $p['id_proveedor'] ?>">
                   <button type="submit" class="btn-act btn-del" title="Desactivar">

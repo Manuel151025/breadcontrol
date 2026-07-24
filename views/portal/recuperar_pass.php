@@ -84,10 +84,10 @@
       <?php endif; ?>
 
       <?php if ($error): ?>
-        <div class="msg-err"><i class="bi bi-exclamation-triangle-fill" style="flex-shrink:0;"></i> <?= htmlspecialchars($error) ?></div>
+        <div class="msg-err"><i class="bi bi-exclamation-triangle-fill" style="flex-shrink:0;"></i> <?= htmlspecialchars($error ?? '') ?></div>
       <?php endif; ?>
       <?php if ($ok): ?>
-        <div class="msg-ok"><i class="bi bi-check-circle-fill"></i> <?= htmlspecialchars($ok) ?></div>
+        <div class="msg-ok"><i class="bi bi-check-circle-fill"></i> <?= htmlspecialchars($ok ?? '') ?></div>
         <a href="index.php" class="btn-primary"><i class="bi bi-box-arrow-in-right"></i> Ir al inicio de sesión</a>
       <?php endif; ?>
 
@@ -99,7 +99,7 @@
           <label>Nombre de Usuario</label>
           <div class="inp-wrap">
             <i class="bi bi-person-fill ico"></i>
-            <input type="text" name="usuario" placeholder="Tu usuario de acceso" value="<?= htmlspecialchars($usuario_input) ?>" required autofocus>
+            <input type="text" name="usuario" placeholder="Tu usuario de acceso" value="<?= htmlspecialchars($usuario_input ?? '') ?>" required autofocus>
           </div>
         </div>
 

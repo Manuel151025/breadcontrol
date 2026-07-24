@@ -125,13 +125,13 @@
             <a href="perfil.php" class="n-user" title="Mi Perfil">
                 <div class="n-avatar">
                     <?php if (!empty($cliente['foto_url'])): ?>
-                        <img src="<?= htmlspecialchars($cliente['foto_url']) ?>" alt="avatar">
+                        <img src="<?= htmlspecialchars($cliente['foto_url'] ?? '') ?>" alt="avatar">
                     <?php else: ?>
                         <?= strtoupper(substr($_SESSION['cliente_nombre'], 0, 1)) ?>
                     <?php endif; ?>
                 </div>
                 <div>
-                    <div class="n-uname"><?= htmlspecialchars($_SESSION['cliente_nombre']) ?></div>
+                    <div class="n-uname"><?= htmlspecialchars($_SESSION['cliente_nombre'] ?? '') ?></div>
                     <div class="n-urole"><?= $es_instructor ? 'Instructor' : 'Cliente' ?></div>
                 </div>
             </a>
@@ -148,7 +148,7 @@
                 <div class="wc-p-avatar"><?= strtoupper(substr($cliente['nombre'], 0, 1)) ?></div>
                 <div>
                     <div class="wc-greeting">Mi Cuenta</div>
-                    <div class="wc-name"><?= htmlspecialchars($cliente['nombre']) ?></div>
+                    <div class="wc-name"><?= htmlspecialchars($cliente['nombre'] ?? '') ?></div>
                     <div class="wc-sub">
                         <i class="bi bi-<?= $cliente['tipo'] === 'tienda' ? 'shop' : 'person' ?>"></i> 
                         Cliente <?= ucfirst($cliente['tipo']) ?> — Gestiona tu información personal
@@ -168,15 +168,15 @@
                     <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                     <div class="form-group">
                         <label>Usuario</label>
-                        <input type="text" class="form-control" value="<?= htmlspecialchars($cliente['usuario']) ?>" readonly>
+                        <input type="text" class="form-control" value="<?= htmlspecialchars($cliente['usuario'] ?? '') ?>" readonly>
                     </div>
                     <div class="form-group">
                         <label>Nombre Completo / Tienda</label>
-                        <input type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($cliente['nombre']) ?>" maxlength="40" required>
+                        <input type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($cliente['nombre'] ?? '') ?>" maxlength="40" required>
                     </div>
                     <div class="form-group">
                         <label>Teléfono de Contacto</label>
-                        <input type="text" name="telefono" class="form-control" value="<?= htmlspecialchars($cliente['telefono']) ?>" maxlength="15" oninput="this.value=this.value.replace(/\D/g,'')">
+                        <input type="text" name="telefono" class="form-control" value="<?= htmlspecialchars($cliente['telefono'] ?? '') ?>" maxlength="15" oninput="this.value=this.value.replace(/\D/g,'')">
                     </div>
                     <button type="submit" name="actualizar_datos" class="btn-save">
                         <i class="bi bi-check2-circle"></i> Guardar Cambios
@@ -259,7 +259,7 @@
             <div class="sena-status">
                 <i class="bi bi-patch-check-fill"></i>
                 <div>
-                    <div style="font-weight:700; color:var(--ink);">Estás registrado como aprendiz<?= $mi_instructor_nombre ? ' de ' . htmlspecialchars($mi_instructor_nombre) : '' ?>.</div>
+                    <div style="font-weight:700; color:var(--ink);">Estás registrado como aprendiz<?= $mi_instructor_nombre ? ' de ' . htmlspecialchars($mi_instructor_nombre ?? '') : '' ?>.</div>
                     <div style="font-size:.8rem; color:var(--ink3); margin-top:.2rem;">Si necesitas salir del grupo, pídeselo a tu instructor.</div>
                 </div>
             </div>

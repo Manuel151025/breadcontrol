@@ -33,7 +33,7 @@
             <h3>Datos del Pedido</h3>
             <span class="estado-badge e-<?= $pedido['estado'] ?>">ESTADO: <?= $pedido['estado'] ?></span>
 
-            <div class="info-p"><strong>Cliente:</strong> <?= htmlspecialchars($pedido['cliente']) ?> (<?= $pedido['tipo_cliente'] ?>)</div>
+            <div class="info-p"><strong>Cliente:</strong> <?= htmlspecialchars($pedido['cliente'] ?? '') ?> (<?= $pedido['tipo_cliente'] ?>)</div>
             <div class="info-p"><strong>Digitado por:</strong> <?= htmlspecialchars($pedido['nombre_creador'] ?? 'Mismo cliente') ?></div>
             <?php if (isset($pedido['creador_es_aprendiz']) && (int)$pedido['creador_es_aprendiz'] === 1): ?>
             <div class="info-p">
@@ -56,7 +56,7 @@
                 <?php foreach($detalles as $d): ?>
                 <div class="det-item">
                     <span class="name">
-                        <?= htmlspecialchars($d['producto']) ?>
+                        <?= htmlspecialchars($d['producto'] ?? '') ?>
                         <?php if ($d['napa'] > 0): ?>
                             <span style="font-size:.7rem;color:#c67124;font-weight:700;margin-left:5px;">(🎁 Ñapa)</span>
                         <?php elseif ($d['bonificacion'] > 0): ?>
@@ -289,7 +289,7 @@
                 </div>
                 <div>
                     <div class="lbl">Referencia</div>
-                    <div class="val" style="font-family:monospace;font-size:.78rem;"><?= htmlspecialchars($pago_activo['referencia']) ?></div>
+                    <div class="val" style="font-family:monospace;font-size:.78rem;"><?= htmlspecialchars($pago_activo['referencia'] ?? '') ?></div>
                 </div>
             </div>
 
@@ -324,7 +324,7 @@
             <?php if (!empty($pago_activo['nota'])): ?>
                 <div class="form-group" style="margin-top: 1rem;">
                     <label>Nota del último registro</label>
-                    <div style="background:var(--clight);border:1px solid var(--border);border-radius:8px;padding:.8rem;font-size:.85rem;"><?= nl2br(htmlspecialchars($pago_activo['nota'])) ?></div>
+                    <div style="background:var(--clight);border:1px solid var(--border);border-radius:8px;padding:.8rem;font-size:.85rem;"><?= nl2br(htmlspecialchars($pago_activo['nota'] ?? '')) ?></div>
                 </div>
             <?php endif; ?>
 

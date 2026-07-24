@@ -35,7 +35,7 @@
     <div class="mod-titulo"><i class="bi bi-box-seam-fill"></i> Inventario</div>
     <div class="top-actions">
       <form method="get" style="display:flex;gap:.4rem;align-items:center;">
-        <input type="text" name="q" class="inp-search" placeholder="Buscar insumo…" value="<?= htmlspecialchars($busca) ?>">
+        <input type="text" name="q" class="inp-search" placeholder="Buscar insumo…" value="<?= htmlspecialchars($busca ?? '') ?>">
         <button type="submit" class="btn-sec"><i class="bi bi-search"></i></button>
       </form>
       <button type="button" class="btn-sec <?= $filtro_alerta ? 'active' : '' ?>" onclick="toggleAlerta()">
@@ -75,7 +75,7 @@
         <?php if ($msg_ok): ?><div class="msg-ok"><i class="bi bi-check-circle-fill"></i><span><?= $msg_ok ?></span></div><?php endif; ?>
         <?php if ($msg_err): ?><div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i><span><?= $msg_err ?></span></div><?php endif; ?>
         <?php if ($editando): ?>
-        <div class="edit-banner"><i class="bi bi-pencil-square"></i> Editando: <strong><?= htmlspecialchars($editando['nombre']) ?></strong></div>
+        <div class="edit-banner"><i class="bi bi-pencil-square"></i> Editando: <strong><?= htmlspecialchars($editando['nombre'] ?? '') ?></strong></div>
         <?php endif; ?>
         <form method="post">
           <?php if ($editando): ?><input type="hidden" name="id_insumo" value="<?= $editando['id_insumo'] ?>"><?php endif; ?>
@@ -166,7 +166,7 @@
           <tr class="<?= $alerta ? 'alerta-row' : '' ?>">
             <td><input type="checkbox" name="ids_eliminar[]" value="<?= $ins['id_insumo'] ?>" class="chk-ins"></td>
             <td>
-              <strong><?= htmlspecialchars($ins['nombre']) ?></strong>
+              <strong><?= htmlspecialchars($ins['nombre'] ?? '') ?></strong>
               <?php if ($ins['es_harina']): ?><span class="tag-harina">🌾 harina</span><?php endif; ?>
             </td>
             <td><?= $ins['unidad_medida'] ?></td>

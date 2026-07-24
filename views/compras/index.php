@@ -251,8 +251,8 @@
     <div class="mod-titulo"><i class="bi bi-cart3"></i> Compras</div>
     <div class="top-actions">
       <form method="get" style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;">
-        <input type="text" name="q" class="inp-search" placeholder="Buscar insumo o proveedor…" value="<?= htmlspecialchars($busca) ?>">
-        <input type="month" name="mes" class="inp-search" style="width:145px;" value="<?= htmlspecialchars($mes_filtro) ?>" onchange="this.form.submit()">
+        <input type="text" name="q" class="inp-search" placeholder="Buscar insumo o proveedor…" value="<?= htmlspecialchars($busca ?? '') ?>">
+        <input type="month" name="mes" class="inp-search" style="width:145px;" value="<?= htmlspecialchars($mes_filtro ?? '') ?>" onchange="this.form.submit()">
         <button type="submit" class="btn-sec" style="padding:.42rem .7rem;"><i class="bi bi-search"></i></button>
         <?php
           $alerta_params = [];
@@ -455,8 +455,8 @@
           <tr>
             <td class="td-chk"><input type="checkbox" class="row-chk" value="<?= $c['id_compra'] ?>" onchange="actualizarSeleccion()"></td>
             <td style="white-space:nowrap"><?= date('d/m/Y', strtotime($c['fecha_compra'])) ?></td>
-            <td><strong><?= htmlspecialchars($c['insumo']) ?></strong></td>
-            <td><?= htmlspecialchars($c['proveedor']) ?></td>
+            <td><strong><?= htmlspecialchars($c['insumo'] ?? '') ?></strong></td>
+            <td><?= htmlspecialchars($c['proveedor'] ?? '') ?></td>
             <td style="text-align:right">
               <span style="font-family:'Fraunces',serif;font-weight:700"><?= formatoInteligente($c['cantidad']) ?></span>
               <span style="font-size:.72rem;color:var(--ink3)"> <?= (strtolower($c['unidad_medida']) === 'unidad' || strtolower($c['unidad_medida']) === 'unidades') ? 'uds' : $c['unidad_medida'] ?></span>
@@ -522,12 +522,12 @@
       ?>
       <div class="mcard"
            data-id="<?= $ins['id_insumo'] ?>"
-           data-nombre="<?= htmlspecialchars($ins['nombre']) ?>"
+           data-nombre="<?= htmlspecialchars($ins['nombre'] ?? '') ?>"
            data-unidad="<?= $ins['unidad_medida'] ?>"
            data-search="<?= strtolower($ins['nombre']) ?>"
            onclick="seleccionarInsumo(this)">
         <div class="mcard-check"><i class="bi bi-check2"></i></div>
-        <div class="mcard-name"><?= htmlspecialchars($ins['nombre']) ?></div>
+        <div class="mcard-name"><?= htmlspecialchars($ins['nombre'] ?? '') ?></div>
         <?php
           $u_med = (strtolower($ins['unidad_medida']) === 'unidad' || strtolower($ins['unidad_medida']) === 'unidades') ? 'uds' : $ins['unidad_medida'];
         ?>
@@ -580,12 +580,12 @@
       ?>
       <div class="pcard"
            data-id="<?= $prov['id_proveedor'] ?>"
-           data-nombre="<?= htmlspecialchars($prov['nombre']) ?>"
+           data-nombre="<?= htmlspecialchars($prov['nombre'] ?? '') ?>"
            data-search="<?= strtolower($prov['nombre']) ?>"
            onclick="seleccionarProveedor(this)">
         <div class="pcard-ico"><i class="bi bi-truck"></i></div>
         <div class="pcard-info">
-          <div class="pcard-name"><?= htmlspecialchars($prov['nombre']) ?></div>
+          <div class="pcard-name"><?= htmlspecialchars($prov['nombre'] ?? '') ?></div>
           <div class="pcard-det"><?= implode(' · ', $det_parts) ?></div>
         </div>
         <div class="pcard-check"><i class="bi bi-check2"></i></div>

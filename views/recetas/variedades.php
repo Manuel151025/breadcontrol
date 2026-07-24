@@ -101,7 +101,7 @@
       <div class="cat-header">
         <div class="cat-header-left">
           <div class="cat-ico">$<?= number_format($cat['precio_unitario'],0,',','.') ?></div>
-          <span class="cat-title"><?= htmlspecialchars($cat['nombre']) ?></span>
+          <span class="cat-title"><?= htmlspecialchars($cat['nombre'] ?? '') ?></span>
         </div>
         <span class="cat-count"><?= count($vars) ?> variedad<?= count($vars) != 1 ? 'es' : '' ?></span>
       </div>
@@ -116,12 +116,12 @@
           <?php foreach ($vars as $v): ?>
           <div class="var-card">
             <?php if (!empty($v['imagen'])): ?>
-            <img src="<?= APP_URL ?>/<?= $v['imagen'] ?>" class="var-img" alt="<?= htmlspecialchars($v['nombre']) ?>">
+            <img src="<?= APP_URL ?>/<?= $v['imagen'] ?>" class="var-img" alt="<?= htmlspecialchars($v['nombre'] ?? '') ?>">
             <?php else: ?>
             <div class="var-img-placeholder">🍞</div>
             <?php endif; ?>
             <div class="var-info">
-              <div class="var-name" title="<?= htmlspecialchars($v['nombre']) ?>"><?= htmlspecialchars($v['nombre']) ?></div>
+              <div class="var-name" title="<?= htmlspecialchars($v['nombre'] ?? '') ?>"><?= htmlspecialchars($v['nombre'] ?? '') ?></div>
               <div class="var-btns">
                 <button class="btn-act btn-edit" title="Editar"
                   data-id="<?= $v['id_variedad'] ?>"

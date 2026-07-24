@@ -116,8 +116,8 @@
             <p>Genera un código y compártelo con tus aprendices para que se registren en tu grupo. No necesitas aprobar a nadie uno por uno.</p>
         </div>
 
-        <?php if ($msg_ok): ?><div class="msg-ok"><i class="bi bi-check-circle-fill"></i> <?= htmlspecialchars($msg_ok) ?></div><?php endif; ?>
-        <?php if ($msg_err): ?><div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($msg_err) ?></div><?php endif; ?>
+        <?php if ($msg_ok): ?><div class="msg-ok"><i class="bi bi-check-circle-fill"></i> <?= htmlspecialchars($msg_ok ?? '') ?></div><?php endif; ?>
+        <?php if ($msg_err): ?><div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($msg_err ?? '') ?></div><?php endif; ?>
 
         <!-- ══ CÓDIGO DE INVITACIÓN ══ -->
         <div class="card">
@@ -125,7 +125,7 @@
 
             <?php if ($codigo_activo): ?>
                 <div class="codigo-box">
-                    <input class="codigo-val" type="text" value="<?= htmlspecialchars($codigo_activo['codigo']) ?>" readonly aria-label="Código activo">
+                    <input class="codigo-val" type="text" value="<?= htmlspecialchars($codigo_activo['codigo'] ?? '') ?>" readonly aria-label="Código activo">
                     <div class="codigo-meta">
                         <span>
                             <i class="bi bi-calendar-event"></i>
@@ -202,9 +202,9 @@
                     <div class="apr">
                         <div class="apr-avatar"><?= strtoupper(mb_substr($a['nombre'], 0, 1)) ?></div>
                         <div class="apr-info">
-                            <div class="apr-nombre"><?= htmlspecialchars($a['nombre']) ?></div>
+                            <div class="apr-nombre"><?= htmlspecialchars($a['nombre'] ?? '') ?></div>
                             <div class="apr-meta">
-                                <?php if (!empty($a['telefono'])): ?><i class="bi bi-telephone"></i> <?= htmlspecialchars($a['telefono']) ?> &nbsp;·&nbsp; <?php endif; ?>
+                                <?php if (!empty($a['telefono'])): ?><i class="bi bi-telephone"></i> <?= htmlspecialchars($a['telefono'] ?? '') ?> &nbsp;·&nbsp; <?php endif; ?>
                                 <i class="bi bi-calendar-check"></i> Se unió:
                                 <?= !empty($a['fecha_aprendiz']) ? date('d/m/Y', strtotime($a['fecha_aprendiz'])) : '—' ?>
                             </div>

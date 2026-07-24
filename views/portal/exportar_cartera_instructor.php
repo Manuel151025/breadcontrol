@@ -79,8 +79,8 @@
         </div>
     </div>
     <div class="meta-section">
-        <strong>Instructor:</strong> <?= htmlspecialchars($nombre_instructor) ?><br>
-        <strong>Fecha:</strong> <?= htmlspecialchars($fecha_generado) ?><br>
+        <strong>Instructor:</strong> <?= htmlspecialchars($nombre_instructor ?? '') ?><br>
+        <strong>Fecha:</strong> <?= htmlspecialchars($fecha_generado ?? '') ?><br>
         <strong>Estado:</strong> Cartera General de Aprendices
     </div>
 </div>
@@ -122,7 +122,7 @@
         <?php foreach ($aprendices as $a): ?>
         <tr>
             <td>
-                <div class="apr-name"><?= htmlspecialchars($a['nombre']) ?></div>
+                <div class="apr-name"><?= htmlspecialchars($a['nombre'] ?? '') ?></div>
             </td>
             <td>
                 <div class="apr-info"><?= htmlspecialchars($a['email'] ? $a['email'] : ($a['telefono'] ? $a['telefono'] : 'Sin contacto')) ?></div>
@@ -148,7 +148,7 @@
 </table>
 
 <div class="footer">
-    BreadControl · Reporte de Cartera de Aprendices ADSO · Generado automáticamente el <?= htmlspecialchars($fecha_generado) ?>
+    BreadControl · Reporte de Cartera de Aprendices ADSO · Generado automáticamente el <?= htmlspecialchars($fecha_generado ?? '') ?>
 </div>
 
 </body>

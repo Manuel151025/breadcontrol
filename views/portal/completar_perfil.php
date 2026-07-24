@@ -86,7 +86,7 @@
 <div class="glass-card">
 
   <?php if ($foto_url): ?>
-    <img src="<?= htmlspecialchars($foto_url) ?>" alt="Foto" class="avatar">
+    <img src="<?= htmlspecialchars($foto_url ?? '') ?>" alt="Foto" class="avatar">
   <?php else: ?>
     <div class="avatar-placeholder"><i class="bi bi-person-fill"></i></div>
   <?php endif; ?>
@@ -97,7 +97,7 @@
   </div>
 
   <?php if ($error): ?>
-  <div class="msg-error"><i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($error) ?></div>
+  <div class="msg-error"><i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($error ?? '') ?></div>
   <?php endif; ?>
 
   <form method="POST" style="width:100%;display:flex;flex-direction:column;gap:1.3rem;">
@@ -105,7 +105,7 @@
 
     <div class="field">
       <label>Nombre de Tienda o Persona</label>
-      <input type="text" name="nombre" value="<?= htmlspecialchars($nombre_actual) ?>" placeholder="Ej: Tienda El Buen Sabor" required maxlength="100">
+      <input type="text" name="nombre" value="<?= htmlspecialchars($nombre_actual ?? '') ?>" placeholder="Ej: Tienda El Buen Sabor" required maxlength="100">
     </div>
 
     <div class="field" style="background: rgba(57,169,0,.1); padding: 0.85rem; border-radius: 10px; border: 1px solid rgba(57,169,0,.3);">

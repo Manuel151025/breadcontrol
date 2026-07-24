@@ -25,7 +25,7 @@
         
         <div style="background: var(--clight); border: 1px solid var(--border); border-radius: 10px; padding: .8rem 1rem; margin-bottom: 1.1rem; font-size: .85rem;">
           <span style="color: var(--ink3); text-transform: uppercase; font-size: .62rem; font-weight: 700; display: block; margin-bottom: .2rem;">Insumo seleccionado</span>
-          <strong style="font-size: 1rem; color: var(--ink);"><?= htmlspecialchars($insumo['nombre']) ?></strong>
+          <strong style="font-size: 1rem; color: var(--ink);"><?= htmlspecialchars($insumo['nombre'] ?? '') ?></strong>
           <div style="margin-top: .4rem; display: flex; justify-content: space-between; align-items: center;">
             <span style="color: var(--ink2);">Stock actual:</span>
             <strong style="color: var(--c3); font-size: 1.05rem; font-family: 'Fraunces', serif;"><?= formatoInteligente($insumo['stock_actual']) ?> <?= $insumo['unidad_medida'] ?></strong>
@@ -112,7 +112,7 @@
               <tr>
                 <td><?= date('d/m/Y H:i', strtotime($aj['fecha_ajuste'])) ?></td>
                 <td>
-                  <strong style="color: var(--ink2);"><?= htmlspecialchars($aj['nombre_completo']) ?></strong>
+                  <strong style="color: var(--ink2);"><?= htmlspecialchars($aj['nombre_completo'] ?? '') ?></strong>
                 </td>
                 <td style="text-align: right; font-family: monospace; font-size: .85rem;">
                   <?= formatoInteligente($aj['cantidad_antes']) ?> <?= $insumo['unidad_medida'] ?>
@@ -124,7 +124,7 @@
                   <?= ($aj['diferencia'] >= 0 ? '+' : '') . formatoInteligente($aj['diferencia']) ?> <?= $insumo['unidad_medida'] ?>
                 </td>
                 <td style="font-size: .78rem; color: var(--ink3);">
-                  <?= htmlspecialchars($aj['motivo']) ?>
+                  <?= htmlspecialchars($aj['motivo'] ?? '') ?>
                 </td>
               </tr>
               <?php endforeach; ?>

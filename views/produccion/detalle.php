@@ -42,7 +42,7 @@
       <div class="resumen-body">
         <div class="dato-item">
           <div class="dato-lbl">Producto</div>
-          <div class="dato-val"><?= htmlspecialchars($produccion['producto']) ?></div>
+          <div class="dato-val"><?= htmlspecialchars($produccion['producto'] ?? '') ?></div>
           <div style="font-size:.72rem;color:var(--ink3);"><?= $produccion['unidad_produccion'] ?></div>
         </div>
         <div class="dato-item">
@@ -71,7 +71,7 @@
         <div class="sep"></div>
         <div class="dato-item">
           <div class="dato-lbl">Observaciones</div>
-          <div class="obs-box"><?= htmlspecialchars($produccion['observaciones']) ?></div>
+          <div class="obs-box"><?= htmlspecialchars($produccion['observaciones'] ?? '') ?></div>
         </div>
         <?php endif; ?>
       </div>
@@ -107,8 +107,8 @@
           <tbody>
           <?php foreach ($consumos as $c): ?>
           <tr>
-            <td><strong><?= htmlspecialchars($c['insumo']) ?></strong></td>
-            <td><span class="lote-code"><?= htmlspecialchars($c['numero_lote']) ?></span></td>
+            <td><strong><?= htmlspecialchars($c['insumo'] ?? '') ?></strong></td>
+            <td><span class="lote-code"><?= htmlspecialchars($c['numero_lote'] ?? '') ?></span></td>
             <td style="color:var(--ink3);font-size:.76rem;"><?= date('d/m/Y', strtotime($c['fecha_ingreso'])) ?></td>
             <td style="text-align:right;">
               <?= formatoInteligente($c['cantidad_consumida']) ?>

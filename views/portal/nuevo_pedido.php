@@ -176,13 +176,13 @@
             <a href="perfil.php" class="n-user" title="Mi Perfil">
                 <div class="n-avatar">
                     <?php if (!empty($cliente_info['foto_url'])): ?>
-                        <img src="<?= htmlspecialchars($cliente_info['foto_url']) ?>" alt="avatar">
+                        <img src="<?= htmlspecialchars($cliente_info['foto_url'] ?? '') ?>" alt="avatar">
                     <?php else: ?>
                         <?= strtoupper(substr($_SESSION['cliente_nombre'], 0, 1)) ?>
                     <?php endif; ?>
                 </div>
                 <div>
-                    <div class="n-uname"><?= htmlspecialchars($_SESSION['cliente_nombre']) ?></div>
+                    <div class="n-uname"><?= htmlspecialchars($_SESSION['cliente_nombre'] ?? '') ?></div>
                     <div class="n-urole"><?= $es_instructor ? 'Instructor' : 'Cliente' ?></div>
                 </div>
             </a>

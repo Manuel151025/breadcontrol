@@ -39,14 +39,14 @@
                 <td rowspan="<?= count($dets) ?>"><?= $v['id_venta'] ?></td>
                 <td rowspan="<?= count($dets) ?>"><?= $v['fecha_hora'] ?></td>
                 <td rowspan="<?= count($dets) ?>"><?= ucfirst(str_replace('_', ' ', $v['tipo_salida'])) ?></td>
-                <td rowspan="<?= count($dets) ?>"><?= htmlspecialchars($v['categoria']) ?></td>
-                <td rowspan="<?= count($dets) ?>"><?= htmlspecialchars($v['cliente']) ?></td>
+                <td rowspan="<?= count($dets) ?>"><?= htmlspecialchars($v['categoria'] ?? '') ?></td>
+                <td rowspan="<?= count($dets) ?>"><?= htmlspecialchars($v['cliente'] ?? '') ?></td>
                 <td rowspan="<?= count($dets) ?>"><?= $v['unidades_vendidas'] ?></td>
                 <td rowspan="<?= count($dets) ?>"><?= $v['precio_unitario'] ?></td>
                 <td rowspan="<?= count($dets) ?>"><?= $v['total_venta'] ?></td>
                 <td rowspan="<?= count($dets) ?>"><?= $v['bonificacion'] ?></td>
                 <?php $first = false; endif; ?>
-                <td style="background-color: #e8f5e9;"><?= htmlspecialchars($d['nombre']) ?></td>
+                <td style="background-color: #e8f5e9;"><?= htmlspecialchars($d['nombre'] ?? '') ?></td>
                 <td style="background-color: #e8f5e9;"><?= $d['cantidad'] ?></td>
                 <td style="background-color: #e8f5e9;"><?= $d['napa'] > 0 ? '+'.$d['napa'].' ñapa' : ($d['bonificacion'] > 0 ? '+'.$d['bonificacion'].' bonif' : '0') ?></td>
             </tr>
@@ -58,8 +58,8 @@
                 <td><?= $v['id_venta'] ?></td>
                 <td><?= $v['fecha_hora'] ?></td>
                 <td><?= ucfirst(str_replace('_', ' ', $v['tipo_salida'])) ?></td>
-                <td><?= htmlspecialchars($v['categoria']) ?></td>
-                <td><?= htmlspecialchars($v['cliente']) ?></td>
+                <td><?= htmlspecialchars($v['categoria'] ?? '') ?></td>
+                <td><?= htmlspecialchars($v['cliente'] ?? '') ?></td>
                 <td><?= $v['unidades_vendidas'] ?></td>
                 <td><?= $v['precio_unitario'] ?></td>
                 <td><?= $v['total_venta'] ?></td>

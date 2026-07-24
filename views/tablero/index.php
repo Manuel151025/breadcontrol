@@ -8,7 +8,7 @@
     <div class="wc-banner">
       <div>
         <div class="wc-greeting" id="wg"></div>
-        <div class="wc-name">Bienvenido, <em><?= htmlspecialchars($user['nombre']) ?></em></div>
+        <div class="wc-name">Bienvenido, <em><?= htmlspecialchars($user['nombre'] ?? '') ?></em></div>
         <div class="wc-sub" id="ws"></div>
       </div>
       <div class="wc-pills">
@@ -59,7 +59,7 @@
     <div class="obs-ico"><i class="bi bi-chat-left-text-fill"></i></div>
     <div class="obs-body">
       <div class="obs-label">Nota del último cierre</div>
-      <div class="obs-text"><?= htmlspecialchars($obs_cierre['sugerencia_produccion']) ?></div>
+      <div class="obs-text"><?= htmlspecialchars($obs_cierre['sugerencia_produccion'] ?? '') ?></div>
       <div class="obs-date">Cierre del <?= date('d/m/Y', strtotime($obs_cierre['fecha'])) ?></div>
     </div>
     <button class="obs-close" onclick="this.parentElement.style.display='none'" title="Cerrar">&times;</button>
@@ -90,7 +90,7 @@
         <tbody>
           <?php foreach ($top_ventas as $tv): ?>
           <tr>
-            <td title="<?= htmlspecialchars($tv['nombre']) ?>"><?= htmlspecialchars($tv['nombre']) ?></td>
+            <td title="<?= htmlspecialchars($tv['nombre'] ?? '') ?>"><?= htmlspecialchars($tv['nombre'] ?? '') ?></td>
             <td><?= $tv['u'] ?></td>
             <td>$<?= number_format($tv['t'], 0, ',', '.') ?></td>
           </tr>
@@ -123,7 +123,7 @@
         ?>
         <div class="al-row">
           <span style="font-size:.9rem;flex-shrink:0">⚠️</span>
-          <span class="al-name" title="<?= htmlspecialchars($a['nombre']) ?>"><?= htmlspecialchars($a['nombre']) ?></span>
+          <span class="al-name" title="<?= htmlspecialchars($a['nombre'] ?? '') ?>"><?= htmlspecialchars($a['nombre'] ?? '') ?></span>
           <div class="al-bar-w"><div class="al-bar-f" style="width:<?= $pct ?>%"></div></div>
           <span class="al-val"><?= formatoInteligente($a['stock_actual']) ?> <?= $a['unidad_medida'] ?></span>
         </div>
@@ -191,7 +191,7 @@
         <div class="pr-row">
           <div class="pr-dot"></div>
           <div style="flex:1;min-width:0">
-            <div class="pr-name"><?= htmlspecialchars($pr['nombre']) ?></div>
+            <div class="pr-name"><?= htmlspecialchars($pr['nombre'] ?? '') ?></div>
             <div class="pr-det"><?= formatoInteligente($pr['cantidad_tandas']) ?> <?= $pr['unidad_produccion'] ?></div>
           </div>
           <div class="pr-time"><?= date('d/m H:i', strtotime($pr['fecha_produccion'])) ?></div>
@@ -247,7 +247,7 @@
           $pct = $max_consumo_hoy > 0 ? max(4, round(($c['total'] / $max_consumo_hoy) * 100)) : 4;
         ?>
         <div class="al-row">
-          <span class="al-name"><?= htmlspecialchars($c['nombre']) ?></span>
+          <span class="al-name"><?= htmlspecialchars($c['nombre'] ?? '') ?></span>
           <div class="al-bar-w">
             <div class="al-bar-f" style="width:<?= $pct ?>%;background:linear-gradient(90deg,var(--c3),var(--c5))"></div>
           </div>

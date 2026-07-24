@@ -9,7 +9,7 @@
           <div class="obs-ico"><i class="bi bi-chat-left-text-fill"></i></div>
           <div class="obs-body">
             <div class="obs-label">Nota del último cierre</div>
-            <div class="obs-text"><?= htmlspecialchars($obs_cierre['sugerencia_produccion']) ?></div>
+            <div class="obs-text"><?= htmlspecialchars($obs_cierre['sugerencia_produccion'] ?? '') ?></div>
             <div class="obs-date">Cierre del <?= date('d/m/Y', strtotime($obs_cierre['fecha'])) ?></div>
           </div>
           <button class="obs-close" onclick="this.parentElement.style.display='none'" title="Cerrar">&times;</button>
@@ -71,7 +71,7 @@
               <option value="<?= $p['id_producto'] ?>"
                 data-tanda="<?= (int)$p['cantidad_por_tanda'] ?>"
                 <?= (isset($_POST['id_producto']) && $_POST['id_producto']==$p['id_producto']) ? 'selected' : '' ?>>
-                <?= htmlspecialchars($p['nombre']) ?>
+                <?= htmlspecialchars($p['nombre'] ?? '') ?>
                 (<?= (int)$p['cantidad_por_tanda'] ?> und/tanda)
                 <?= !$p['tiene_receta'] ? ' ⚠ sin receta' : '' ?>
               </option>
@@ -178,7 +178,7 @@
           <?php foreach ($prod_hoy as $pr): ?>
           <tr>
             <td style="color:var(--ink3);font-size:.75rem"><?= date('H:i', strtotime($pr['fecha_produccion'])) ?></td>
-            <td style="font-weight:600"><?= htmlspecialchars($pr['producto']) ?></td>
+            <td style="font-weight:600"><?= htmlspecialchars($pr['producto'] ?? '') ?></td>
             <td style="text-align:center;font-weight:800;font-family:'Fraunces',serif;font-size:1.05rem;color:var(--c3)"><?= $pr['unidades_producidas'] ?></td>
             <td style="text-align:right;color:#1b5e20;font-weight:600;font-size:.8rem">$<?= number_format($pr['costo_total'],0,',','.') ?></td>
             <td style="text-align:right;color:var(--ink3);font-size:.75rem">$<?= number_format($pr['costo_unitario'],0,',','.') ?></td>

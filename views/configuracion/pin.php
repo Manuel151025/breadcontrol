@@ -41,7 +41,7 @@
       <div class="msg-ok"><i class="bi bi-check-circle-fill"></i><span><?= $msg_ok ?></span></div>
       <?php endif; ?>
       <?php if ($msg_err): ?>
-      <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i><span><?= htmlspecialchars($msg_err) ?></span></div>
+      <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i><span><?= htmlspecialchars($msg_err ?? '') ?></span></div>
       <?php endif; ?>
 
       <div class="estado-pin <?= $tiene_pin ? 'activo' : 'pendiente' ?>">

@@ -140,7 +140,7 @@
             <?php foreach ($cobros_pendientes as $idx => $cb): ?>
             <tr>
                 <td data-label="Tienda">
-                    <div style="font-weight:700;color:var(--ink);"><?= htmlspecialchars($cb['nombre']) ?></div>
+                    <div style="font-weight:700;color:var(--ink);"><?= htmlspecialchars($cb['nombre'] ?? '') ?></div>
                     <div style="font-size:.72rem;color:var(--ink3);">Pago manual · Nequi Negocios</div>
                 </td>
                 <td data-label="Pedidos" style="font-weight:600;"><?= $cb['num_pedidos'] ?></td>
@@ -168,7 +168,7 @@
             <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;border-bottom:1px solid var(--border);background:var(--clight);border-radius:16px 16px 0 0;">
                 <div>
                     <div style="font-family:'Fraunces',serif;font-size:1.05rem;font-weight:800;color:var(--ink);">
-                        <i class="bi bi-cash-coin" style="color:#dc2626;"></i> <?= htmlspecialchars($cb['nombre']) ?>
+                        <i class="bi bi-cash-coin" style="color:#dc2626;"></i> <?= htmlspecialchars($cb['nombre'] ?? '') ?>
                     </div>
                     <div style="font-size:.72rem;color:var(--ink3);margin-top:.1rem;">Selecciona los pedidos que ya recibiste por Nequi</div>
                 </div>
@@ -239,7 +239,7 @@
         <form method="GET" class="filter-grid">
             <div class="filter-group">
                 <label>Cliente</label>
-                <input type="text" name="cliente" class="filter-input" placeholder="Nombre..." value="<?= htmlspecialchars($f_cliente) ?>">
+                <input type="text" name="cliente" class="filter-input" placeholder="Nombre..." value="<?= htmlspecialchars($f_cliente ?? '') ?>">
             </div>
             <div class="filter-group">
                 <label>Tipo Cliente</label>
@@ -271,15 +271,15 @@
             </div>
             <div class="filter-group">
                 <label>F. Entrega</label>
-                <input type="date" name="entrega" class="filter-input" value="<?= htmlspecialchars($f_entrega) ?>">
+                <input type="date" name="entrega" class="filter-input" value="<?= htmlspecialchars($f_entrega ?? '') ?>">
             </div>
             <div class="filter-group">
                 <label>Solicitado Desde</label>
-                <input type="date" name="desde" class="filter-input" value="<?= htmlspecialchars($f_desde) ?>">
+                <input type="date" name="desde" class="filter-input" value="<?= htmlspecialchars($f_desde ?? '') ?>">
             </div>
             <div class="filter-group">
                 <label>Hasta</label>
-                <input type="date" name="hasta" class="filter-input" value="<?= htmlspecialchars($f_hasta) ?>">
+                <input type="date" name="hasta" class="filter-input" value="<?= htmlspecialchars($f_hasta ?? '') ?>">
             </div>
             <div class="filter-actions">
                 <button type="submit" class="btn-filter"><i class="bi bi-filter"></i> Filtrar</button>
@@ -339,7 +339,7 @@
                 <tr>
                     <td data-label="Selección"><input type="checkbox" name="exportar_ids[]" value="<?= $p['id_pedido'] ?>" class="chk-ped"></td>
                     <td data-label="Pedido" style="font-weight:700; color:var(--ink2);">#<?= str_pad($p['id_pedido'], 4, '0', STR_PAD_LEFT) ?></td>
-                    <td data-label="Cliente" style="font-weight:600; text-align: right;"><?= htmlspecialchars($p['cliente']) ?> <span style="font-size:0.7rem; color:var(--ink3); display:block;"><?= $p['tipo_cliente'] ?></span></td>
+                    <td data-label="Cliente" style="font-weight:600; text-align: right;"><?= htmlspecialchars($p['cliente'] ?? '') ?> <span style="font-size:0.7rem; color:var(--ink3); display:block;"><?= $p['tipo_cliente'] ?></span></td>
                     <td data-label="Creado Por" style="font-size:0.8rem; color:var(--ink2);">
                         <?= htmlspecialchars($p['nombre_creador'] ?? 'Directo') ?>
                         <?php if (isset($p['creador_es_aprendiz']) && (int)$p['creador_es_aprendiz'] === 1): ?>

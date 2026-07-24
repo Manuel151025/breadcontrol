@@ -308,13 +308,13 @@
         <a href="perfil.php" class="n-user" title="Mi Perfil">
             <div class="n-avatar">
                 <?php if (!empty($cliente_info['foto_url'])): ?>
-                    <img src="<?= htmlspecialchars($cliente_info['foto_url']) ?>" alt="avatar">
+                    <img src="<?= htmlspecialchars($cliente_info['foto_url'] ?? '') ?>" alt="avatar">
                 <?php else: ?>
                     <?= strtoupper(substr($_SESSION['cliente_nombre'], 0, 1)) ?>
                 <?php endif; ?>
             </div>
             <div>
-                <div class="n-uname"><?= htmlspecialchars($_SESSION['cliente_nombre']) ?></div>
+                <div class="n-uname"><?= htmlspecialchars($_SESSION['cliente_nombre'] ?? '') ?></div>
                 <div class="n-urole"><?= $es_instructor ? 'Instructor' : 'Cliente' ?></div>
             </div>
         </a>
@@ -371,21 +371,21 @@
     <?php if (!empty($success_msg)): ?>
     <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-left:4px solid #2e7d32;border-radius:10px;padding:.85rem 1.1rem;font-size:.85rem;color:#1b5e20;display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;">
         <i class="bi bi-check-circle-fill"></i>
-        <?= htmlspecialchars($success_msg) ?>
+        <?= htmlspecialchars($success_msg ?? '') ?>
     </div>
     <?php endif; ?>
 
     <?php if (!empty($error_msg)): ?>
     <div style="background:#ffebee;border:1px solid #ef9a9a;border-left:4px solid #c62828;border-radius:10px;padding:.85rem 1.1rem;font-size:.85rem;color:#c62828;display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;">
         <i class="bi bi-exclamation-triangle-fill"></i>
-        <?= htmlspecialchars($error_msg) ?>
+        <?= htmlspecialchars($error_msg ?? '') ?>
     </div>
     <?php endif; ?>
 
     <?php if (!empty($_GET['epago'])): ?>
     <div style="background:#ffebee;border:1px solid #ef9a9a;border-left:4px solid #c62828;border-radius:10px;padding:.85rem 1.1rem;font-size:.85rem;color:#c62828;display:flex;align-items:center;gap:.6rem;">
         <i class="bi bi-exclamation-triangle-fill"></i>
-        <?= htmlspecialchars($_GET['epago']) ?>
+        <?= htmlspecialchars($_GET['epago'] ?? '') ?>
     </div>
     <?php endif; ?>
 
@@ -612,20 +612,20 @@
                         $colores = ['#945b35','#c67124','#2e7d32','#1565c0','#6a1b9a','#c62828'];
                         $color   = $colores[($a['id_cliente']) % count($colores)];
                     ?>
-                    <tr class="fila-aprendiz" data-nombre="<?= strtolower(htmlspecialchars($a['nombre'])) ?>">
+                    <tr class="fila-aprendiz" data-nombre="<?= strtolower(htmlspecialchars($a['nombre'] ?? '')) ?>">
                         <td data-label="Aprendiz">
                             <div class="apr-name-wrap">
                                 <div class="apr-avatar" style="background:<?= $color ?>;">
                                     <?php if (!empty($a['foto_url'])): ?>
-                                        <img src="<?= htmlspecialchars($a['foto_url']) ?>" alt="">
+                                        <img src="<?= htmlspecialchars($a['foto_url'] ?? '') ?>" alt="">
                                     <?php else: ?>
                                         <?= strtoupper(substr($a['nombre'], 0, 1)) ?>
                                     <?php endif; ?>
                                 </div>
                                 <div>
-                                    <div class="apr-name"><?= htmlspecialchars($a['nombre']) ?></div>
+                                    <div class="apr-name"><?= htmlspecialchars($a['nombre'] ?? '') ?></div>
                                     <div class="apr-contact">
-                                        <?= $a['telefono'] ? htmlspecialchars($a['telefono']) : ($a['email'] ? htmlspecialchars($a['email']) : '—') ?>
+                                        <?= $a['telefono'] ? htmlspecialchars($a['telefono'] ?? '') : ($a['email'] ? htmlspecialchars($a['email'] ?? '') : '—') ?>
                                     </div>
                                 </div>
                             </div>
@@ -695,7 +695,7 @@
         <div class="mod-titulo">
             <i class="bi bi-basket2-fill"></i>
             <?php if ($nombre_filtro): ?>
-                Pedidos de <?= htmlspecialchars($nombre_filtro) ?>
+                Pedidos de <?= htmlspecialchars($nombre_filtro ?? '') ?>
             <?php else: ?>
                 <?= $es_instructor ? 'Todos los Pedidos' : 'Mis Pedidos' ?>
             <?php endif; ?>
@@ -713,7 +713,7 @@
     <?php if ($nombre_filtro): ?>
     <div class="filtro-activo">
         <i class="bi bi-funnel-fill"></i>
-        Mostrando pedidos de <strong><?= htmlspecialchars($nombre_filtro) ?></strong>
+        Mostrando pedidos de <strong><?= htmlspecialchars($nombre_filtro ?? '') ?></strong>
         <a href="dashboard.php" title="Quitar filtro"><i class="bi bi-x-circle-fill"></i></a>
     </div>
     <?php endif; ?>
@@ -752,7 +752,7 @@
         <?php if ($nombre_variedad): ?>
         <div class="filtro-activo" style="margin-top:.7rem;">
             <i class="bi bi-basket2-fill"></i>
-            Mostrando pedidos con <strong><?= htmlspecialchars($nombre_variedad) ?></strong>
+            Mostrando pedidos con <strong><?= htmlspecialchars($nombre_variedad ?? '') ?></strong>
             <a href="dashboard.php<?= $f_aprendiz ? '?aprendiz_id='.$f_aprendiz : '' ?>" title="Quitar filtro"><i class="bi bi-x-circle-fill"></i></a>
         </div>
         <?php endif; ?>
@@ -761,7 +761,7 @@
             <button type="button" class="btn-search-pan" onclick="abrirModalPan()">
                 <i class="bi bi-basket2"></i> <span>Buscar por tipo de pan</span>
                 <?php if ($nombre_variedad): ?>
-                    <span class="badge-variedad-filtro"><?= htmlspecialchars($nombre_variedad) ?></span>
+                    <span class="badge-variedad-filtro"><?= htmlspecialchars($nombre_variedad ?? '') ?></span>
                 <?php endif; ?>
             </button>
         </div>
@@ -878,7 +878,7 @@
                 <div style="font-weight:700;color:var(--ink);font-size:.85rem;">
                     Pedido #<?= str_pad($pp['id_pedido'], 4, '0', STR_PAD_LEFT) ?>
                     <?php if (!empty($pp['nombre_creador'])): ?>
-                        <span style="font-weight:500;color:var(--ink3);font-size:.75rem;">· <?= htmlspecialchars($pp['nombre_creador']) ?></span>
+                        <span style="font-weight:500;color:var(--ink3);font-size:.75rem;">· <?= htmlspecialchars($pp['nombre_creador'] ?? '') ?></span>
                     <?php endif; ?>
                 </div>
                 <div style="font-size:.71rem;color:var(--ink3);">
@@ -905,7 +905,7 @@
                    style="flex:1;padding:.72rem;border-radius:10px;border:none;background:linear-gradient(135deg,#2e7d32,#1b5e20);color:#fff;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;">
                     <i class="bi bi-phone-fill"></i> Registrar y pagar por Nequi
                     <?php if (!empty($nequi_config['nequi_titular'])): ?>
-                        <span style="opacity:.7;font-weight:400;font-size:.72rem;">· <?= htmlspecialchars($nequi_config['nequi_titular']) ?></span>
+                        <span style="opacity:.7;font-weight:400;font-size:.72rem;">· <?= htmlspecialchars($nequi_config['nequi_titular'] ?? '') ?></span>
                     <?php endif; ?>
                 </button>
             </form>
@@ -936,14 +936,14 @@
                 <?php foreach ($variedades as $v): ?>
                 <a href="#" class="var-btn <?= $f_variedad === $v['id_variedad'] ? 'selected' : '' ?>"
                    data-id="<?= $v['id_variedad'] ?>"
-                   data-nombre="<?= strtolower(htmlspecialchars($v['nombre'])) ?>"
+                   data-nombre="<?= strtolower(htmlspecialchars($v['nombre'] ?? '')) ?>"
                    onclick="seleccionarVariedad(<?= $v['id_variedad'] ?>, event)">
                     <?php if (!empty($v['imagen'])): ?>
-                        <img src="<?= APP_URL ?>/assets/img/panes/<?= htmlspecialchars($v['imagen']) ?>" alt="" class="var-img">
+                        <img src="<?= APP_URL ?>/assets/img/panes/<?= htmlspecialchars($v['imagen'] ?? '') ?>" alt="" class="var-img">
                     <?php else: ?>
                         <div class="var-img-placeholder">🍞</div>
                     <?php endif; ?>
-                    <span class="var-nombre"><?= htmlspecialchars($v['nombre']) ?></span>
+                    <span class="var-nombre"><?= htmlspecialchars($v['nombre'] ?? '') ?></span>
                 </a>
                 <?php endforeach; ?>
                 <?php if (empty($variedades)): ?>

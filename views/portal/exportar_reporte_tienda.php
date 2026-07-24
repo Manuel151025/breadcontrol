@@ -20,7 +20,7 @@ if ($formato === 'excel') {
     foreach ($reporte_por_aprendiz as $aprendiz => $productos) {
         // Cabecera aprendiz
         echo '<tr><td colspan="5" style="background:#c5cae9;color:#1a237e;font-weight:bold;padding:5px 8px;">';
-        echo htmlspecialchars($aprendiz) . '</td></tr>';
+        echo htmlspecialchars($aprendiz ?? '') . '</td></tr>';
         // Cabecera columnas
         echo '<tr style="background:#e8eaf6;">';
         echo '<th style="padding:4px 8px;text-align:left;">Pan / Producto</th>';
@@ -34,7 +34,7 @@ if ($formato === 'excel') {
             $total_und = $pr['cantidad'] + $pr['napa'] + $pr['bonificacion'];
             $subtotal += $total_und;
             echo '<tr>';
-            echo '<td style="padding:4px 8px;">' . htmlspecialchars($pr['producto']) . '</td>';
+            echo '<td style="padding:4px 8px;">' . htmlspecialchars($pr['producto'] ?? '') . '</td>';
             echo '<td style="padding:4px 8px;text-align:center;">' . (int)$pr['cantidad'] . '</td>';
             echo '<td style="padding:4px 8px;text-align:center;">' . (int)$pr['napa'] . '</td>';
             echo '<td style="padding:4px 8px;text-align:center;">' . (int)$pr['bonificacion'] . '</td>';
@@ -43,7 +43,7 @@ if ($formato === 'excel') {
         }
         // Subtotal aprendiz (solo unidades, sin monto individual)
         echo '<tr style="background:#f5f5f5;">';
-        echo '<td colspan="4" style="padding:4px 8px;text-align:right;font-weight:bold;color:#283593;">Total ' . htmlspecialchars($aprendiz) . ':</td>';
+        echo '<td colspan="4" style="padding:4px 8px;text-align:right;font-weight:bold;color:#283593;">Total ' . htmlspecialchars($aprendiz ?? '') . ':</td>';
         echo '<td style="padding:4px 8px;text-align:center;font-weight:bold;color:#1a237e;">' . $subtotal . ' und</td>';
         echo '</tr>';
         echo '<tr><td colspan="5" style="padding:3px;"></td></tr>';
@@ -65,7 +65,7 @@ if ($formato === 'excel') {
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Reporte Panes — <?= htmlspecialchars($nombre_tienda) ?></title>
+<title>Reporte Panes — <?= htmlspecialchars($nombre_tienda ?? '') ?></title>
 <style>
     @page { margin: 1.5cm 1.8cm; }
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -114,7 +114,7 @@ if ($formato === 'excel') {
     <div>
         <div class="enc-titulo">
             Reporte de Panes por Aprendiz
-            <span><?= htmlspecialchars($nombre_tienda) ?></span>
+            <span><?= htmlspecialchars($nombre_tienda ?? '') ?></span>
         </div>
     </div>
     <div class="enc-meta">
@@ -126,7 +126,7 @@ if ($formato === 'excel') {
 
 <?php foreach ($reporte_por_aprendiz as $aprendiz => $productos): ?>
 <div class="aprendiz-block">
-    <div class="aprendiz-nombre"><?= htmlspecialchars($aprendiz) ?></div>
+    <div class="aprendiz-nombre"><?= htmlspecialchars($aprendiz ?? '') ?></div>
     <table>
         <thead>
             <tr>
@@ -145,7 +145,7 @@ if ($formato === 'excel') {
             $subtotal_und += $total_und;
         ?>
             <tr>
-                <td><?= htmlspecialchars($pr['producto']) ?></td>
+                <td><?= htmlspecialchars($pr['producto'] ?? '') ?></td>
                 <td><?= (int)$pr['cantidad'] ?></td>
                 <td>
                     <?php if ($pr['napa'] > 0): ?>
@@ -161,7 +161,7 @@ if ($formato === 'excel') {
             </tr>
         <?php endforeach; ?>
         <tr class="subtotal-row">
-            <td colspan="4" style="text-align:right;">Total <?= htmlspecialchars($aprendiz) ?>:</td>
+            <td colspan="4" style="text-align:right;">Total <?= htmlspecialchars($aprendiz ?? '') ?>:</td>
             <td><?= $subtotal_und ?> und</td>
         </tr>
         </tbody>
@@ -177,7 +177,7 @@ if ($formato === 'excel') {
 <?php endif; ?>
 
 <div class="pie-pagina">
-    BreadControl · Reporte generado el <?= $fecha_generado ?> · <?= htmlspecialchars($nombre_tienda) ?>
+    BreadControl · Reporte generado el <?= $fecha_generado ?> · <?= htmlspecialchars($nombre_tienda ?? '') ?>
 </div>
 
 </body>

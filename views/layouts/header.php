@@ -77,7 +77,7 @@ function navActive($path) {
     <a href="<?= APP_URL ?>/modules/configuracion/perfil.php" class="n-user" style="text-decoration:none;cursor:pointer;" title="Mi Perfil">
       <div class="n-avatar"><?= strtoupper(substr($user['nombre'], 0, 1)) ?></div>
       <div>
-        <div class="n-uname"><?= htmlspecialchars($user['nombre']) ?></div>
+        <div class="n-uname"><?= htmlspecialchars($user['nombre'] ?? '') ?></div>
         <div class="n-urole">Propietario</div>
       </div>
     </a>

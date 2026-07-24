@@ -19,7 +19,7 @@
           <div class="mb-3">
             <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
             <input type="text" name="nombre" class="form-control"
-                   value="<?= htmlspecialchars($insumo['nombre']) ?>" required>
+                   value="<?= htmlspecialchars($insumo['nombre'] ?? '') ?>" required>
           </div>
 
           <div class="mb-3">

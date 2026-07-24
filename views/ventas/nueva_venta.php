@@ -116,7 +116,7 @@
                       data-precio="<?= $p['precio_venta'] ?>"
                       data-stock="<?= $stock ?>"
                       <?= $agotado ? 'disabled' : '' ?>>
-                <?= htmlspecialchars($p['nombre']) ?>
+                <?= htmlspecialchars($p['nombre'] ?? '') ?>
                 — <?= $agotado ? '❌ Sin stock' : "✅ {$stock} disponibles" ?>
               </option>
               <?php endforeach; ?>
@@ -147,7 +147,7 @@
             <select name="id_cliente" id="sel-cliente" onchange="actualizarBonif()">
               <option value="" data-tipo="mostrador">Mostrador</option>
               <?php foreach ($clientes_list as $c): ?>
-              <option value="<?= $c['id_cliente'] ?>" data-tipo="<?= $c['tipo'] ?>"><?= $c['tipo']==='tienda'?'🏪 ':'🧑 ' ?><?= htmlspecialchars($c['nombre']) ?></option>
+              <option value="<?= $c['id_cliente'] ?>" data-tipo="<?= $c['tipo'] ?>"><?= $c['tipo']==='tienda'?'🏪 ':'🧑 ' ?><?= htmlspecialchars($c['nombre'] ?? '') ?></option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -186,10 +186,10 @@
           <?php foreach ($ventas_hoy as $v): ?>
           <tr>
             <td style="color:var(--ink3);font-size:.75rem"><?= date('H:i',strtotime($v['fecha_hora'])) ?></td>
-            <td style="font-weight:600"><?= htmlspecialchars($v['producto']) ?></td>
+            <td style="font-weight:600"><?= htmlspecialchars($v['producto'] ?? '') ?></td>
             <td>
               <?php if ($v['cliente']): ?>
-                <span class="<?= $v['tipo_cliente']==='tienda'?'tag-tienda':'tag-mostrador' ?>"><?= $v['tipo_cliente']==='tienda'?'🏪':'🧑' ?> <?= htmlspecialchars($v['cliente']) ?></span>
+                <span class="<?= $v['tipo_cliente']==='tienda'?'tag-tienda':'tag-mostrador' ?>"><?= $v['tipo_cliente']==='tienda'?'🏪':'🧑' ?> <?= htmlspecialchars($v['cliente'] ?? '') ?></span>
               <?php else: ?><span class="tag-mostrador">🧑 Mostrador</span><?php endif; ?>
             </td>
             <td style="text-align:center;font-weight:700"><?= $v['unidades_vendidas'] ?></td>

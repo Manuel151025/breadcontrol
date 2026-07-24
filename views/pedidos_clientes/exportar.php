@@ -29,9 +29,9 @@ if ($formato === 'excel') {
                 <?php foreach ($pedidos as $p): ?>
                 <tr>
                     <td><?= $p['id_pedido'] ?></td>
-                    <td><?= htmlspecialchars($p['cliente']) ?></td>
-                    <td><?= htmlspecialchars($p['telefono']) ?></td>
-                    <td><?= htmlspecialchars($p['tipo_cliente']) ?></td>
+                    <td><?= htmlspecialchars($p['cliente'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($p['telefono'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($p['tipo_cliente'] ?? '') ?></td>
                     <td><?= $p['fecha_solicitud'] ?></td>
                     <td><?= formatearFechaEntrega($p['fecha_entrega'], false) ?></td>
                     <td>
@@ -42,7 +42,7 @@ if ($formato === 'excel') {
                     </td>
                     <td><?= $p['total_estimado'] ?></td>
                     <td><?= $p['estado'] ?></td>
-                    <td><?= htmlspecialchars($p['mensaje_propietario']) ?></td>
+                    <td><?= htmlspecialchars($p['mensaje_propietario'] ?? '') ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -96,8 +96,8 @@ if ($formato === 'pdf') {
                 <?php foreach ($pedidos as $p): ?>
                 <tr>
                     <td>#<?= str_pad($p['id_pedido'], 4, '0', STR_PAD_LEFT) ?></td>
-                    <td><?= htmlspecialchars($p['cliente']) ?> (<?= $p['tipo_cliente'] ?>)</td>
-                    <td><?= htmlspecialchars($p['telefono']) ?></td>
+                    <td><?= htmlspecialchars($p['cliente'] ?? '') ?> (<?= $p['tipo_cliente'] ?>)</td>
+                    <td><?= htmlspecialchars($p['telefono'] ?? '') ?></td>
                     <td>
                         <?= formatearFechaEntrega($p['fecha_entrega'], false) ?>
                     </td>

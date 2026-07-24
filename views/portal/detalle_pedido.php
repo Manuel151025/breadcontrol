@@ -222,13 +222,13 @@
             <a href="perfil.php" class="n-user" title="Mi Perfil">
                 <div class="n-avatar">
                     <?php if (!empty($cliente_info['foto_url'])): ?>
-                        <img src="<?= htmlspecialchars($cliente_info['foto_url']) ?>" alt="avatar">
+                        <img src="<?= htmlspecialchars($cliente_info['foto_url'] ?? '') ?>" alt="avatar">
                     <?php else: ?>
                         <?= strtoupper(substr($_SESSION['cliente_nombre'], 0, 1)) ?>
                     <?php endif; ?>
                 </div>
                 <div>
-                    <div class="n-uname"><?= htmlspecialchars($_SESSION['cliente_nombre']) ?></div>
+                    <div class="n-uname"><?= htmlspecialchars($_SESSION['cliente_nombre'] ?? '') ?></div>
                     <div class="n-urole"><?= $es_instructor ? 'Instructor' : 'Cliente' ?></div>
                 </div>
             </a>
@@ -280,7 +280,7 @@
                             <?php elseif ($_GET['error'] === 'pago_proceso'): ?>
                                 No puedes modificar o cancelar este pedido porque está vinculado a una transacción de pago activa de tu instructor.
                             <?php else: ?>
-                                <?= htmlspecialchars($_GET['error']) ?>
+                                <?= htmlspecialchars($_GET['error'] ?? '') ?>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -314,7 +314,7 @@
                             <?php if ((int)$pedido['id_cliente'] === (int)$pedido['id_creador']): ?>
                                 Mi cuenta (Personal)
                             <?php else: ?>
-                                Cuenta ADSO (<?= htmlspecialchars($nombre_tienda) ?>)
+                                Cuenta ADSO (<?= htmlspecialchars($nombre_tienda ?? '') ?>)
                             <?php endif; ?>
                         </strong>
                     </div>
@@ -324,7 +324,7 @@
                 <?php if ($pedido['mensaje_propietario']): ?>
                     <div class="msg-box">
                         <strong><i class="bi bi-chat-quote-fill"></i> Mensaje de la Panadería</strong>
-                        <?= nl2br(htmlspecialchars($pedido['mensaje_propietario'])) ?>
+                        <?= nl2br(htmlspecialchars($pedido['mensaje_propietario'] ?? '')) ?>
                     </div>
                 <?php endif; ?>
 
@@ -333,7 +333,7 @@
                     <?php foreach ($detalles as $d): ?>
                     <div class="d-item">
                         <span class="d-name">
-                            <?= htmlspecialchars($d['producto']) ?>
+                            <?= htmlspecialchars($d['producto'] ?? '') ?>
                             <?php if ($d['napa'] > 0): ?>
                                 <span class="d-badge b-napa">🎁 Incluye Ñapa (+<?= $d['napa'] ?>)</span>
                             <?php elseif ($d['bonificacion'] > 0): ?>
@@ -373,13 +373,13 @@
                             <?php if (!empty($titular_negocio)): ?>
                             <div class="cuenta-fila">
                                 <i class="bi bi-person-fill"></i>
-                                <span>Titular: <strong><?= htmlspecialchars($titular_negocio) ?></strong></span>
+                                <span>Titular: <strong><?= htmlspecialchars($titular_negocio ?? '') ?></strong></span>
                             </div>
                             <?php endif; ?>
                             <?php if (!empty($nequi_link_pago)): ?>
                             <div class="cuenta-fila">
                                 <i class="bi bi-phone-fill"></i>
-                                <span>Nequi Negocios: <strong style="font-family:monospace; font-size:.82rem; word-break:break-all;"><?= htmlspecialchars($nequi_link_pago) ?></strong></span>
+                                <span>Nequi Negocios: <strong style="font-family:monospace; font-size:.82rem; word-break:break-all;"><?= htmlspecialchars($nequi_link_pago ?? '') ?></strong></span>
                             </div>
                             <?php endif; ?>
                             <div class="cuenta-fila">
@@ -441,7 +441,7 @@
                         </div>
 
                         <?php if ($puede_pagar): ?>
-                        <a href="<?= htmlspecialchars($pago_activo['wompi_link_url']) ?>" target="_blank" rel="noopener" class="btn-pagar-ahora">
+                        <a href="<?= htmlspecialchars($pago_activo['wompi_link_url'] ?? '') ?>" target="_blank" rel="noopener" class="btn-pagar-ahora">
                             <i class="bi bi-shield-lock-fill"></i>
                             Pagar ahora
                             <i class="bi bi-box-arrow-up-right" style="font-size:.9rem; opacity:.85;"></i>
@@ -451,7 +451,7 @@
                         <div class="pago-medios">
                             Aceptamos: <strong>Nequi · Bancolombia · PSE · Tarjeta débito/crédito</strong>
                             <?php if (!empty($titular_negocio)): ?>
-                                <br>Pagas a: <strong><?= htmlspecialchars($titular_negocio) ?></strong>
+                                <br>Pagas a: <strong><?= htmlspecialchars($titular_negocio ?? '') ?></strong>
                             <?php endif; ?>
                         </div>
 
@@ -591,7 +591,7 @@
             <div class="reporte-header">
                 <div>
                     <div class="reporte-header-title"><i class="bi bi-clipboard2-data"></i> Reporte de Panes por Aprendiz</div>
-                    <div class="reporte-header-sub">Entrega: <?= date('d/m/Y', strtotime($pedido['fecha_entrega'])) ?> &nbsp;·&nbsp; <?= htmlspecialchars($nombre_tienda) ?></div>
+                    <div class="reporte-header-sub">Entrega: <?= date('d/m/Y', strtotime($pedido['fecha_entrega'])) ?> &nbsp;·&nbsp; <?= htmlspecialchars($nombre_tienda ?? '') ?></div>
                 </div>
                 <div class="reporte-export-btns">
                     <a href="exportar_reporte_tienda.php?id=<?= $id_pedido ?>&formato=excel" class="btn-export btn-export-excel" target="_blank">
@@ -608,7 +608,7 @@
                 <div class="aprendiz-block">
                     <div class="aprendiz-nombre">
                         <i class="bi bi-person-fill"></i>
-                        <?= htmlspecialchars($aprendiz) ?>
+                        <?= htmlspecialchars($aprendiz ?? '') ?>
                     </div>
                     <table class="rep-table">
                         <thead>
@@ -627,7 +627,7 @@
                             $subtotal_und += $total_und;
                         ?>
                             <tr>
-                                <td><?= htmlspecialchars($pr['producto']) ?></td>
+                                <td><?= htmlspecialchars($pr['producto'] ?? '') ?></td>
                                 <td><?= (int)$pr['cantidad'] ?></td>
                                 <td>
                                     <?php if ($pr['napa'] > 0): ?>
@@ -645,7 +645,7 @@
                     </table>
                     <div class="aprendiz-subtotal">
                         <i class="bi bi-box-seam"></i>
-                        Total de <?= htmlspecialchars($aprendiz) ?>: <strong><?= $subtotal_und ?> unidades</strong>
+                        Total de <?= htmlspecialchars($aprendiz ?? '') ?>: <strong><?= $subtotal_und ?> unidades</strong>
                     </div>
                 </div>
                 <?php endforeach; ?>

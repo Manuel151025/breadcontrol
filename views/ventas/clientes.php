@@ -101,7 +101,7 @@
     <div class="mod-titulo"><i class="bi bi-shop"></i> Tiendas</div>
     <div class="top-actions">
       <form method="get" style="display:flex;gap:.4rem">
-        <input type="text" name="q" class="inp-search" placeholder="Buscar tienda…" value="<?= htmlspecialchars($busca) ?>">
+        <input type="text" name="q" class="inp-search" placeholder="Buscar tienda…" value="<?= htmlspecialchars($busca ?? '') ?>">
       </form>
       <a href="index.php" class="btn-sec"><i class="bi bi-arrow-left"></i> Volver a Ventas</a>
     </div>
@@ -122,7 +122,7 @@
         <?php if ($msg_ok): ?><div class="msg-ok"><i class="bi bi-check-circle-fill"></i><?= $msg_ok ?></div><?php endif; ?>
         <?php if ($msg_err): ?><div class="msg-err"><i class="bi bi-exclamation-circle-fill"></i> <?= $msg_err ?></div><?php endif; ?>
         <?php if ($editando): ?>
-        <div class="edit-banner"><i class="bi bi-pencil-square"></i> Editando: <strong><?= htmlspecialchars($editando['nombre']) ?></strong></div>
+        <div class="edit-banner"><i class="bi bi-pencil-square"></i> Editando: <strong><?= htmlspecialchars($editando['nombre'] ?? '') ?></strong></div>
         <?php endif; ?>
 
         <form method="post">
@@ -206,7 +206,7 @@
               <div style="display:flex;align-items:center;gap:.5rem;">
                 <span style="font-size:1.1rem">🏪</span>
                 <div>
-                  <strong><?= htmlspecialchars($t['nombre']) ?></strong>
+                  <strong><?= htmlspecialchars($t['nombre'] ?? '') ?></strong>
                   <?php if (!empty($t['notas'])): ?>
                   <div style="font-size:.68rem;color:var(--ink3);margin-top:.1rem"><?= htmlspecialchars(mb_substr($t['notas'] ?? '', 0, 42)) . (mb_strlen($t['notas'] ?? '') > 42 ? '…' : '') ?></div>
                   <?php endif; ?>
@@ -228,7 +228,7 @@
             <td>
               <div style="display:flex;gap:.3rem">
                 <a href="clientes.php?edit=<?= $t['id_cliente'] ?>" class="btn-act btn-edit" title="Editar"><i class="bi bi-pencil"></i></a>
-                <form method="POST" style="display:contents;" onsubmit="return confirm('¿Desactivar a <?= addslashes(htmlspecialchars($t['nombre'])) ?>?')">
+                <form method="POST" style="display:contents;" onsubmit="return confirm('¿Desactivar a <?= addslashes(htmlspecialchars($t['nombre'] ?? '')) ?>?')">
                   <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                   <input type="hidden" name="del" value="<?= $t['id_cliente'] ?>">
                   <button type="submit" class="btn-act btn-del" title="Desactivar">

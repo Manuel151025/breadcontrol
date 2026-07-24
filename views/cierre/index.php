@@ -229,7 +229,7 @@
           foreach ($ventas_prod as $vp):
             $pct = round(($vp['t'] / $max_vp) * 100); ?>
           <div class="dato-row">
-            <span class="dato-nombre"><?= htmlspecialchars($vp['nombre']) ?></span>
+            <span class="dato-nombre"><?= htmlspecialchars($vp['nombre'] ?? '') ?></span>
             <div class="barra-w"><div class="barra-f" style="width:<?= $pct ?>%"></div></div>
             <span class="dato-det"><?= $vp['u'] ?> und</span>
             <span class="dato-val">$<?= number_format($vp['t'], 0, ',', '.') ?></span>
@@ -256,7 +256,7 @@
           foreach ($ventas_cli as $vc):
             $pct = round(($vc['t'] / $max_vc) * 100); ?>
           <div class="dato-row">
-            <span class="dato-nombre"><?= $vc['tipo'] === 'tienda' ? '🏪' : '🧑' ?> <?= htmlspecialchars($vc['cliente']) ?></span>
+            <span class="dato-nombre"><?= $vc['tipo'] === 'tienda' ? '🏪' : '🧑' ?> <?= htmlspecialchars($vc['cliente'] ?? '') ?></span>
             <div class="barra-w"><div class="barra-f" style="width:<?= $pct ?>%"></div></div>
             <span class="dato-det"><?= $vc['n'] ?> venta<?= $vc['n'] != 1 ? 's' : '' ?></span>
             <span class="dato-val">$<?= number_format($vc['t'], 0, ',', '.') ?></span>
@@ -284,7 +284,7 @@
           <div class="sub-sep"><i class="bi bi-fire" style="color:var(--c3)"></i>Producción — <?= $total_tandas ?> tandas</div>
           <?php foreach ($producciones as $pr): ?>
           <div class="dato-row">
-            <span class="dato-nombre"><?= htmlspecialchars($pr['nombre']) ?></span>
+            <span class="dato-nombre"><?= htmlspecialchars($pr['nombre'] ?? '') ?></span>
             <span class="dato-det"><?= formatoInteligente($pr['cantidad_tandas']) ?> <?= $pr['unidad_produccion'] ?></span>
             <span class="dato-det"><?= date('H:i', strtotime($pr['fecha_produccion'])) ?></span>
           </div>
@@ -298,7 +298,7 @@
           <div class="sub-sep"><i class="bi bi-cart-fill" style="color:#c62828"></i>Compras</div>
           <?php foreach ($compras_hoy as $ch): ?>
           <div class="dato-row">
-            <span class="dato-nombre"><?= htmlspecialchars($ch['insumo']) ?></span>
+            <span class="dato-nombre"><?= htmlspecialchars($ch['insumo'] ?? '') ?></span>
             <span class="dato-det"><?= formatoInteligente($ch['cantidad']) ?> <?= $ch['unidad_medida'] ?></span>
             <span class="dato-val" style="color:#c62828">$<?= number_format($ch['total_pagado'], 0, ',', '.') ?></span>
           </div>
@@ -310,7 +310,7 @@
           <?php foreach ($alertas as $a):
             $pct = $a['punto_reposicion'] > 0 ? min(100, round(($a['stock_actual'] / $a['punto_reposicion']) * 100)) : 0; ?>
           <div class="dato-row">
-            <span class="dato-nombre">⚠️ <?= htmlspecialchars($a['nombre']) ?></span>
+            <span class="dato-nombre">⚠️ <?= htmlspecialchars($a['nombre'] ?? '') ?></span>
             <div class="barra-w"><div class="barra-alert" style="width:<?= $pct ?>%"></div></div>
             <span style="font-size:.7rem;font-weight:700;color:#c62828"><?= formatoInteligente($a['stock_actual']) ?> <?= $a['unidad_medida'] ?></span>
           </div>
@@ -341,7 +341,7 @@
             Cierre guardado
             <?php if (!empty($cierre_guardado['sugerencia_produccion'])): ?>
             <div style="font-size:.65rem;font-weight:400;opacity:.75;margin-top:.1rem">
-              "<?= htmlspecialchars($cierre_guardado['sugerencia_produccion']) ?>"
+              "<?= htmlspecialchars($cierre_guardado['sugerencia_produccion'] ?? '') ?>"
             </div>
             <?php endif; ?>
           </div>
@@ -427,7 +427,7 @@
       <div class="sob-lista">
         <?php foreach ($sobrantes as $s): if ($s['sobrante'] <= 0) continue; ?>
         <div class="sob-fila">
-          <span class="sob-nombre"><?= htmlspecialchars($s['nombre']) ?></span>
+          <span class="sob-nombre"><?= htmlspecialchars($s['nombre'] ?? '') ?></span>
           <span class="sob-det"><?= $s['vendidas'] ?>/<span style="color:var(--ink2)"><?= $s['producidas'] ?></span></span>
           <span class="badge b-bad" style="font-size:.58rem"><?= $s['sobrante'] ?> und</span>
         </div>

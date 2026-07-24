@@ -12,7 +12,7 @@ if ($formato === 'excel') {
 
     // Título
     echo '<tr><td colspan="7" style="background:#1a237e;color:#fff;font-weight:bold;font-size:13pt;padding:8px;">';
-    echo 'Pedidos Detallados — ' . htmlspecialchars($nombre_tienda) . '</td></tr>';
+    echo 'Pedidos Detallados — ' . htmlspecialchars($nombre_tienda ?? '') . '</td></tr>';
     echo '<tr><td colspan="7" style="background:#e8eaf6;color:#283593;padding:4px 8px;font-size:9pt;">';
     echo 'Generado: ' . $fecha_generado . '</td></tr>';
     echo '<tr><td colspan="7"></td></tr>';
@@ -25,7 +25,7 @@ if ($formato === 'excel') {
         echo '<tr style="background:#c5cae9;">';
         echo '<td colspan="4" style="padding:5px 8px;font-weight:bold;color:#1a237e;">';
         echo 'Pedido #' . str_pad($ped['id_pedido'], 4, '0', STR_PAD_LEFT);
-        echo ' — ' . htmlspecialchars($ped['aprendiz']) . '</td>';
+        echo ' — ' . htmlspecialchars($ped['aprendiz'] ?? '') . '</td>';
         $fecha_ent_str = formatearFechaEntrega($ped['fecha_entrega'], false);
         echo '<td colspan="2" style="padding:5px 8px;color:#283593;font-size:9pt;">Entrega: ' . $fecha_ent_str . '</td>';
         echo '<td style="padding:5px 8px;background:' . $bg_est . ';font-weight:bold;font-size:9pt;text-align:center;">' . strtoupper($ped['estado']) . '</td>';
@@ -46,7 +46,7 @@ if ($formato === 'excel') {
             $und = $d['cantidad'] + $d['napa'] + $d['bonificacion'];
             $total_und += $und;
             echo '<tr>';
-            echo '<td colspan="3" style="padding:4px 8px;">' . htmlspecialchars($d['producto']) . '</td>';
+            echo '<td colspan="3" style="padding:4px 8px;">' . htmlspecialchars($d['producto'] ?? '') . '</td>';
             echo '<td style="padding:4px 8px;text-align:center;">' . (int)$d['cantidad'] . '</td>';
             echo '<td style="padding:4px 8px;text-align:center;">' . (int)$d['napa'] . '</td>';
             echo '<td style="padding:4px 8px;text-align:center;">' . (int)$d['bonificacion'] . '</td>';
@@ -80,7 +80,7 @@ $gran_total = array_sum(array_column($pedidos, 'total_estimado'));
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Pedidos Detallados — <?= htmlspecialchars($nombre_tienda) ?></title>
+<title>Pedidos Detallados — <?= htmlspecialchars($nombre_tienda ?? '') ?></title>
 <style>
     @page { margin:1.5cm 1.8cm; }
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -135,7 +135,7 @@ $gran_total = array_sum(array_column($pedidos, 'total_estimado'));
     <div>
         <div class="enc-titulo">
             Pedidos Detallados
-            <span><?= htmlspecialchars($nombre_tienda) ?></span>
+            <span><?= htmlspecialchars($nombre_tienda ?? '') ?></span>
         </div>
     </div>
     <div class="enc-meta">
@@ -152,7 +152,7 @@ $gran_total = array_sum(array_column($pedidos, 'total_estimado'));
     <div class="ped-cabecera">
         <div class="ped-cab-izq">
             Pedido #<?= str_pad($ped['id_pedido'], 4, '0', STR_PAD_LEFT) ?>
-            &nbsp;·&nbsp; <?= htmlspecialchars($ped['aprendiz']) ?>
+            &nbsp;·&nbsp; <?= htmlspecialchars($ped['aprendiz'] ?? '') ?>
         </div>
         <div class="ped-cab-der">
             Entrega: <?= formatearFechaEntrega($ped['fecha_entrega'], true) ?>
@@ -176,7 +176,7 @@ $gran_total = array_sum(array_column($pedidos, 'total_estimado'));
             $total_und += $und;
         ?>
             <tr>
-                <td><?= htmlspecialchars($d['producto']) ?></td>
+                <td><?= htmlspecialchars($d['producto'] ?? '') ?></td>
                 <td><?= (int)$d['cantidad'] ?></td>
                 <td><?= $d['napa'] > 0 ? '<span class="napa-b">+' . (int)$d['napa'] . '</span>' : '0' ?></td>
                 <td><?= $d['bonificacion'] > 0 ? '<span class="bonif-b">+' . (int)$d['bonificacion'] . '</span>' : '0' ?></td>
@@ -199,7 +199,7 @@ $gran_total = array_sum(array_column($pedidos, 'total_estimado'));
 </div>
 
 <div class="pie">
-    BreadControl · <?= htmlspecialchars($nombre_tienda) ?> · Generado el <?= $fecha_generado ?>
+    BreadControl · <?= htmlspecialchars($nombre_tienda ?? '') ?> · Generado el <?= $fecha_generado ?>
 </div>
 
 </body>

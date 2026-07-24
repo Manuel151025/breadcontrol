@@ -144,10 +144,10 @@ html,body{min-height:100%;overflow-x:hidden;font-family:'Plus Jakarta Sans',sans
     <div class="pf-sidebar">
       <div class="id-card">
         <div class="id-avatar"><span><?= $initials ?></span></div>
-        <div class="id-name"><?= htmlspecialchars($datos['nombre_completo']) ?></div>
+        <div class="id-name"><?= htmlspecialchars($datos['nombre_completo'] ?? '') ?></div>
         <div class="id-role"><?= $datos['rol'] ?></div>
         <?php if (!empty($datos['correo_electronico'])): ?>
-        <div class="id-email"><i class="bi bi-envelope"></i> <?= htmlspecialchars($datos['correo_electronico']) ?></div>
+        <div class="id-email"><i class="bi bi-envelope"></i> <?= htmlspecialchars($datos['correo_electronico'] ?? '') ?></div>
         <?php endif; ?>
       </div>
       <div class="tab-nav">
@@ -180,8 +180,8 @@ html,body{min-height:100%;overflow-x:hidden;font-family:'Plus Jakarta Sans',sans
       <div class="pf-body">
         <div class="tab-panel active" id="panel-datos">
           <form method="POST">
-            <div class="fl"><label>Usuario</label><div class="fl-wrap"><i class="bi bi-person"></i><input type="text" value="<?= htmlspecialchars($datos['nombre_usuario']) ?>" disabled></div><div class="hint">El nombre de usuario no se puede cambiar</div></div>
-            <div class="fl"><label>Nombre completo *</label><div class="fl-wrap"><i class="bi bi-person-fill"></i><input type="text" name="nombre_completo" value="<?= htmlspecialchars($datos['nombre_completo']) ?>" required></div></div>
+            <div class="fl"><label>Usuario</label><div class="fl-wrap"><i class="bi bi-person"></i><input type="text" value="<?= htmlspecialchars($datos['nombre_usuario'] ?? '') ?>" disabled></div><div class="hint">El nombre de usuario no se puede cambiar</div></div>
+            <div class="fl"><label>Nombre completo *</label><div class="fl-wrap"><i class="bi bi-person-fill"></i><input type="text" name="nombre_completo" value="<?= htmlspecialchars($datos['nombre_completo'] ?? '') ?>" required></div></div>
             <div class="fl-row">
               <div class="fl"><label>Correo electrónico</label><div class="fl-wrap"><i class="bi bi-envelope"></i><input type="email" name="correo_electronico" value="<?= htmlspecialchars($datos['correo_electronico'] ?? '') ?>" placeholder="correo@ejemplo.com"></div><div class="hint">Necesario para recuperar contraseña</div></div>
               <div class="fl"><label>Teléfono</label><div class="fl-wrap"><i class="bi bi-telephone"></i><input type="tel" name="telefono" value="<?= htmlspecialchars($datos['telefono'] ?? '') ?>" placeholder="3001234567"></div></div>

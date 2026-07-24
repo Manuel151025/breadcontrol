@@ -120,7 +120,7 @@ html,body{min-height:100%;overflow-x:hidden;font-family:'Plus Jakarta Sans',sans
                 <?php if (!empty($config['nequi_link_pago'])): ?>
                     <div class="pf-current-link">
                         <i class="bi bi-link-45deg"></i>
-                        Link actual: <a href="<?= htmlspecialchars($config['nequi_link_pago']) ?>" target="_blank" rel="noopener"><?= htmlspecialchars($config['nequi_link_pago']) ?></a>
+                        Link actual: <a href="<?= htmlspecialchars($config['nequi_link_pago'] ?? '') ?>" target="_blank" rel="noopener"><?= htmlspecialchars($config['nequi_link_pago'] ?? '') ?></a>
                     </div>
                 <?php endif; ?>
             </div>

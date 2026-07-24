@@ -61,7 +61,7 @@
       <div>
         <div class="wc-greeting">Panadería BreadControl</div>
         <div class="wc-name">Editar <em>Producto</em></div>
-        <div class="wc-sub"><?= htmlspecialchars($producto['nombre']) ?></div>
+        <div class="wc-sub"><?= htmlspecialchars($producto['nombre'] ?? '') ?></div>
       </div>
     </div>
     <div class="wc-pills">
@@ -77,7 +77,7 @@
   </div>
 
   <div class="topbar">
-    <div class="mod-titulo"><i class="bi bi-pencil-square"></i> <?= htmlspecialchars($producto['nombre']) ?></div>
+    <div class="mod-titulo"><i class="bi bi-pencil-square"></i> <?= htmlspecialchars($producto['nombre'] ?? '') ?></div>
     <div class="top-right">
       <a href="editar_receta.php?id=<?= $id_producto ?>" class="btn-receta">
         <i class="bi bi-journal-plus"></i> <?= $tiene_receta ? 'Ver receta' : 'Crear receta' ?>
@@ -114,7 +114,7 @@
 
           <div class="fl">
             <label>Nombre <span style="color:#c62828">*</span></label>
-            <input type="text" name="nombre" required maxlength="100" value="<?= htmlspecialchars($producto['nombre']) ?>">
+            <input type="text" name="nombre" required maxlength="100" value="<?= htmlspecialchars($producto['nombre'] ?? '') ?>">
           </div>
 
           <div class="fl-row">

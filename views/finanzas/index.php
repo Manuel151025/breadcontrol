@@ -344,7 +344,7 @@
           ?>
           <div class="fila-item">
             <span style="font-size:.82rem"><?= ($cl['tipo'] ?? '') === 'tienda' ? '🏪' : '🧑' ?></span>
-            <span class="fi-nombre"><?= htmlspecialchars($cl['cliente']) ?></span>
+            <span class="fi-nombre"><?= htmlspecialchars($cl['cliente'] ?? '') ?></span>
             <span class="fi-sub"><?= $cl['transacciones'] ?> tx</span>
             <div class="barra-m-w"><div class="barra-m-f" style="width:<?= $pct ?>%"></div></div>
             <span class="fi-val">$<?= number_format($cl['total'],0,',','.') ?></span>
@@ -370,7 +370,7 @@
               $pct = round(($ti['total'] / $max_i) * 100);
           ?>
           <div class="fila-item">
-            <span class="fi-nombre"><?= htmlspecialchars($ti['nombre']) ?></span>
+            <span class="fi-nombre"><?= htmlspecialchars($ti['nombre'] ?? '') ?></span>
             <span class="fi-sub"><?= formatoInteligente($ti['cantidad']) ?> <?= $ti['unidad_medida'] ?></span>
             <div class="barra-m-w"><div class="barra-m-f roja" style="width:<?= $pct ?>%"></div></div>
             <span class="fi-val" style="color:#c62828">$<?= number_format($ti['total'],0,',','.') ?></span>
@@ -397,7 +397,7 @@
               $pct = round(($pp['total'] / $max_p) * 100);
           ?>
           <div class="fila-item">
-            <span class="fi-nombre"><?= htmlspecialchars($pp['nombre']) ?></span>
+            <span class="fi-nombre"><?= htmlspecialchars($pp['nombre'] ?? '') ?></span>
             <span class="fi-sub"><?= $pp['unidades'] ?> und</span>
             <div class="barra-m-w" style="width:42px">
               <div class="barra-m-f verde" style="width:<?= $pct ?>%"></div>
@@ -521,7 +521,7 @@
               $color   = $use_cost ? 'roja' : '';
           ?>
           <div class="fila-item">
-            <span class="fi-nombre" title="<?= htmlspecialchars($ci['nombre']) ?>"><?= htmlspecialchars($ci['nombre']) ?></span>
+            <span class="fi-nombre" title="<?= htmlspecialchars($ci['nombre'] ?? '') ?>"><?= htmlspecialchars($ci['nombre'] ?? '') ?></span>
             <span class="fi-sub"><?= formatoInteligente((float)$ci['total_cant']) ?> <?= $ci['unidad_medida'] ?></span>
             <div class="barra-m-w" style="width:42px">
               <div class="barra-m-f <?= $color ?>" style="width:<?= $pct ?>%"></div>

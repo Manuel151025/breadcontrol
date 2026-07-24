@@ -96,10 +96,10 @@
             </p>
 
             <?php if ($error): ?>
-                <div class="msg-error"><i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($error) ?></div>
+                <div class="msg-error"><i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($error ?? '') ?></div>
             <?php endif; ?>
             <?php if ($success): ?>
-                <div class="msg-success"><i class="bi bi-check-circle-fill"></i> <?= htmlspecialchars($success) ?></div>
+                <div class="msg-success"><i class="bi bi-check-circle-fill"></i> <?= htmlspecialchars($success ?? '') ?></div>
             <?php endif; ?>
 
             <?php if (!$pago_configurado): ?>
@@ -139,7 +139,7 @@
                         </ol>
                     </div>
 
-                    <a href="<?= htmlspecialchars($link_pago_url) ?>" target="_blank" rel="noopener" class="btn-pagar">
+                    <a href="<?= htmlspecialchars($link_pago_url ?? '') ?>" target="_blank" rel="noopener" class="btn-pagar">
                         <i class="bi bi-shield-lock-fill"></i>
                         Pagar ahora $<?= number_format($total_saldo, 0, ',', '.') ?>
                         <i class="bi bi-box-arrow-up-right" style="font-size:.9rem; opacity:.85;"></i>
@@ -148,7 +148,7 @@
                     <div class="pago-medios">
                         Aceptamos: <strong>Nequi · Bancolombia · PSE · Tarjeta</strong>
                         <?php if (!empty($titular_negocio)): ?>
-                            <br>Pagas a: <strong><?= htmlspecialchars($titular_negocio) ?></strong>
+                            <br>Pagas a: <strong><?= htmlspecialchars($titular_negocio ?? '') ?></strong>
                         <?php endif; ?>
                     </div>
 

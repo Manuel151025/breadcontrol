@@ -1261,7 +1261,7 @@
                 <select name="id_cliente" id="sel-cliente" onchange="calcTotal()">
                   <option value="0">Mostrador</option>
                   <?php foreach ($clientes as $cl): ?>
-                    <option value="<?= $cl['id_cliente'] ?>" data-tipo="tienda"><?= htmlspecialchars($cl['nombre']) ?> 🏪
+                    <option value="<?= $cl['id_cliente'] ?>" data-tipo="tienda"><?= htmlspecialchars($cl['nombre'] ?? '') ?> 🏪
                     </option>
                   <?php endforeach; ?>
                 </select>
@@ -1351,7 +1351,7 @@
                 <select name="ped_cliente" id="ped-cliente">
                   <option value="0">Mostrador</option>
                   <?php foreach ($clientes as $cl): ?>
-                    <option value="<?= $cl['id_cliente'] ?>" data-tipo="tienda"><?= htmlspecialchars($cl['nombre']) ?> 🏪
+                    <option value="<?= $cl['id_cliente'] ?>" data-tipo="tienda"><?= htmlspecialchars($cl['nombre'] ?? '') ?> 🏪
                     </option>
                   <?php endforeach; ?>
                 </select>
@@ -1420,7 +1420,7 @@
                       style="text-align:right;font-weight:700;font-family:'Fraunces',serif;<?= $r['tipo_salida'] !== 'venta' ? 'color:var(--ink3)' : 'color:#1b5e20' ?>">
                       <?= $r['tipo_salida'] === 'venta' ? '$' . number_format($r['total_venta'], 0, ',', '.') : '—' ?></td>
                     <td style="font-size:.78rem;color:var(--ink3)">
-                      <?= $r['tipo_salida'] === 'venta' ? htmlspecialchars($r['cliente']) : '—' ?></td>
+                      <?= $r['tipo_salida'] === 'venta' ? htmlspecialchars($r['cliente'] ?? '') : '—' ?></td>
                     <td style="text-align:center;font-size:.78rem;">
                       <?php if ($r['bonificacion'] > 0): ?>      <?= $r['cliente'] !== 'Mostrador' ? '<span style="color:#1565c0;font-weight:700;">+' . $r['bonificacion'] . ' 🏪</span>' : '<span style="color:#c67124;font-weight:700;">+' . $r['bonificacion'] . ' 🎁</span>' ?>    <?php else: ?>—<?php endif; ?>
                     </td>
@@ -1498,7 +1498,7 @@
           style="width:100%;padding:.4rem;border:1px solid var(--border);border-radius:8px;">
           <option value="0" data-tipo="mostrador">Mostrador</option>
           <?php foreach ($clientes as $cl): ?>
-            <option value="<?= $cl['id_cliente'] ?>" data-tipo="tienda"><?= htmlspecialchars($cl['nombre']) ?> 🏪</option>
+            <option value="<?= $cl['id_cliente'] ?>" data-tipo="tienda"><?= htmlspecialchars($cl['nombre'] ?? '') ?> 🏪</option>
           <?php endforeach; ?>
         </select>
       </div>
@@ -1600,7 +1600,7 @@
           style="width:100%;padding:.4rem;border:1px solid var(--border);border-radius:8px;">
           <option value="0" data-tipo="mostrador">Mostrador</option>
           <?php foreach ($clientes as $cl): ?>
-            <option value="<?= $cl['id_cliente'] ?>" data-tipo="tienda"><?= htmlspecialchars($cl['nombre']) ?> 🏪</option>
+            <option value="<?= $cl['id_cliente'] ?>" data-tipo="tienda"><?= htmlspecialchars($cl['nombre'] ?? '') ?> 🏪</option>
           <?php endforeach; ?>
         </select>
       </div>

@@ -74,7 +74,7 @@
     <div class="meta-section">
         <strong>Reporte:</strong> Producción Diaria<br>
         <strong>Fecha Producción:</strong> <?= date('d/m/Y', strtotime($fecha_fil)) ?><br>
-        <strong>Generado:</strong> <?= htmlspecialchars($fecha_generado) ?>
+        <strong>Generado:</strong> <?= htmlspecialchars($fecha_generado ?? '') ?>
     </div>
 </div>
 
@@ -112,14 +112,14 @@
         <tr>
             <td><span style="font-weight: 700; color: #6b3d1e;">#<?= $pr['id_produccion'] ?></span></td>
             <td>
-                <strong><?= htmlspecialchars($pr['producto']) ?></strong><br>
-                <span style="font-size: 7.5pt; color: #b87a4a;"><?= htmlspecialchars($pr['unidad_produccion']) ?></span>
+                <strong><?= htmlspecialchars($pr['producto'] ?? '') ?></strong><br>
+                <span style="font-size: 7.5pt; color: #b87a4a;"><?= htmlspecialchars($pr['unidad_produccion'] ?? '') ?></span>
             </td>
             <td class="text-center"><span class="tanda-badge"><?= (int)$pr['cantidad_tandas'] ?></span></td>
             <td><?= htmlspecialchars($pr['operario'] ?? '—') ?></td>
             <td><?= date('H:i', strtotime($pr['fecha_produccion'])) ?></td>
             <td style="font-size: 8pt; color: #6b3d1e;">
-                <?= $pr['observaciones'] ? htmlspecialchars($pr['observaciones']) : '—' ?>
+                <?= $pr['observaciones'] ? htmlspecialchars($pr['observaciones'] ?? '') : '—' ?>
             </td>
         </tr>
         <?php endforeach; ?>
@@ -128,7 +128,7 @@
 </table>
 
 <div class="footer">
-    BreadControl · Reporte Oficial de Producción Diaria · Generado automáticamente el <?= htmlspecialchars($fecha_generado) ?>
+    BreadControl · Reporte Oficial de Producción Diaria · Generado automáticamente el <?= htmlspecialchars($fecha_generado ?? '') ?>
 </div>
 
 </body>

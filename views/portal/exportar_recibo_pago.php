@@ -93,11 +93,11 @@
     <div class="details-grid">
         <div class="detail-item">
             <span>Cliente / Pagador</span>
-            <strong><?= htmlspecialchars($_SESSION['cliente_nombre']) ?></strong>
+            <strong><?= htmlspecialchars($_SESSION['cliente_nombre'] ?? '') ?></strong>
         </div>
         <div class="detail-item">
             <span>Fecha de Emisión</span>
-            <strong><?= htmlspecialchars($fecha_generado) ?></strong>
+            <strong><?= htmlspecialchars($fecha_generado ?? '') ?></strong>
         </div>
         <div class="detail-item">
             <span>Referencia del Pago</span>
@@ -109,7 +109,7 @@
         </div>
         <div class="detail-item">
             <span>Estado de Pago</span>
-            <strong style="color: #2e7d32; text-transform: uppercase;"><?= htmlspecialchars($pedido['estado_pago']) ?></strong>
+            <strong style="color: #2e7d32; text-transform: uppercase;"><?= htmlspecialchars($pedido['estado_pago'] ?? '') ?></strong>
         </div>
     </div>
 
@@ -154,7 +154,7 @@
                 <?php foreach ($detalles as $d): ?>
                 <?php $total_und = $d['cantidad'] + $d['napa'] + $d['bonificacion']; ?>
                 <tr>
-                    <td class="text-left" style="font-weight: 600;"><?= htmlspecialchars($d['producto']) ?></td>
+                    <td class="text-left" style="font-weight: 600;"><?= htmlspecialchars($d['producto'] ?? '') ?></td>
                     <td><?= (int)$d['cantidad'] ?> und</td>
                     <td>
                         <?php if ($d['napa'] > 0): ?>

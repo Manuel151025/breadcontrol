@@ -89,7 +89,7 @@
     <div class="mod-titulo"><i class="bi bi-journal-richtext"></i> Recetas</div>
     <div class="top-actions">
       <form method="get" style="display:flex;gap:.4rem;">
-        <input type="text" name="q" class="inp-search" placeholder="Buscar producto…" value="<?= htmlspecialchars($busca) ?>">
+        <input type="text" name="q" class="inp-search" placeholder="Buscar producto…" value="<?= htmlspecialchars($busca ?? '') ?>">
       </form>
       <a href="variedades.php" class="btn-sec"><i class="bi bi-list-stars"></i> Variedades</a>
       <a href="crear_producto.php" class="btn-grad"><i class="bi bi-plus-lg"></i> Nuevo producto</a>
@@ -135,7 +135,7 @@
             </svg>
           </div>
           <div class="prod-card-title-block">
-            <div class="prod-nombre" title="<?= htmlspecialchars($p['nombre']) ?>"><?= htmlspecialchars($p['nombre']) ?></div>
+            <div class="prod-nombre" title="<?= htmlspecialchars($p['nombre'] ?? '') ?>"><?= htmlspecialchars($p['nombre'] ?? '') ?></div>
             <div class="prod-meta">
               <span><?= $p['unidad_produccion'] ?></span>
               <?php if ($p['cantidad_por_tanda'] > 0): ?>

@@ -94,7 +94,7 @@
       <?php if ($paso == 1): ?>
       <form method="POST">
         <div class="fl"><label>Nombre de usuario</label><div class="input-wrap"><i class="bi bi-person-fill ico"></i>
-          <input type="text" name="usuario" placeholder="Ej: propietario" value="<?= htmlspecialchars($usuario_input) ?>" required autofocus></div></div>
+          <input type="text" name="usuario" placeholder="Ej: propietario" value="<?= htmlspecialchars($usuario_input ?? '') ?>" required autofocus></div></div>
         <label style="display:block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:var(--fg-muted);margin-bottom:.5rem;">Metodo de verificacion</label>
         <div class="method-grid">
           <label class="method-btn active" id="m-email" onclick="selM('email')"><input type="radio" name="metodo" value="email" checked>

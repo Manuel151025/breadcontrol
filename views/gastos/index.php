@@ -317,8 +317,8 @@
                 </span>
               </td>
               <td style="font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
-                  title="<?= htmlspecialchars($g['descripcion']) ?>">
-                <?= htmlspecialchars($g['descripcion']) ?>
+                  title="<?= htmlspecialchars($g['descripcion'] ?? '') ?>">
+                <?= htmlspecialchars($g['descripcion'] ?? '') ?>
               </td>
               <td style="font-size:.75rem;color:var(--ink3)">
                 <?= htmlspecialchars($g['usuario'] ?? '—') ?>

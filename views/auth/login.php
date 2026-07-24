@@ -286,7 +286,7 @@
     <?php if ($error): ?>
     <div class="msg-error">
       <i class="bi bi-exclamation-triangle-fill"></i>
-      <?= htmlspecialchars($error) ?>
+      <?= htmlspecialchars($error ?? '') ?>
     </div>
     <?php endif; ?>
 
@@ -332,7 +332,7 @@
 // ── Greeting con nombre ──
 (function(){
   var h = new Date().getHours();
-  var name = '<?= htmlspecialchars($nombre_saludo) ?>';
+  var name = '<?= htmlspecialchars($nombre_saludo ?? '') ?>';
   var suffix = name ? ', ' + name : '';
   var g, m;
   if (h >= 5 && h < 12) {
