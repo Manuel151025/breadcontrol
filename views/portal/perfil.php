@@ -167,8 +167,15 @@
                 <form method="post">
                     <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                     <div class="form-group">
-                        <label>Usuario</label>
-                        <input type="text" class="form-control" value="<?= htmlspecialchars($cliente['usuario'] ?? '') ?>" readonly>
+                        <label><?= $es_google ? 'Acceso' : 'Usuario' ?></label>
+                        <?php if ($es_google): ?>
+                            <div class="form-control" style="display:flex;align-items:center;gap:.5rem;">
+                                <i class="bi bi-google" style="color:#ea4335;"></i>
+                                <span>Accedes con Google<?= !empty($cliente['email']) ? ' · ' . htmlspecialchars($cliente['email']) : '' ?></span>
+                            </div>
+                        <?php else: ?>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($cliente['usuario'] ?? '') ?>" readonly>
+                        <?php endif; ?>
                     </div>
                     <div class="form-group">
                         <label>Nombre Completo / Tienda</label>
@@ -184,7 +191,8 @@
                 </form>
             </div>
 
-            <!-- Seguridad -->
+            <?php if (!$es_google): ?>
+            <!-- Seguridad (solo cuentas con contraseña tradicional) -->
             <div class="card">
                 <div class="card-title"><i class="bi bi-shield-lock"></i> Seguridad</div>
                 <form method="post">
@@ -207,7 +215,7 @@
                 </form>
             </div>
 
-            <!-- PIN de Recuperación -->
+            <!-- PIN de Recuperación (solo cuentas con contraseña tradicional) -->
             <div class="card">
                 <div class="card-title"><i class="bi bi-123"></i> PIN de Recuperación</div>
                 <div class="sec-tip">
@@ -234,6 +242,16 @@
                     <?php endif; ?>
                 </form>
             </div>
+            <?php else: ?>
+            <!-- Cuenta Google: sin contraseña ni PIN en BreadControl -->
+            <div class="card">
+                <div class="card-title"><i class="bi bi-google" style="color:#ea4335;"></i> Acceso con Google</div>
+                <div class="sec-tip">
+                    <strong>Tu cuenta usa Google</strong>
+                    Inicias sesión con el botón "Continuar con Google", así que no necesitas contraseña ni PIN de recuperación en BreadControl. Tu contraseña se administra desde tu cuenta de Google.
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
 
         <!-- ══ APRENDIZ SENA (canje de código) ══ -->

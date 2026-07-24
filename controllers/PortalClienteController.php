@@ -1066,6 +1066,11 @@ class PortalClienteController {
             $mi_instructor_nombre = $inst['nombre'] ?? '';
         }
 
+        // Cuenta creada por Google: no tiene usuario ni contraseña tradicional. La vista
+        // muestra "Accede con Google" en vez de un campo usuario vacío, y oculta las
+        // tarjetas de contraseña/PIN (no aplican sin contraseña).
+        $es_google = empty($cliente['usuario']);
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
                 $msg_err = 'Token de seguridad inválido o expirado. Por favor, intente de nuevo.';
@@ -1103,8 +1108,10 @@ class PortalClienteController {
                 $actual = $_POST['pass_actual'] ?? '';
                 $nueva = $_POST['pass_nueva'] ?? '';
                 $confirm = $_POST['pass_confirm'] ?? '';
-                
-                if (password_verify($actual, $cliente['contrasena_hash'])) {
+
+                if (empty($cliente['contrasena_hash'])) {
+                    $msg_err = 'Tu cuenta accede con Google; no tiene contraseña que cambiar.';
+                } elseif (password_verify($actual, $cliente['contrasena_hash'])) {
                     if ($nueva === $confirm) {
                         if (strlen($nueva) >= 4) {
                             $hash = password_hash($nueva, PASSWORD_DEFAULT);
@@ -1122,8 +1129,10 @@ class PortalClienteController {
             } elseif (isset($_POST['guardar_pin'])) {
                 $pin = trim($_POST['pin'] ?? '');
                 $pass = $_POST['pass_pin'] ?? '';
-                
-                if (password_verify($pass, $cliente['contrasena_hash'])) {
+
+                if (empty($cliente['contrasena_hash'])) {
+                    $msg_err = 'Tu cuenta accede con Google; el PIN de recuperación no aplica.';
+                } elseif (password_verify($pass, $cliente['contrasena_hash'])) {
                     if (preg_match('/^\d{6}$/', $pin)) {
                         try {
                             $hash = password_hash($pin, PASSWORD_DEFAULT);
