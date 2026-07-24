@@ -37,6 +37,48 @@ class PortalClienteController {
     }
 
     /**
+     * ÚNICO punto de canje de código de aprendiz para todo el portal (registro, perfil,
+     * completar_perfil y tablero). Aplica el límite de intentos por sesión (bloqueo de
+     * 10 minutos tras 5 fallos) y delega TODAS las validaciones a
+     * PortalClienteModel::canjearCodigoAprendiz (código inexistente/desactivado/vencido,
+     * usos agotados, ya es aprendiz, cuenta instructor, FOR UPDATE sobre el código).
+     * Ningún llamador debe validar por su cuenta.
+     *
+     * @return array{ok: bool, error: string, instructor: string} (mensajes SIN escapar)
+     */
+    private function intentarCanjeCodigo(int $cliente_id, string $codigo): array {
+        $ahora   = time();
+        $bloqueo = (int)($_SESSION['canje_bloqueo_hasta'] ?? 0);
+        if ($ahora < $bloqueo) {
+            $mins = (int)ceil(($bloqueo - $ahora) / 60);
+            return ['ok' => false, 'instructor' => '',
+                    'error' => "Demasiados intentos con códigos. Espera $mins minuto(s) e intenta de nuevo."];
+        }
+
+        try {
+            $r = $this->model->canjearCodigoAprendiz($cliente_id, $codigo);
+        } catch (Exception $e) {
+            log_error($e);
+            return ['ok' => false, 'instructor' => '', 'error' => 'No se pudo canjear el código. Intenta de nuevo.'];
+        }
+
+        if ($r['ok']) {
+            $_SESSION['canje_intentos'] = 0;
+            return ['ok' => true, 'instructor' => $r['instructor'], 'error' => ''];
+        }
+
+        $intentos = (int)($_SESSION['canje_intentos'] ?? 0) + 1;
+        $_SESSION['canje_intentos'] = $intentos;
+        if ($intentos >= 5) {
+            $_SESSION['canje_bloqueo_hasta'] = $ahora + 600; // 10 minutos
+            $_SESSION['canje_intentos'] = 0;
+            return ['ok' => false, 'instructor' => '',
+                    'error' => 'Demasiados intentos. Espera 10 minutos e intenta de nuevo.'];
+        }
+        return ['ok' => false, 'instructor' => '', 'error' => $r['error']];
+    }
+
+    /**
      * Controla el inicio de sesión del portal.
      */
     public function login() {
@@ -274,9 +316,9 @@ class PortalClienteController {
                                 $new_id = $this->model->registrarCliente($nombre, $tipo, $telefono, $usuario, $hash, 0, null);
                                 if ($new_id > 0) {
                                     $success = 'Registro exitoso. Ya puedes iniciar sesión y hacer pedidos.';
-                                    // Canje opcional del código de aprendiz.
+                                    // Canje opcional del código de aprendiz (único punto).
                                     if ($codigo_canje !== '') {
-                                        $r = $this->model->canjearCodigoAprendiz($new_id, $codigo_canje);
+                                        $r = $this->intentarCanjeCodigo($new_id, $codigo_canje);
                                         if ($r['ok']) {
                                             $success = 'Registro exitoso. Quedaste vinculado como aprendiz de '
                                                 . htmlspecialchars($r['instructor']) . '. Ya puedes iniciar sesión.';
@@ -1000,39 +1042,15 @@ class PortalClienteController {
                         $msg_err = 'El nombre es obligatorio.';
                     }
                 } elseif (isset($_POST['canjear_codigo'])) {
-                    // Límite de intentos por sesión para que nadie pruebe códigos al azar.
-                    $ahora   = time();
-                    $bloqueo = (int)($_SESSION['canje_bloqueo_hasta'] ?? 0);
-                    if ($ahora < $bloqueo) {
-                        $mins = (int)ceil(($bloqueo - $ahora) / 60);
-                        $msg_err = "Demasiados intentos con códigos. Espera $mins minuto(s) e intenta de nuevo.";
-                    } elseif ($es_instructor) {
-                        $msg_err = 'La cuenta del instructor no puede registrarse como aprendiz.';
-                    } elseif ((int)$cliente['es_aprendiz'] === 1) {
-                        $msg_err = 'Ya estás registrado como aprendiz de un instructor.';
+                    // Canje unificado (rate-limit + validaciones en intentarCanjeCodigo/modelo).
+                    $r = $this->intentarCanjeCodigo($cliente_id, $_POST['codigo_aprendiz'] ?? '');
+                    if ($r['ok']) {
+                        $msg_ok = '¡Listo! Quedaste vinculado como aprendiz de ' . htmlspecialchars($r['instructor']) . '.';
+                        $cliente = $this->model->getClienteById($cliente_id);
+                        $puede_canjear = false;
+                        $mi_instructor_nombre = $r['instructor'];
                     } else {
-                        try {
-                            $r = $this->model->canjearCodigoAprendiz($cliente_id, $_POST['codigo_aprendiz'] ?? '');
-                            if ($r['ok']) {
-                                $_SESSION['canje_intentos'] = 0;
-                                $msg_ok = '¡Listo! Quedaste vinculado como aprendiz de ' . htmlspecialchars($r['instructor']) . '.';
-                                $cliente = $this->model->getClienteById($cliente_id);
-                                $puede_canjear = false;
-                                $mi_instructor_nombre = $r['instructor'];
-                            } else {
-                                $intentos = (int)($_SESSION['canje_intentos'] ?? 0) + 1;
-                                $_SESSION['canje_intentos'] = $intentos;
-                                if ($intentos >= 5) {
-                                    $_SESSION['canje_bloqueo_hasta'] = $ahora + 600; // 10 minutos
-                                    $_SESSION['canje_intentos'] = 0;
-                                    $msg_err = 'Demasiados intentos. Espera 10 minutos e intenta de nuevo.';
-                                } else {
-                                    $msg_err = $r['error'];
-                                }
-                            }
-                        } catch (Exception $e) {
-                            $msg_err = 'No se pudo canjear el código. Intenta de nuevo.';
-                        }
+                        $msg_err = $r['error'];
                     }
                 } elseif (isset($_POST['cambiar_pass'])) {
                 $actual = $_POST['pass_actual'] ?? '';
