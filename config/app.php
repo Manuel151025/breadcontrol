@@ -6,6 +6,26 @@ date_default_timezone_set('America/Bogota');
 // ============================================================
 
 require_once __DIR__ . '/env.php';
+
+// ============================================================
+//  ENTORNO Y MANEJO DE ERRORES
+//  APP_ENV (del .env) es la fuente de verdad. Por seguridad, si NO está definido se
+//  asume 'production': jamás se exponen errores por defecto. En producción los errores
+//  van SOLO al archivo de log; en local se muestran en pantalla como en desarrollo.
+//  Este es el punto de arranque comun: config/app.php lo carga TODA página del portal
+//  y del back-office, asi que la configuracion aplica de forma global.
+// ============================================================
+define('APP_ENV', strtolower(trim((string) get_env('APP_ENV', 'production'))));
+
+$app_es_local = in_array(APP_ENV, ['local', 'dev', 'development'], true);
+
+error_reporting(E_ALL);
+ini_set('log_errors', '1');
+ini_set('error_log', __DIR__ . '/../logs/php-error-' . date('Y-m-d') . '.log');
+ini_set('display_errors',         $app_es_local ? '1' : '0');
+ini_set('display_startup_errors', $app_es_local ? '1' : '0');
+unset($app_es_local);
+
 require_once __DIR__ . '/logger.php';
 
 define('APP_NOMBRE',   'Sistema Inventario Panadería');
