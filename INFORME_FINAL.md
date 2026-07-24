@@ -1,11 +1,38 @@
 # Informe final — Correcciones del flujo pedido/pago
 
-**Rama:** `fix/flujo-pedido-pago` (9 commits, desde `master`).
+**Rama:** `fix/flujo-pedido-pago` (desde `master`).
 **Fecha:** 2026-07-23.
-**Alcance:** flujo aprendiz → instructor → pago (portal + back-office). No se hizo push ni se tocó el VPS.
+**Dominio de producción:** `https://breadcontrol.manuelcardenas.online`.
+**Alcance:** flujo aprendiz → instructor → pago (portal + back-office) + registro de aprendices por código del instructor.
 **Backup previo:** `backups/panaderia_bd_pre_fix.sql` (dump de la BD local antes de los ALTER; no se versiona).
 
-Todos los cambios se validaron con `php -l` (9/9 sin errores), grep de referencias muertas (0), un suite de pruebas de los 3 escenarios de negocio + prueba negativa + tope de abono (**18/18 PASS**), y verificación de que los reportes financieros dan el mismo total antes y después (neta = $3.213.465,05 idéntica en `master` y en la rama).
+Todos los cambios se validaron con `php -l` (sin errores), grep de referencias muertas (0), y suites de pruebas contra BD aisladas (flujo de pago 18/18, registro de aprendices 27/27, restricción de instructor 8/8), más verificación de que los reportes financieros dan el mismo total antes y después (neta = $3.213.465,05 idéntica en `master` y en la rama).
+
+---
+
+## 0. Resultado del despliegue en producción (2026-07-23)
+
+La rama **ya está desplegada en producción** (Dokploy apuntando a `fix/flujo-pedido-pago`) y el flujo fue probado de punta a punta con éxito.
+
+**Migraciones aplicadas — las 6 corrieron sin errores en la BD de producción**, en orden:
+1. `2026-07-23_01_normalizar_estado_pago_pedido.sql`
+2. `2026-07-23_02_foreign_keys_flujo_pedido_pago.sql`
+3. `2026-07-23_03_default_estado_pago_no_aplica.sql`
+4. `2026-07-23_04_codigo_aprendiz.sql`
+5. `2026-07-23_05_id_cliente_adso.sql`
+6. `2026-07-23_06_aprobado_instructor_default_0.sql`
+
+**Configuración que faltaba en producción y se cargó a mano** (no venía en el despliegue):
+- `configuracion.nequi_link_pago` — el enlace de pago de Nequi Negocios.
+- `configuracion.wompi_habilitado = 1` — el interruptor del pago digital.
+
+Estas **dos son requisito para que el pago digital funcione**. Sin ellas, el portal muestra correctamente el aviso *"La panadería aún no ha habilitado los pagos digitales"* (ver `pagarConsolidado`: `$pago_configurado = !empty(nequi_link_pago) && !empty(wompi_habilitado)`), pero **el flujo no avanza**: no se puede generar el pago ni mostrar el enlace de Nequi. `id_cliente_adso = 45` quedó cargado por la migración 05.
+
+**Prueba de humo — los 4 pasos verificados en producción:**
+1. El aprendiz arma su pedido → se enruta a la cuenta **Tienda ADSO (id 45)** por id (`configuracion.id_cliente_adso`), no por nombre.
+2. El instructor aprueba el pedido pendiente.
+3. El instructor paga → queda **traza en `pago_pedido`** (registro del pago con auditoría del pagador).
+4. **Prueba negativa OK:** el aprendiz **no** puede pagar el pedido dirigido al instructor, ni siquiera entrando por URL directa (bloqueado server-side por la regla de pago por `id_cliente`).
 
 ---
 
@@ -56,29 +83,35 @@ En Docker esto es automático: `docker-compose.yml` los monta como `01_base.sql`
 1. `sql/migraciones/2026-07-23_01_normalizar_estado_pago_pedido.sql`
 2. `sql/migraciones/2026-07-23_02_foreign_keys_flujo_pedido_pago.sql`
 3. `sql/migraciones/2026-07-23_03_default_estado_pago_no_aplica.sql`
+4. `sql/migraciones/2026-07-23_04_codigo_aprendiz.sql`
+5. `sql/migraciones/2026-07-23_05_id_cliente_adso.sql` (fija `id_cliente_adso = 45`)
+6. `sql/migraciones/2026-07-23_06_aprobado_instructor_default_0.sql`
 
-Todas llevan `SET SQL_SAFE_UPDATES = 0/1` donde aplica y son idempotentes o de una sola ejecución (la de FKs trae su bloque de rollback comentado). **Las 3 ya fueron aplicadas y verificadas en la BD local.**
+Todas llevan `SET SQL_SAFE_UPDATES = 0/1` donde aplica y son idempotentes o de una sola ejecución (la de FKs trae su bloque de rollback comentado). **Las 6 ya fueron aplicadas y verificadas en local y en producción.**
 
 ---
 
-## 5. Pasos pendientes para llevarlo al VPS (NO ejecutados)
+## 5. Despliegue en producción — EJECUTADO ✅
 
-1. Revisar y aprobar la rama; hacer merge a `master` (o abrir PR).
-2. En el VPS: `git pull` en `origin/master` (el código se monta como volumen; PHP/CSS aplican sin rebuild).
-3. **Backup del VPS antes de tocar el esquema:** `mysqldump` de la BD de producción.
-4. Ejecutar en la BD del VPS **las 3 migraciones de `sql/migraciones/`** (en orden) — NO el `sql/init/02_extensiones_flujo.sql` (ese es solo para BD nueva).
-5. Verificar las FKs: `SELECT ... FROM information_schema.KEY_COLUMN_USAGE ...` (query incluida al pie de la migración 02).
-6. Si el `.env` del VPS tiene claves `WOMPI_*`, se pueden eliminar (ya no se usan). El `.env` local no tenía ninguna.
-7. Prueba de humo en producción: crear un pedido de aprendiz → aprobar → registrar pago → confirmar cobro.
-8. Reconstruir el contenedor `panaderia_app` solo si se quiere validar el nuevo `docker-compose.yml` (el cambio de initdb solo afecta despliegues desde volumen vacío).
+Ver la sección **0** para el detalle. Resumen de lo realizado (Dokploy apuntando a
+`fix/flujo-pedido-pago`):
+
+1. ✅ Despliegue de la rama (el código se monta como volumen; PHP/CSS aplican sin rebuild).
+2. ✅ Las **6 migraciones de `sql/migraciones/`** aplicadas en orden, sin errores. NO se usó
+   `sql/init/02_extensiones_flujo.sql` (ese es solo para BD nueva/vacía).
+3. ✅ Configuración cargada a mano en `configuracion`: `nequi_link_pago`, `wompi_habilitado = 1`
+   (`id_cliente_adso = 45` vino en la migración 05).
+4. ✅ Prueba de humo de punta a punta (4 pasos, incluida la prueba negativa) — ver sección 0.
+
+**Pendiente (lo hace el dueño manualmente):** merge de `fix/flujo-pedido-pago` → `master`.
 
 ---
 
 ## 6. Riesgos residuales conocidos
 
 - **UX del modal del instructor:** los checkboxes de selección ya no acotan el pago (se paga todo lo pendiente). El texto se aclaró, pero un usuario podría esperar que la selección parcial se respete.
-- **Ingresos del portal fuera de los reportes financieros:** limitación preexistente (ver punto 2); un pago del portal no se refleja en la utilidad.
+- **Ingresos del portal fuera de los reportes financieros:** un pago del portal no se refleja en la utilidad (los reportes leen `venta`, el portal vive en `pedido_cliente`). Análisis completo y opciones en [`docs/ingresos_portal_analisis.md`](docs/ingresos_portal_analisis.md). Consecuencia secundaria: el POS no ve el pan comprometido a pedidos del portal (posible sobreventa del stock del día).
 - **`sql/init/02_extensiones_flujo.sql` asume BD vacía:** re-ejecutarlo sobre una BD que ya tiene esas columnas/tablas falla (por diseño, para no correrlo por error en producción). Para BD existente van las migraciones incrementales.
 - **`id_pago_activo` sin integridad referencial:** se limpia por lógica en la app; un borrado manual directo de un `pago_pedido` podría dejar el puntero colgando (mitigado porque `pago_abono` cascada y la app no borra pagos físicamente).
 - **Filas antiguas con `estado_pago='pendiente'` sin pago asociado:** conviven con las nuevas `'no_aplica'`; inocuo para las consultas actuales.
-- **La regla de pago depende de `id_cliente` correcto:** si un pedido se creara con un `id_cliente` equivocado (p. ej. por un bug futuro en el enrutamiento a la Tienda ADSO, ver L9 de la auditoría), la regla de quién paga heredaría ese error. El enrutamiento por nombre `LIKE '%Tienda ADSO%'` sigue vigente y no se tocó en esta sesión.
+- **El enrutamiento a la cuenta ADSO ya NO es por nombre** (resuelto): se lee `configuracion.id_cliente_adso` por id, con fallo visible si la clave falta/apunta a una cuenta inexistente o inactiva. La regla de pago depende de que ese id (y por tanto el `id_cliente` del pedido) esté bien configurado; si se apuntara a la cuenta equivocada, la regla de quién paga heredaría ese error — por eso la clave se valida (existe + activa) antes de usarse.

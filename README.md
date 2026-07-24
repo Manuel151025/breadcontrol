@@ -15,6 +15,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 - [Tecnologías](#-tecnologías)
 - [Arquitectura](#-arquitectura)
 - [Instalación](#-instalación)
+- [Configuración inicial en un despliegue nuevo](#️-configuración-inicial-en-un-despliegue-nuevo)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
 - [Base de Datos](#-base-de-datos)
 - [Seguridad](#-seguridad)
@@ -156,6 +157,9 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
    - `sql/migraciones/2026-07-23_01_normalizar_estado_pago_pedido.sql`
    - `sql/migraciones/2026-07-23_02_foreign_keys_flujo_pedido_pago.sql`
    - `sql/migraciones/2026-07-23_03_default_estado_pago_no_aplica.sql`
+   - `sql/migraciones/2026-07-23_04_codigo_aprendiz.sql`
+   - `sql/migraciones/2026-07-23_05_id_cliente_adso.sql`
+   - `sql/migraciones/2026-07-23_06_aprobado_instructor_default_0.sql`
 
 3. **Configurar conexión y entorno**
    - Crear y editar el archivo `config/db.php` con los datos de tu servidor:
@@ -181,6 +185,47 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 
 6. **Acceder al sistema**
    - Abrir en el navegador: `https://tu-dominio.com/login.php`
+
+---
+
+## ⚙️ Configuración inicial en un despliegue nuevo
+
+Además de crear el esquema, un despliegue nuevo necesita estos datos en la tabla
+`configuracion` y en `cliente`. **Sin ellos el flujo de pago y el de aprendices no
+avanzan** (aunque la app no se rompe: muestra los avisos de "no configurado").
+
+### Pago digital (Nequi) — requisito para cobrar pedidos del portal
+Se configura desde **Configuración → Pagos** en el back-office, o directo en la BD:
+
+- `configuracion.nequi_link_pago` — el enlace de pago de Nequi Negocios de la panadería
+  (algo como `https://checkout.nequi.wompi.co/l/VPOS_xxxxxxxx`).
+- `configuracion.wompi_habilitado = 1` — interruptor del pago digital.
+
+Si falta cualquiera de las dos, el portal muestra correctamente *"La panadería aún no ha
+habilitado los pagos digitales"* y **el pago no se puede generar** (no se crea el registro
+en `pago_pedido` ni se muestra el enlace).
+
+### Cuenta del instructor ADSO — requisito para el flujo aprendiz→instructor
+- `configuracion.id_cliente_adso` — el **id** del cliente que actúa como instructor
+  (en producción, `45`). El enrutamiento de los pedidos de aprendiz y la capacidad de
+  instructor se resuelven por este id, **nunca por nombre ni por tipo**. Si la clave falta
+  o apunta a una cuenta inexistente o inactiva, el portal falla con un mensaje claro (no en
+  silencio).
+- La **cuenta instructor debe existir, estar activa (`activo = 1`) y tener `usuario` +
+  `contrasena_hash`** para poder iniciar sesión en el portal y generar códigos.
+
+### Vinculación de aprendices — por código, no manual
+- Los aprendices **se vinculan canjeando el código** que genera el instructor desde la
+  pantalla **"Mis aprendices"** (al registrarse o luego desde su perfil). No hay asignación
+  manual de instructor: el código es la única vía.
+
+> **Nota sobre las columnas `wompi_*` — NO son código muerto, no borrarlas.**
+> `configuracion.wompi_habilitado` es el interruptor del pago digital, y
+> `pago_pedido.wompi_link_url` / `wompi_link_id` almacenan el **enlace de pago de Nequi
+> Negocios**, que está alojado en `checkout.nequi.wompi.co` (Nequi corre sobre la
+> infraestructura de Wompi/Bancolombia). Lo que se retiró fue la *integración por API +
+> webhook* de Wompi (que era código muerto); el almacenamiento del enlace estático de Nequi
+> sigue en uso.
 
 ---
 
