@@ -25,6 +25,12 @@ class PortalClienteController {
             header('Location: index.php');
             exit;
         }
+        // Cuenta de portal sin correo: obligar a completarlo antes de usar el portal
+        // (la bandera solo se activa en el login tradicional; ver login() y completarEmail()).
+        if (!empty($_SESSION['falta_email'])) {
+            header('Location: completar_email.php');
+            exit;
+        }
     }
 
     /**
@@ -129,7 +135,15 @@ class PortalClienteController {
                     if ($cliente && password_verify($contrasena, $cliente['contrasena_hash'])) {
                         $_SESSION['cliente_id'] = $cliente['id_cliente'];
                         $_SESSION['cliente_nombre'] = $cliente['nombre'];
-                        header('Location: dashboard.php');
+                        // Cuentas de portal antiguas sin correo: pedirlo antes de continuar,
+                        // para que Google pueda enlazarlas luego y no crear un duplicado.
+                        if (empty($cliente['email'])) {
+                            $_SESSION['falta_email'] = true;
+                            header('Location: completar_email.php');
+                        } else {
+                            unset($_SESSION['falta_email']);
+                            header('Location: dashboard.php');
+                        }
                         exit;
                     } else {
                         $error = 'Usuario o contraseña incorrectos.';
@@ -1258,6 +1272,64 @@ class PortalClienteController {
         $foto_url      = $cliente['foto_url'] ?? '';
 
         require_once __DIR__ . '/../views/portal/completar_perfil.php';
+    }
+
+    /**
+     * Pantalla intermedia: pide el correo a las cuentas de portal (usuario + contraseña)
+     * que aún no lo tienen, antes de dejarlas continuar. Así Google podrá enlazar la
+     * cuenta existente por email y no crear un duplicado. NO usa requireCliente (evita el
+     * bucle de redirección con la bandera falta_email).
+     */
+    public function completarEmail() {
+        $this->startSession();
+        if (!isset($_SESSION['cliente_id'])) {
+            header('Location: index.php');
+            exit;
+        }
+        $cliente_id = (int)$_SESSION['cliente_id'];
+        $cliente = $this->model->getClienteById($cliente_id);
+        if (!$cliente) {
+            header('Location: logout.php');
+            exit;
+        }
+
+        // Si ya tiene correo, no hay nada que pedir: limpiar la bandera y continuar.
+        if (!empty($cliente['email'])) {
+            unset($_SESSION['falta_email']);
+            header('Location: dashboard.php');
+            exit;
+        }
+
+        $error = '';
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
+                $error = 'Token de seguridad inválido o expirado. Recarga la página e intenta de nuevo.';
+            } else {
+                $email = trim($_POST['email'] ?? '');
+                if ($email === '') {
+                    $error = 'Ingresa tu correo electrónico.';
+                } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $error = 'El correo electrónico no es válido.';
+                } elseif (mb_strlen($email) > 150) {
+                    $error = 'El correo electrónico es demasiado largo.';
+                } elseif ($this->model->emailRegistrado($email, $cliente_id)) {
+                    $error = 'Ese correo ya está registrado en otra cuenta. Usa uno distinto.';
+                } else {
+                    try {
+                        $this->model->actualizarEmail($cliente_id, $email);
+                        unset($_SESSION['falta_email']);
+                        header('Location: dashboard.php');
+                        exit;
+                    } catch (Exception $e) {
+                        log_error($e);
+                        $error = 'No se pudo guardar el correo. Intenta de nuevo.';
+                    }
+                }
+            }
+        }
+
+        $nombre_actual = $cliente['nombre'] ?? '';
+        require_once __DIR__ . '/../views/portal/completar_email.php';
     }
 
     /**
