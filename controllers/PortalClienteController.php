@@ -528,6 +528,15 @@ class PortalClienteController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
                 $error_msg = 'Token de seguridad inválido o expirado. Por favor, intente de nuevo.';
+            } elseif (isset($_POST['canjear_codigo'])) {
+                // Canje desde el aviso del tablero (mismo helper unificado que registro/perfil).
+                $r = $this->intentarCanjeCodigo($cliente_id, $_POST['codigo_aprendiz'] ?? '');
+                if ($r['ok']) {
+                    $success_msg = '¡Listo! Quedaste vinculado como aprendiz de ' . $r['instructor'] . '.';
+                    $cliente_info = $this->model->getClienteById($cliente_id); // refrescar es_aprendiz
+                } else {
+                    $error_msg = $r['error'];
+                }
             } elseif ($es_instructor) {
                 if (isset($_POST['aprobar_aprendiz_id']) || isset($_POST['aprobar_lote_ids'])) {
                     $ids = [];
@@ -671,6 +680,15 @@ class PortalClienteController {
 
         $mis_pedidos = $this->model->getPedidosFiltrados($cliente_id, $es_instructor, $filtros);
         $saldo_pendiente = $this->model->getSaldoPendiente($cliente_id);
+
+        // Aviso de canje en el tablero: solo para clientes que NO son aprendices ni la
+        // cuenta instructor, y SOLO si hay algún código activo y no vencido (temporada de
+        // inscripción). Se calcula al final para reflejar un canje recién hecho.
+        $mostrar_canje = (
+            (int)($cliente_info['es_aprendiz'] ?? 0) !== 1
+            && !$es_instructor
+            && $this->model->hayCodigoAprendizActivo()
+        );
 
         require_once __DIR__ . '/../views/portal/dashboard.php';
     }

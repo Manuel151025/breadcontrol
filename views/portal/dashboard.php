@@ -389,6 +389,27 @@
     </div>
     <?php endif; ?>
 
+    <?php if (!empty($mostrar_canje)): ?>
+    <!-- ══ AVISO CANJE APRENDIZ SENA (solo si hay código activo) ══ -->
+    <div style="background:linear-gradient(120deg,#eef8e6,#fff);border:1px solid #bfe6a3;border-left:4px solid #39A900;border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:.8rem;box-shadow:0 1px 8px rgba(43,125,0,.09);">
+        <div style="display:flex;align-items:center;gap:.6rem;font-family:'Fraunces',serif;font-size:1.05rem;font-weight:800;color:#2b7d00;margin-bottom:.35rem;">
+            <i class="bi bi-mortarboard-fill"></i> ¿Eres aprendiz del SENA?
+        </div>
+        <div style="font-size:.85rem;color:#3c5a25;margin-bottom:.9rem;line-height:1.45;">
+            Ingresa el código de tu instructor para unirte a su grupo y pedir pan a la cuenta ADSO.
+        </div>
+        <form method="post" style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
+            <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
+            <input type="text" name="codigo_aprendiz" maxlength="16" required placeholder="Ej: K7M4P2QR"
+                   style="flex:1;min-width:180px;padding:.65rem .85rem;border:1px solid #bfe6a3;border-radius:9px;font-family:inherit;font-size:.95rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;background:#f3faec;color:#14260a;outline:none;">
+            <button type="submit" name="canjear_codigo"
+                    style="background:linear-gradient(135deg,#39A900,#2b7d00);color:#fff;border:none;border-radius:10px;padding:.7rem 1.2rem;font-family:inherit;font-size:.88rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;">
+                <i class="bi bi-check2-circle"></i> Canjear código
+            </button>
+        </form>
+    </div>
+    <?php endif; ?>
+
     <?php if ($es_instructor): ?>
     <!-- ══ RESUMEN FINANCIERO ══ -->
     <div class="stat-grid">

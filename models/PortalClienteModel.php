@@ -1011,6 +1011,20 @@ class PortalClienteModel {
     }
 
     /**
+     * ¿Existe al menos un código de aprendiz activo y NO vencido (de cualquier instructor)?
+     * Se usa para mostrar el aviso de canje en el tablero solo durante la temporada de
+     * inscripción; si no hay ninguno, no se molesta a los clientes normales.
+     */
+    public function hayCodigoAprendizActivo(): bool {
+        $stmt = $this->pdo->query("
+            SELECT 1 FROM codigo_aprendiz
+            WHERE activo = 1 AND (fecha_expira IS NULL OR fecha_expira > NOW())
+            LIMIT 1
+        ");
+        return (bool)$stmt->fetchColumn();
+    }
+
+    /**
      * Desactiva todos los códigos activos de un instructor.
      */
     public function desactivarCodigosInstructor(int $instructor_id): int {
