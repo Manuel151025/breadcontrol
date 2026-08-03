@@ -96,7 +96,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 | **Hosting** | Hostinger (PHP + MySQL) |
 | **Dependencias** | Composer |
 | **Pruebas** | PHPUnit 11 (unitarias + integración) |
-| **Análisis estático** | PHPStan **nivel 10** (máximo; 1-8 limpios sin excepciones) |
+| **Análisis estático** | PHPStan **nivel 10** (niveles 1-8 corregidos; 9-10 con baseline) |
 | **CI** | GitHub Actions (4 verificaciones por push/PR) |
 | **Gestión** | Jira (Scrum), GitHub |
 
@@ -392,7 +392,9 @@ con 4 verificaciones independientes:
 
 1. **Sintaxis PHP** — `php -l` sobre todos los archivos del proyecto.
 2. **Análisis estático** — PHPStan nivel 10 sobre `config/`, `controllers/`,
-   `helpers/`, `includes/` y `models/`.
+   `helpers/`, `includes/` y `models/`. Los niveles 1-8 están corregidos en el
+   código; los niveles 9-10 se exigen a todo código nuevo, mientras las 886
+   ocurrencias heredadas quedan inventariadas en `phpstan-baseline.neon`.
 3. **Pruebas unitarias** — suite `Unitarias` de PHPUnit.
 4. **Pruebas de integración** — suite `Integracion` contra un servicio MySQL 8.0
    real, creado desde el esquema versionado (`sql/init/01_esquema_base.sql`) más
