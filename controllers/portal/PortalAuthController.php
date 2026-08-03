@@ -348,7 +348,7 @@ class PortalAuthController extends PortalControllerBase {
                             if (empty($cliente['email'])) {
                                 $error = 'Tu cuenta no tiene correo registrado. Usa el método PIN o contacta al administrador.';
                             } else {
-                                $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                                $codigo = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
                                 $expira = date('Y-m-d H:i:s', strtotime('+10 minutes'));
                                 $this->model->registrarCodigoRecuperacion($cliente['id_cliente'], $codigo, $expira);
 

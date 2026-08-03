@@ -2,9 +2,9 @@
 # Analiza el código de lógica (modelos, helpers, controladores, config, includes).
 # Las vistas (HTML+PHP) quedan fuera: son plantillas, no lógica.
 parameters:
-    # Nivel 4 pasa limpio desde el refactor de controladores (2026-08).
-    # Si se quiere subir mas, revisar los hallazgos de nivel 5 primero.
-    level: 4
+    # Nivel 5 pasa limpio (2026-08). Si se quiere subir mas, revisar
+    # los hallazgos de nivel 6 (tipos de retorno/parametros sin declarar).
+    level: 5
     paths:
         - config
         - controllers

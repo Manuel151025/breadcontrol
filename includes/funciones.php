@@ -100,7 +100,7 @@ function generarNumeroLote(string $prefijo): string {
     } else {
         $seq = 1;
     }
-    return $pre3 . '-' . $fecha . '-' . str_pad($seq, 3, '0', STR_PAD_LEFT);
+    return $pre3 . '-' . $fecha . '-' . str_pad((string) $seq, 3, '0', STR_PAD_LEFT);
 }
 
 // Calcular porcentaje de variación entre dos precios

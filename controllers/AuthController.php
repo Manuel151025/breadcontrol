@@ -116,7 +116,7 @@ class AuthController {
                         if (empty($user['correo_electronico'])) {
                             $error = 'Este usuario no tiene correo configurado.<br>Ve a Mi Perfil para agregar uno, o usa el método PIN.';
                         } else {
-                            $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                            $codigo = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
                             $expira = date('Y-m-d H:i:s', strtotime('+5 minutes'));
                             $this->model->registrarCodigoRecuperacion($user['id_usuario'], $codigo, $expira);
 

@@ -124,7 +124,7 @@ class PortalPagoController extends PortalControllerBase {
                     $pagador = trim($_SESSION['cliente_nombre'] ?? '');
                     $nota_consolidado = sprintf('Pago de %d pedido(s) [%s] iniciado por %s (cliente #%d)',
                         count($ids_pedidos),
-                        implode(', ', array_map(fn($id) => '#' . str_pad($id, 4, '0', STR_PAD_LEFT), $ids_pedidos)),
+                        implode(', ', array_map(fn($id) => '#' . str_pad((string) $id, 4, '0', STR_PAD_LEFT), $ids_pedidos)),
                         $pagador !== '' ? $pagador : 'cliente',
                         $cliente_id
                     );

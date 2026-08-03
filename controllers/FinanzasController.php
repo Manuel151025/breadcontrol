@@ -27,7 +27,7 @@ class FinanzasController {
         $hasta  = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['hasta'] ?? '') ? $_GET['hasta'] : date('Y-m-d');
 
         if ($modo === 'mes') {
-            $desde          = "$anio-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-01";
+            $desde          = "$anio-" . str_pad((string) $mes, 2, '0', STR_PAD_LEFT) . "-01";
             $hasta          = date('Y-m-t', strtotime($desde));
             $titulo_periodo = date('F Y', strtotime($desde));
         } elseif ($modo === 'semana') {
