@@ -6,10 +6,8 @@ require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class CierreController {
     private $model;
-    private $pdo;
 
     public function __construct(PDO $pdo) {
-        $this->pdo   = $pdo;
         $this->model = new CierreModel($pdo);
     }
 

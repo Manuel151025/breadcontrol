@@ -6,10 +6,8 @@ require_once __DIR__ . '/../includes/sesion.php';
 
 class AuthController {
     private $model;
-    private $pdo;
 
     public function __construct(PDO $pdo) {
-        $this->pdo = $pdo;
         $this->model = new AuthModel($pdo);
     }
 

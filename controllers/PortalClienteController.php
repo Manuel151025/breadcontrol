@@ -596,10 +596,9 @@ class PortalClienteController {
                             $success_msg = $n > 1 
                                 ? "$n pedidos aprobados y programados con éxito." 
                                 : "Pedido aprobado y programado con éxito.";
-                            if ($es_instructor) {
-                                $resumen_fin = $this->model->getInstructorStats($cliente_id);
-                                $aprendices = $this->model->getAprendicesResumen($cliente_id);
-                            }
+                            // Recargar datos (esta rama solo corre para instructores)
+                            $resumen_fin = $this->model->getInstructorStats($cliente_id);
+                            $aprendices = $this->model->getAprendicesResumen($cliente_id);
                         } catch (Exception $e) {
                             $error_msg = $e->getMessage();
                         }
@@ -620,10 +619,9 @@ class PortalClienteController {
                             $success_msg = $n > 1
                                 ? "$n pedidos rechazados con éxito."
                                 : "Pedido rechazado con éxito.";
-                            if ($es_instructor) {
-                                $resumen_fin = $this->model->getInstructorStats($cliente_id);
-                                $aprendices = $this->model->getAprendicesResumen($cliente_id);
-                            }
+                            // Recargar datos (esta rama solo corre para instructores)
+                            $resumen_fin = $this->model->getInstructorStats($cliente_id);
+                            $aprendices = $this->model->getAprendicesResumen($cliente_id);
                         } catch (Exception $e) {
                             $error_msg = $e->getMessage();
                         }
@@ -648,11 +646,9 @@ class PortalClienteController {
                     $stmt_u->execute([$nuevo_cupo, $id_apr]);
                     $success_msg = "Cupo semanal del aprendiz actualizado con éxito.";
 
-                    // Recargar datos
-                    if ($es_instructor) {
-                        $resumen_fin = $this->model->getInstructorStats($cliente_id);
-                        $aprendices = $this->model->getAprendicesResumen($cliente_id);
-                    }
+                    // Recargar datos (esta rama solo corre para instructores)
+                    $resumen_fin = $this->model->getInstructorStats($cliente_id);
+                    $aprendices = $this->model->getAprendicesResumen($cliente_id);
                 } catch (Exception $e) {
                     $error_msg = $e->getMessage();
                 }
