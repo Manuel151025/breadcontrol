@@ -197,7 +197,7 @@ trait PedidosPortalTrait {
             $stmt_pay_check = $this->pdo->prepare("SELECT estado FROM pago_pedido WHERE id_pago = ?");
             $stmt_pay_check->execute([(int)$pedido['id_pago_activo']]);
             $pay_status = $stmt_pay_check->fetchColumn();
-            if ($pay_status && in_array(strtoupper($pay_status), ['PENDING', 'PENDIENTE'])) {
+            if ($pay_status && in_array(strtoupper((string) $pay_status), ['PENDING', 'PENDIENTE'])) {
                 $stmt_cli_check = $this->pdo->prepare("SELECT es_aprendiz FROM cliente WHERE id_cliente = ?");
                 $stmt_cli_check->execute([$cliente_id]);
                 if ((int)$stmt_cli_check->fetchColumn() === 1) {
@@ -331,7 +331,7 @@ trait PedidosPortalTrait {
                     $stmt_pay_check = $this->pdo->prepare("SELECT estado FROM pago_pedido WHERE id_pago = ?");
                     $stmt_pay_check->execute([(int)$ped_chk['id_pago_activo']]);
                     $pay_status = $stmt_pay_check->fetchColumn();
-                    if ($pay_status && in_array(strtoupper($pay_status), ['PENDING', 'PENDIENTE'])) {
+                    if ($pay_status && in_array(strtoupper((string) $pay_status), ['PENDING', 'PENDIENTE'])) {
                         $stmt_cli_check = $this->pdo->prepare("SELECT es_aprendiz FROM cliente WHERE id_cliente = ?");
                         $stmt_cli_check->execute([$id_creador]);
                         if ((int)$stmt_cli_check->fetchColumn() === 1) {

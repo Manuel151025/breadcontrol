@@ -35,7 +35,7 @@ mysql -u root panaderia_bd < sql/init/90_semilla_ci.sql   # datos mínimos de pr
 composer test              # suite completa (unitarias + integración)
 composer test:unit         # solo unitarias (no requieren base de datos)
 composer test:integracion  # solo integración (requieren MySQL)
-vendor/bin/phpstan analyse # análisis estático (nivel 6, debe pasar limpio)
+vendor/bin/phpstan analyse # análisis estático (nivel 10, debe pasar limpio)
 ```
 
 Notas:

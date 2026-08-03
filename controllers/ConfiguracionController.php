@@ -22,6 +22,9 @@ class ConfiguracionController {
         $tab_activo = 'datos';
 
         $datos = $this->model->getUsuario($user['id_usuario']);
+        if (!$datos) {
+            cerrarSesion(); // la sesión apunta a un usuario que ya no existe
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // ── 1. Guardar Datos Personales ──────────────────────────────────
@@ -38,7 +41,7 @@ class ConfiguracionController {
                     try {
                         $this->model->updateUsuarioPerfil($user['id_usuario'], $nombre, $correo ?: null, $telefono ?: null);
                         $msg_ok = "Datos actualizados correctamente.";
-                        $datos = $this->model->getUsuario($user['id_usuario']);
+                        $datos = $this->model->getUsuario($user['id_usuario']) ?: $datos;
                     } catch (Exception $e) {
                         $msg_err = 'Error al actualizar datos: ' . $e->getMessage();
                     }
@@ -84,7 +87,7 @@ class ConfiguracionController {
                         $pin_hash = password_hash($pin, PASSWORD_BCRYPT);
                         $this->model->updateUsuarioPIN($user['id_usuario'], $pin_hash);
                         $msg_ok = "PIN guardado correctamente.";
-                        $datos = $this->model->getUsuario($user['id_usuario']);
+                        $datos = $this->model->getUsuario($user['id_usuario']) ?: $datos;
                     } catch (Exception $e) {
                         $msg_err = 'Error al guardar el PIN: ' . $e->getMessage();
                     }
@@ -169,6 +172,9 @@ class ConfiguracionController {
 
         // Verificar si ya tiene PIN
         $datos = $this->model->getUsuario($user['id_usuario']);
+        if (!$datos) {
+            cerrarSesion(); // la sesión apunta a un usuario que ya no existe
+        }
         $tiene_pin = !empty($datos['pin_recuperacion']);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_pin'])) {
@@ -215,7 +221,8 @@ class ConfiguracionController {
             // ── 1. Crear nueva tienda beneficiaria ───────────────────────────
             if (isset($_POST['crear_tienda'])) {
                 $nombre   = trim($_POST['nombre'] ?? '');
-                $telefono = preg_replace('/\D/', '', $_POST['telefono'] ?? '');
+                // is_string: un formulario manipulado puede enviar telefono[] (array)
+                $telefono = (string) preg_replace('/\D/', '', is_string($_POST['telefono'] ?? null) ? $_POST['telefono'] : '');
                 if (strlen($telefono) > 15) {
                     $telefono = substr($telefono, 0, 15);
                 }

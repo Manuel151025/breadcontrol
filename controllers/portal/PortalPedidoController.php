@@ -366,7 +366,7 @@ class PortalPedidoController extends PortalControllerBase {
                     $error = 'El horario de entrega de la panadería es de 7:00 AM a 8:00 PM.';
                 } elseif (!$es_adso && $fecha_entrega < $min_fecha && $edit_id == 0) {
                     if ($min_fecha > date('Y-m-d')) {
-                        $error = 'Por la hora actual, la fecha de entrega debe ser a partir de mañana (' . date('d/m/Y', strtotime($min_fecha)) . ').';
+                        $error = 'Por la hora actual, la fecha de entrega debe ser a partir de mañana (' . date('d/m/Y', (int) strtotime($min_fecha)) . ').';
                     } else {
                         $error = 'La fecha de entrega no puede ser en el pasado.';
                     }

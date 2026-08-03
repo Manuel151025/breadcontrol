@@ -4,6 +4,30 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.6.0] — 2026-08-03
+
+### Cambiado
+- **PHPStan sube al nivel 10, el máximo de la herramienta.**
+  - Los niveles **7 y 8 pasan limpios sin excepciones**: se corrigieron ~30
+    problemas reales (`strtotime()` que puede devolver `false` pasado a
+    `date()`, `max()` sobre arrays potencialmente vacíos, accesos a filas
+    SQL sin comprobar que existan, `preg_replace` recibiendo un array
+    manipulado desde el formulario, `session_name()`/`json_encode()` con
+    retorno `false`).
+  - `redirigir()` y `cerrarSesion()` se declaran `: never`, lo que además
+    permitió a PHPStan entender el flujo real y eliminar varios falsos
+    positivos de acceso a datos.
+  - Los niveles 9-10 quedan activos con `phpstan-baseline.neon`: las 886
+    ocurrencias heredadas (casi todas filas SQL `array<string, mixed>`
+    pasadas a funciones tipadas) están registradas y contadas, y **todo
+    código nuevo debe ser nivel-10 limpio o el CI falla** — verificado
+    introduciendo una violación de prueba.
+
+### Añadido
+- Exclusión documentada del único falso positivo estructural:
+  `PDO::prepare()/query()` declaran `PDOStatement|false`, pero el proyecto
+  abre la conexión con `ERRMODE_EXCEPTION`, así que esa rama es inalcanzable.
+
 ## [1.5.0] — 2026-08-03
 
 ### Cambiado

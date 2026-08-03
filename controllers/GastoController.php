@@ -126,7 +126,7 @@ class GastoController {
         for ($i = 6; $i >= 0; $i--) {
             $f = date('Y-m-d', strtotime("-$i days"));
             $gastos_7d[] = [
-                'lbl' => date('d/m', strtotime($f)),
+                'lbl' => date('d/m', (int) strtotime($f)),
                 'v'   => (float)($gastos_7d_raw[$f] ?? 0)
             ];
         }

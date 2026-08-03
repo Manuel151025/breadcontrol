@@ -257,7 +257,7 @@ trait InstructorPortalTrait {
         $alfabeto = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // sin O,0,I,1,L
         $len = 8;
         $fecha_expira = $dias_vigencia > 0
-            ? date('Y-m-d H:i:s', strtotime("+{$dias_vigencia} days"))
+            ? date('Y-m-d H:i:s', (int) strtotime("+{$dias_vigencia} days"))
             : null;
 
         $this->pdo->beginTransaction();

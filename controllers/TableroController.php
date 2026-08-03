@@ -45,7 +45,7 @@ class TableroController {
         for ($i = 6; $i >= 0; $i--) {
             $f = date('Y-m-d', strtotime("-{$i} days"));
             $chart[] = [
-                'lbl' => $dias_es[date('D', strtotime($f))],
+                'lbl' => $dias_es[date('D', (int) strtotime($f))],
                 'v'   => (float)($dias_raw[$f] ?? 0),
                 'hoy' => $i === 0
             ];
@@ -54,7 +54,7 @@ class TableroController {
         
         // Consumo
         $consumo_hoy = $this->model->getConsumoHoy();
-        $max_consumo_hoy = !empty($consumo_hoy) ? max(array_column($consumo_hoy, 'total')) : 1;
+        $max_consumo_hoy = !empty($consumo_hoy) ? max(array_column($consumo_hoy, 'total') ?: [1]) : 1;
         
         // Cierre
         $obs_cierre = $this->model->getObservacionCierre();

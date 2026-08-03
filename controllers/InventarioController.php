@@ -214,9 +214,9 @@ class InventarioController {
                 }
             }
 
-            if (!empty($errores)) {
-                $insumo = array_merge($insumo, $_POST, ['es_harina' => $es_harina, 'activo' => $activo]);
-            }
+            // Si el flujo llega aquí siempre hay errores: el camino exitoso
+            // termina en redirigir(), que nunca retorna.
+            $insumo = array_merge($insumo, $_POST, ['es_harina' => $es_harina, 'activo' => $activo]);
         }
 
         $titulo = 'Editar insumo';

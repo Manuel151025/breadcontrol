@@ -140,7 +140,7 @@ class RecetaController {
             if (empty($errores)) {
                 try {
                     $this->model->updateProducto($id_producto, $nombre, $categoria, $unidad, $cantidad_tanda, $precio_venta);
-                    $producto = $this->model->getProducto($id_producto);
+                    $producto = $this->model->getProducto($id_producto) ?: $producto;
                     $msg_ok   = 'Producto actualizado correctamente.';
                 } catch (Exception $e) {
                     log_error($e);

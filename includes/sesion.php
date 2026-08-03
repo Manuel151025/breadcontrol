@@ -55,7 +55,7 @@ function requerirPropietario(): void {
         session_destroy();
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
+            setcookie((string) session_name(), '', time() - 42000,
                 $params["path"], $params["domain"],
                 $params["secure"], $params["httponly"]
             );
@@ -84,8 +84,8 @@ function iniciarSesion(string $nombre_usuario, string $contrasena): bool {
 }
 
 
-// Cerrar sesión
-function cerrarSesion(): void {
+// Cerrar sesión (nunca retorna: redirige y termina con exit)
+function cerrarSesion(): never {
     session_unset();
     session_destroy();
     header('Location: ' . APP_URL . '/login.php');

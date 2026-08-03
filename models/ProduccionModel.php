@@ -228,7 +228,7 @@ class ProduccionModel {
     public function getNombreProducto(int $id_producto): string {
         $stmt = $this->pdo->prepare("SELECT nombre FROM producto WHERE id_producto=?");
         $stmt->execute([$id_producto]);
-        return $stmt->fetchColumn() ?: '';
+        return (string) ($stmt->fetchColumn() ?: '');
     }
 
     /**

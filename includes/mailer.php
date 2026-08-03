@@ -10,7 +10,7 @@ function enviar_correo(string $to, string $to_nombre, string $subject, string $h
         return false;
     }
 
-    $payload = json_encode([
+    $payload = (string) json_encode([
         'personalizations' => [['to' => [['email' => $to, 'name' => $to_nombre]]]],
         'from'             => ['email' => $from_email, 'name'  => $from_name],
         'subject'          => $subject,

@@ -1,0 +1,3037 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Binary operation "\." between ''https\://'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: config/app.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: config/app.php
+
+		-
+			message: '#^Parameter \#1 \$string of function rtrim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: config/app.php
+
+		-
+			message: '#^Binary operation "\." between ''mysql\:host\='' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: config/db.php
+
+		-
+			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 2
+			path: config/db.php
+
+		-
+			message: '#^Cannot call method exec\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: config/db.php
+
+		-
+			message: '#^Function getConexion\(\) should return PDO but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: config/db.php
+
+		-
+			message: '#^Parameter \#2 \$username of class PDO constructor expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: config/db.php
+
+		-
+			message: '#^Parameter \#3 \$password of class PDO constructor expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: config/db.php
+
+		-
+			message: '#^Part \$value \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: config/env.php
+
+		-
+			message: '#^Parameter \#1 \$haystack of function strpos expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: config/logger.php
+
+		-
+			message: '#^Parameter \#1 \$string of function strtolower expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: config/logger.php
+
+		-
+			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#1 \$id of method AuthModel\:\:getUsuarioPorId\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#1 \$id_usuario of method AuthModel\:\:actualizarClaveUsuario\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#1 \$id_usuario of method AuthModel\:\:limpiarCodigoRecuperacion\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#1 \$id_usuario of method AuthModel\:\:registrarCodigoRecuperacion\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#1 \$nombre of function correo_codigo_html expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#1 \$password of function password_hash expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function strlen expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#1 \$to of function enviar_correo expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#2 \$contrasena of function iniciarSesion expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#2 \$hash of function password_verify expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#2 \$to_nombre of function enviar_correo expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/AuthController.php
+
+		-
+			message: '#^Parameter \#1 \$id_usuario of method CierreModel\:\:guardarCierre\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CierreController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CierreController.php
+
+		-
+			message: '#^Binary operation "\*" between mixed and 7 results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''cantidad'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''fecha_compra'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''id_compra'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''insumo'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''numero_lote'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''precio_unitario'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''proveedor'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''punto_reposicion'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''stock_actual'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''total_pagado'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''unidad_medida'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot access offset ''variacion_precio_pct'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 6
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 7
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, ''trim'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#1 \$dato of function limpiar expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#1 \$mesFiltro of method CompraModel\:\:getComprasMesActual\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#1 \$num of function abs expects float\|int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#1 \$num of function number_format expects float, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function htmlspecialchars expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function str_pad expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#1 \$valor of function formatoInteligente expects float, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#2 \$string of function explode expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#3 \$fecha of method CompraModel\:\:registrarCompra\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Parameter \#7 \$id_usuario of method CompraModel\:\:registrarCompra\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Part \$res\[''cantidad''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Part \$res\[''numero_lote''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Part \$res\[''variacion''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: controllers/CompraController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Parameter \#1 \$id_usuario of method ConfiguracionModel\:\:getUsuario\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 4
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Parameter \#1 \$id_usuario of method ConfiguracionModel\:\:updateUsuarioPIN\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Parameter \#1 \$id_usuario of method ConfiguracionModel\:\:updateUsuarioPassword\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Parameter \#1 \$id_usuario of method ConfiguracionModel\:\:updateUsuarioPerfil\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Parameter \#1 \$password of function password_hash expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Parameter \#1 \$password of function password_verify expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function mb_substr expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function strlen expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 9
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Parameter \#2 \$hash of function password_verify expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Parameter \#2 \$string of function explode expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/ConfiguracionController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 3
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 12
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getComprasPorDia\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getComprasTotal\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getConsumoIngredientes\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getConsumoIngredientesEstimado\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getCostoProduccionRango\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getDetalleCompras\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getDetalleVentas\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getGastosOp\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getGastosPorCategoria\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getIngresos\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getNumCompras\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getNumVentas\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getTopClientes\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getTopInsumos\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getTopProductos\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getVentasPorDia\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getComprasPorDia\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getComprasTotal\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getConsumoIngredientes\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getConsumoIngredientesEstimado\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getCostoProduccionRango\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getDetalleCompras\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getDetalleVentas\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getGastosOp\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getGastosPorCategoria\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getIngresos\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getNumCompras\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getNumVentas\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getTopClientes\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getTopInsumos\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getTopProductos\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getVentasPorDia\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 4
+			path: controllers/FinanzasController.php
+
+		-
+			message: '#^Binary operation "\+" between \(float\|int\) and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Binary operation "\." between ''Location\: index\.php…'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 2
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 2
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Parameter \#1 \$fecha of method GastoModel\:\:getGastosPorFecha\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Parameter \#1 \$fecha of method GastoModel\:\:getResumenFinanzasDia\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Parameter \#1 \$id_usuario of method GastoModel\:\:registrarGasto\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Parameter \#1 \$ventas of static method FinanzasHelper\:\:calcularUtilidad\(\) expects float, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Parameter \#2 \$categoria of method GastoModel\:\:actualizarGasto\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Parameter \#2 \$categoria of method GastoModel\:\:registrarGasto\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Parameter \#2 \$costoProduccionReal of static method FinanzasHelper\:\:calcularUtilidad\(\) expects float, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 2
+			path: controllers/GastoController.php
+
+		-
+			message: '#^Binary operation "\." between ''Ajuste de…'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 6
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 5
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Parameter \#1 \$dato of function limpiar expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 5
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Parameter \#1 \$id of method InventarioModel\:\:actualizarInsumo\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Parameter \#1 \$ids of method InventarioModel\:\:desactivarMultiplesInsumos\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Parameter \#1 \$valor of function formatoDecimal expects float, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Parameter \#1 \$value of function count expects array\|Countable, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Parameter \#2 \$id_usuario of method InventarioModel\:\:registrarAjusteInventario\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Part \$res\[''unidad''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: controllers/InventarioController.php
+
+		-
+			message: '#^Binary operation "\+\=" between \(float\|int\) and mixed results in an error\.$#'
+			identifier: assignOp.invalid
+			count: 1
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 4
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 7
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, ''intval'' given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#1 \$datetime of class DateTime constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#1 \$haystack of function strpos expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#1 \$ids of method PedidoClienteModel\:\:getDetallesPedidosPorIds\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#1 \$ids of method PedidoClienteModel\:\:getPedidosPorIds\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function htmlspecialchars expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 6
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#2 \$estado of method PedidoClienteModel\:\:updatePedidoEstado\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Parameter \#4 \$link_url of method PedidoClienteModel\:\:habilitarPagoDigital\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 6
+			path: controllers/PedidoClienteController.php
+
+		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Binary operation "\." between ''\<li\>Falta \<strong\>'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 2
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Cannot access offset ''cant_necesaria'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Cannot access offset ''disponible'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Cannot access offset ''nombre'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Cannot access offset ''unidad_medida'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 5
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_column expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_unique expects an array of values castable to string, list\<mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Parameter \#1 \$fecha of method ProduccionModel\:\:getProduccionesPorFecha\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Parameter \#1 \$num of function number_format expects float, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function htmlspecialchars expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Parameter \#1 \$valor of function formatoInteligente expects float, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, list given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Parameter \#3 \$id_usuario of method ProduccionModel\:\:registrarProduccionConConsumos\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Parameter \#9 \$dist_precios of method ProduccionModel\:\:registrarProduccionConConsumos\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Part \$resultado\[''unidades''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: controllers/ProduccionController.php
+
+		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Binary operation "\." between ''Editar — '' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Binary operation "\." between ''Receta — '' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Binary operation "\." between ''http\://localhost…'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Cannot access offset ''error'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Cannot access offset ''name'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Cannot access offset ''tmp_name'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Cannot access offset mixed on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 9
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_keys expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#1 \$from of function move_uploaded_file expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#1 \$id_producto of method RecetaModel\:\:reactivarProducto\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#1 \$id_receta of method RecetaModel\:\:agregarIngredienteReceta\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#1 \$id_receta of method RecetaModel\:\:getIngredientesReceta\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#1 \$id_receta of method RecetaModel\:\:limpiarIngredientesReceta\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#1 \$path of function pathinfo expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 8
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#2 \$callback of function array_filter expects \(callable\(array\<string, mixed\>\)\: bool\)\|null, Closure\(mixed\)\: mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#2 \$categoria of method RecetaModel\:\:crearProducto\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#2 \$categoria of method RecetaModel\:\:reactivarProducto\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#2 \$id_usuario of method RecetaModel\:\:crearReceta\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#3 \$categoria of method RecetaModel\:\:updateProducto\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 1
+			path: controllers/RecetaController.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 1
+			path: controllers/TableroController.php
+
+		-
+			message: '#^Binary operation "\+\=" between \(float\|int\) and mixed results in an error\.$#'
+			identifier: assignOp.invalid
+			count: 2
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Binary operation "\." between ''\<br\>\+ \<strong\>'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Binary operation "\." between ''\<br\>🎁 Bonificación…'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Binary operation "\." between ''📋 \<strong\>Pedido…'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 3
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Cannot access offset ''nombre'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Cannot access offset ''precio_unitario'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 3
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 22
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#1 \$ids of method VentaModel\:\:getVentasPorIds\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 4
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#1 \$num of function number_format expects float, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function htmlspecialchars expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#2 \$id_usuario of method VentaModel\:\:registrarPedidoDetallado\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#2 \$tipo_salida of method VentaModel\:\:registrarVentaRapida\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#3 \$cart of method VentaModel\:\:editarPedidoDetallado\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#3 \$cart of method VentaModel\:\:registrarPedidoDetallado\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#3 \$id_usuario of method VentaModel\:\:registrarVentaNueva\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#3 \$tipo of method VentaModel\:\:editarVentaRapida\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#4 \$bonif_items of method VentaModel\:\:editarPedidoDetallado\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#4 \$bonif_items of method VentaModel\:\:registrarPedidoDetallado\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Parameter \#4 \$id_usuario of method VentaModel\:\:registrarVentaRapida\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 2
+			path: controllers/VentaController.php
+
+		-
+			message: '#^Cannot access offset ''access_token'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Cannot access offset ''email'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Cannot access offset ''email_verified'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Cannot access offset ''name'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Cannot access offset ''picture'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Cannot access offset ''sub'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 6
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$email of method PortalClienteModel\:\:getClienteByEmail\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$google_id of method PortalClienteModel\:\:getClienteByGoogleId\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$google_id of method PortalClienteModel\:\:registrarClienteGoogle\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$id of method PortalClienteModel\:\:actualizarPassword\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$id of method PortalClienteModel\:\:getClienteById\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$id_cliente of method PortalClienteModel\:\:limpiarCodigoRecuperacion\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$id_cliente of method PortalClienteModel\:\:registrarCodigoRecuperacion\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$id_cliente of method PortalClienteModel\:\:vincularGoogleId\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$known_string of function hash_equals expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$nombre of function correo_codigo_html expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$password of function password_hash expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$password of function password_verify expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function strlen expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 12
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$to of function enviar_correo expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 6
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#2 \$codigo of method PortalControllerBase\:\:intentarCanjeCodigo\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#2 \$email of method PortalClienteModel\:\:registrarClienteGoogle\(\) expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#2 \$google_id of method PortalClienteModel\:\:vincularGoogleId\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#2 \$hash of function password_verify expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 4
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#2 \$to_nombre of function enviar_correo expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#2 \$user_string of function hash_equals expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#3 \$foto_url of method PortalClienteModel\:\:vincularGoogleId\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#3 \$nombre of method PortalClienteModel\:\:registrarClienteGoogle\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Parameter \#4 \$avatar of method PortalClienteModel\:\:registrarClienteGoogle\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Part \$token\[''access_token''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 1
+			path: controllers/portal/PortalAuthController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 2
+			path: controllers/portal/PortalControllerBase.php
+
+		-
+			message: '#^Method PortalControllerBase\:\:intentarCanjeCodigo\(\) should return array\{ok\: bool, error\: string, instructor\: string\} but returns array\{ok\: false, instructor\: '''', error\: mixed\}\.$#'
+			identifier: return.type
+			count: 1
+			path: controllers/portal/PortalControllerBase.php
+
+		-
+			message: '#^Method PortalControllerBase\:\:intentarCanjeCodigo\(\) should return array\{ok\: bool, error\: string, instructor\: string\} but returns array\{ok\: true, instructor\: mixed, error\: ''''\}\.$#'
+			identifier: return.type
+			count: 1
+			path: controllers/portal/PortalControllerBase.php
+
+		-
+			message: '#^Cannot access offset ''id_pago'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 1
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 7
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, ''intval'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Parameter \#1 \$id_cliente of method PortalClienteModel\:\:getReporteAgrupadoTienda\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Parameter \#1 \$id_cliente of method PortalClienteModel\:\:getTotalGeneralReporteTienda\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Parameter \#2 \$fecha_entrega of method PortalClienteModel\:\:getReporteAgrupadoTienda\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Parameter \#2 \$fecha_entrega of method PortalClienteModel\:\:getTotalGeneralReporteTienda\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 1
+			path: controllers/portal/PortalExportController.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 1
+			path: controllers/portal/PortalInstructorController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 5
+			path: controllers/portal/PortalInstructorController.php
+
+		-
+			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalInstructorController.php
+
+		-
+			message: '#^Cannot access offset ''estado'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalPagoController.php
+
+		-
+			message: '#^Cannot access offset ''monto'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalPagoController.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 3
+			path: controllers/portal/PortalPagoController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 7
+			path: controllers/portal/PortalPagoController.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_unique expects an array of values castable to string, array\<int\<0, max\>, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPagoController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPagoController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPagoController.php
+
+		-
+			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPagoController.php
+
+		-
+			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPagoController.php
+
+		-
+			message: '#^Parameter \#7 \$link_pago_url of method PortalClienteModel\:\:iniciarPagoConsolidado\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPagoController.php
+
+		-
+			message: '#^Binary operation "\." between ''No se pudo enviar…'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 2
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 2
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Cannot access offset ''bonificacion'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Cannot access offset ''cantidad'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Cannot access offset ''id_categoria'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Cannot access offset ''id_variedad'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Cannot access offset ''imagen'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Cannot access offset ''napa'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Cannot access offset ''nombre'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Cannot access offset ''precio_unitario'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 3
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 27
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, ''intval'' given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$cliente_id of method PortalClienteModel\:\:crearPedido\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$datetime of class DateTime constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$estado of static method ReglasPortal\:\:puedeGestionarPedido\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$fecha_entrega of static method ReglasPortal\:\:dentroDeLimite48h\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$fecha_entrega of static method ReglasPortal\:\:fueraDeLimiteGestion\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$hora of static method ReglasPortal\:\:horarioEntregaValido\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$id_pago of method PortalClienteModel\:\:getAbonos\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$id_pago of method PortalClienteModel\:\:getPagoPendientePorId\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#2 \$codigo of method PortalControllerBase\:\:intentarCanjeCodigo\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#2 \$fecha_entrega of method PortalClienteModel\:\:getCountPedidosPendientesTiendaFecha\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#2 \$fecha_entrega of method PortalClienteModel\:\:getReporteAgrupadoTienda\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#2 \$fecha_entrega of method PortalClienteModel\:\:getTotalGeneralReporteTienda\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#2 \$fecha_entrega of static method ReglasPortal\:\:puedeGestionarPedido\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#4 \$cart of method PortalClienteModel\:\:crearPedido\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Parameter \#5 \$bonif_items of method PortalClienteModel\:\:crearPedido\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/portal/PortalPedidoController.php
+
+		-
+			message: '#^Cannot access offset ''total_estimado'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: helpers/PedidoHelper.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 2
+			path: helpers/PedidoHelper.php
+
+		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: includes/boton_eliminar.php
+
+		-
+			message: '#^Parameter \#1 \$string of function htmlspecialchars expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 8
+			path: includes/boton_eliminar.php
+
+		-
+			message: '#^Function getConfiguracion\(\) should return array\<mixed\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: includes/funciones.php
+
+		-
+			message: '#^Part \$mensaje \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: includes/funciones.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 1
+			path: includes/funciones.php
+
+		-
+			message: '#^Binary operation "\." between ''Authorization\:…'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: includes/mailer.php
+
+		-
+			message: '#^Binary operation "\-" between int\<1, max\> and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: includes/sesion.php
+
+		-
+			message: '#^Function generar_token_csrf\(\) should return string but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: includes/sesion.php
+
+		-
+			message: '#^Parameter \#1 \$known_string of function hash_equals expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/sesion.php
+
+		-
+			message: '#^Parameter \#2 \$hash of function password_verify expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/sesion.php
+
+		-
+			message: '#^Method AuthModel\:\:getUsuarioPorId\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/AuthModel.php
+
+		-
+			message: '#^Method AuthModel\:\:getUsuarioPorNombre\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/AuthModel.php
+
+		-
+			message: '#^Method CierreModel\:\:getAlertasStockBajo\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CierreModel.php
+
+		-
+			message: '#^Method CierreModel\:\:getCierreGuardado\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CierreModel.php
+
+		-
+			message: '#^Method CierreModel\:\:getComprasHoy\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CierreModel.php
+
+		-
+			message: '#^Method CierreModel\:\:getHistorialCierres\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CierreModel.php
+
+		-
+			message: '#^Method CierreModel\:\:getProduccionesHoy\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CierreModel.php
+
+		-
+			message: '#^Method CierreModel\:\:getSobrantesHoy\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CierreModel.php
+
+		-
+			message: '#^Method CierreModel\:\:getVentasPorCliente\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CierreModel.php
+
+		-
+			message: '#^Method CierreModel\:\:getVentasPorProducto\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CierreModel.php
+
+		-
+			message: '#^Cannot access offset ''es_harina'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/CompraModel.php
+
+		-
+			message: '#^Cannot access offset ''nombre'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/CompraModel.php
+
+		-
+			message: '#^Method CompraModel\:\:getCompraById\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CompraModel.php
+
+		-
+			message: '#^Method CompraModel\:\:getComprasMesActual\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CompraModel.php
+
+		-
+			message: '#^Method CompraModel\:\:getInsumosActivos\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CompraModel.php
+
+		-
+			message: '#^Method CompraModel\:\:getProveedorById\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CompraModel.php
+
+		-
+			message: '#^Method CompraModel\:\:getProveedores\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CompraModel.php
+
+		-
+			message: '#^Method CompraModel\:\:getProveedoresActivos\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/CompraModel.php
+
+		-
+			message: '#^Parameter \#1 \$string of function substr expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/CompraModel.php
+
+		-
+			message: '#^Method ConfiguracionModel\:\:getConfiguracion\(\) should return array\<string, mixed\>\|false but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ConfiguracionModel.php
+
+		-
+			message: '#^Method ConfiguracionModel\:\:getTiendasBeneficiarias\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ConfiguracionModel.php
+
+		-
+			message: '#^Method ConfiguracionModel\:\:getTiendasCandidatas\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ConfiguracionModel.php
+
+		-
+			message: '#^Method ConfiguracionModel\:\:getUsuario\(\) should return array\<string, mixed\>\|false but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ConfiguracionModel.php
+
+		-
+			message: '#^Method FinanzasModel\:\:getComprasPorDia\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/FinanzasModel.php
+
+		-
+			message: '#^Method FinanzasModel\:\:getConsumoIngredientes\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/FinanzasModel.php
+
+		-
+			message: '#^Method FinanzasModel\:\:getConsumoIngredientesEstimado\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/FinanzasModel.php
+
+		-
+			message: '#^Method FinanzasModel\:\:getDetalleCompras\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/FinanzasModel.php
+
+		-
+			message: '#^Method FinanzasModel\:\:getDetalleVentas\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/FinanzasModel.php
+
+		-
+			message: '#^Method FinanzasModel\:\:getGastosPorCategoria\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/FinanzasModel.php
+
+		-
+			message: '#^Method FinanzasModel\:\:getTopClientes\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/FinanzasModel.php
+
+		-
+			message: '#^Method FinanzasModel\:\:getTopInsumos\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/FinanzasModel.php
+
+		-
+			message: '#^Method FinanzasModel\:\:getTopProductos\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/FinanzasModel.php
+
+		-
+			message: '#^Method FinanzasModel\:\:getVentasPorDia\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/FinanzasModel.php
+
+		-
+			message: '#^Method GastoModel\:\:getGastosPorFecha\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/GastoModel.php
+
+		-
+			message: '#^Method GastoModel\:\:getGastosUltimos7Dias\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/GastoModel.php
+
+		-
+			message: '#^Binary operation "\." between ''Ajuste dejó stock…'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Cannot access offset ''cantidad_disponible'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Cannot access offset ''id_lote'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 4
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Method InventarioModel\:\:getHistorialAjustes\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Method InventarioModel\:\:getInsumoActivoById\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Method InventarioModel\:\:getInsumoById\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Method InventarioModel\:\:getInsumoPorNombre\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Method InventarioModel\:\:getInsumosList\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, ''intval'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/InventarioModel.php
+
+		-
+			message: '#^Method PedidoClienteModel\:\:getAbonosPago\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PedidoClienteModel.php
+
+		-
+			message: '#^Method PedidoClienteModel\:\:getCobrosPendientesTiendas\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PedidoClienteModel.php
+
+		-
+			message: '#^Method PedidoClienteModel\:\:getConfigPago\(\) should return array\<string, mixed\>\|false but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PedidoClienteModel.php
+
+		-
+			message: '#^Method PedidoClienteModel\:\:getDetallesPedido\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PedidoClienteModel.php
+
+		-
+			message: '#^Method PedidoClienteModel\:\:getDetallesPedidosPorIds\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PedidoClienteModel.php
+
+		-
+			message: '#^Method PedidoClienteModel\:\:getPagoPedido\(\) should return array\<string, mixed\>\|false but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PedidoClienteModel.php
+
+		-
+			message: '#^Method PedidoClienteModel\:\:getPedido\(\) should return array\<string, mixed\>\|false but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PedidoClienteModel.php
+
+		-
+			message: '#^Method PedidoClienteModel\:\:getPedidos\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PedidoClienteModel.php
+
+		-
+			message: '#^Method PedidoClienteModel\:\:getPedidosConsolidadosPago\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PedidoClienteModel.php
+
+		-
+			message: '#^Method PedidoClienteModel\:\:getPedidosPorIds\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PedidoClienteModel.php
+
+		-
+			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, array\<mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/PedidoClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''activo'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''aprendiz'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''cantidad'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''cupo_semanal'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''es_aprendiz'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''estado'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''fecha_entrega'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''fecha_expira'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''id_cliente'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''id_codigo'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''id_instructor'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''id_pago_activo'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''id_variedad'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''pendiente_total'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''total_estimado'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''usos_actuales'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot access offset ''usos_maximos'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 2
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 21
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getAbonos\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getAprendicesGestion\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getAprendicesResumen\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getCategoriasActivas\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getClienteAdso\(\) should return array\<mixed\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getClienteByEmail\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getClienteByGoogleId\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getClienteById\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getClienteByUsuario\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getClienteTipoAsociadoPedido\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getCodigoActivoInstructor\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getConfiguracionPago\(\) should return array\<string, mixed\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getDetallesPedido\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getDetallesPedidosParaExportacion\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getIdClienteAdso\(\) should return int but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getInstructorStats\(\) should return array\<string, mixed\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getInstructoresActivos\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getPagoPendientePorId\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getPedido\(\) should return array\<string, mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getPedidoTiendaParaExportacion\(\) should return array\<string, mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getPedidosDetalladosParaExportacion\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getPedidosFiltrados\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getPedidosPagoInstructor\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getPedidosPendientesAprobacionInstructor\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getPedidosPendientesPago\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 2
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getProductosActivos\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getReporteAgrupadoTienda\(\) should return array\<string, list\<array\<string, mixed\>\>\> but returns array\<non\-empty\-list\>\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getVariedadesPanActivas\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Method PortalClienteModel\:\:getVariedadesPorCategoria\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_unique expects an array of values castable to string, array\<int\<0, max\>, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Parameter \#1 \$fecha_entrega of static method ReglasPortal\:\:fueraDeLimiteGestion\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Binary operation "\*" between mixed and int results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 4
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Cannot access offset ''cant_por_unidad'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Cannot access offset ''id_insumo'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 7
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Cannot access offset ''nombre'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Cannot access offset ''unidad_medida'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 7
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method ProduccionModel\:\:getCategoriasPrecio\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method ProduccionModel\:\:getConsumosLote\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method ProduccionModel\:\:getIngredientesReceta\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method ProduccionModel\:\:getLotesDisponiblesFIFOParaConsumo\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method ProduccionModel\:\:getLotesDisponiblesInsumo\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method ProduccionModel\:\:getProduccionDetalle\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method ProduccionModel\:\:getProduccionesHoy\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method ProduccionModel\:\:getProduccionesPorFecha\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method ProduccionModel\:\:getProductosActivosConReceta\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method ProduccionModel\:\:getTopProductosMes\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method ProduccionModel\:\:getUltimaSugerenciaCierre\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Parameter \#1 \$id_insumo of method ProduccionModel\:\:getInsumoStockActual\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Parameter \#1 \$id_insumo of method ProduccionModel\:\:getLotesDisponiblesFIFOParaConsumo\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Parameter \#1 \$id_insumo of method ProduccionModel\:\:getLotesDisponiblesInsumo\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, list\<mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/ProduccionModel.php
+
+		-
+			message: '#^Method RecetaModel\:\:getCategoriasPrecio\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/RecetaModel.php
+
+		-
+			message: '#^Method RecetaModel\:\:getIngredientesReceta\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/RecetaModel.php
+
+		-
+			message: '#^Method RecetaModel\:\:getInsumosActivos\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/RecetaModel.php
+
+		-
+			message: '#^Method RecetaModel\:\:getProducto\(\) should return array\<string, mixed\>\|false but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/RecetaModel.php
+
+		-
+			message: '#^Method RecetaModel\:\:getProductoByName\(\) should return array\<string, mixed\>\|false but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/RecetaModel.php
+
+		-
+			message: '#^Method RecetaModel\:\:getProductos\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/RecetaModel.php
+
+		-
+			message: '#^Method RecetaModel\:\:getVariedadPanExistente\(\) should return array\<string, mixed\>\|false but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/RecetaModel.php
+
+		-
+			message: '#^Method RecetaModel\:\:getVariedadesPan\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/RecetaModel.php
+
+		-
+			message: '#^Method TableroModel\:\:getAlertas\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/TableroModel.php
+
+		-
+			message: '#^Method TableroModel\:\:getConsumoHoy\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/TableroModel.php
+
+		-
+			message: '#^Method TableroModel\:\:getObservacionCierre\(\) should return array\<string, mixed\>\|false but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/TableroModel.php
+
+		-
+			message: '#^Method TableroModel\:\:getProduccionesRecientes\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/TableroModel.php
+
+		-
+			message: '#^Method TableroModel\:\:getTopVentas\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/TableroModel.php
+
+		-
+			message: '#^Method TableroModel\:\:getVentasUltimos7Dias\(\) should return array\<string, mixed\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/TableroModel.php
+
+		-
+			message: '#^Cannot access offset ''cantidad'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: models/VentaModel.php
+
+		-
+			message: '#^Cannot access offset ''id_categoria'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Cannot access offset ''id_categoria_precio'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: models/VentaModel.php
+
+		-
+			message: '#^Cannot access offset ''id_cliente'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Cannot access offset ''id_variedad'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: models/VentaModel.php
+
+		-
+			message: '#^Cannot access offset ''id_venta'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: models/VentaModel.php
+
+		-
+			message: '#^Cannot access offset ''napa'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Cannot access offset ''precio_unitario'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: models/VentaModel.php
+
+		-
+			message: '#^Cannot access offset ''stock_hoy'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 4
+			path: models/VentaModel.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 14
+			path: models/VentaModel.php
+
+		-
+			message: '#^Method VentaModel\:\:getAllVariedadesAjax\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Method VentaModel\:\:getClienteById\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Method VentaModel\:\:getClientesConEstadisticas\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Method VentaModel\:\:getClientesTienda\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Method VentaModel\:\:getProductosActivosConStock\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Method VentaModel\:\:getVariedadesPorCategoriaAjax\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Method VentaModel\:\:getVentasHoy\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Method VentaModel\:\:getVentasHoyNueva\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: models/VentaModel.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 3
+			path: models/VentaModel.php

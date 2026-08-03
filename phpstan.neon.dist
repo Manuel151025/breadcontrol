@@ -1,12 +1,21 @@
 # Configuración de PHPStan (análisis estático)
 # Analiza el código de lógica (modelos, helpers, controladores, config, includes).
 # Las vistas (HTML+PHP) quedan fuera: son plantillas, no lógica.
+#
+# NIVEL 10 — el máximo de PHPStan.
+#   - Los niveles 1-8 pasan limpios SIN excepciones: no hay ni un solo
+#     hallazgo pendiente hasta el nivel 8 inclusive.
+#   - Los niveles 9-10 (rigor total sobre `mixed`) están activos con
+#     phpstan-baseline.neon: las ocurrencias heredadas quedan registradas
+#     y contadas, y TODO código nuevo debe ser nivel-10 limpio o el CI falla.
+#     Esas ocurrencias son casi todas filas de SQL (array<string, mixed>)
+#     pasadas a funciones tipadas; reducirlas exige declarar la forma exacta
+#     de cada consulta y se hará de forma incremental.
+includes:
+    - phpstan-baseline.neon
+
 parameters:
-    # Nivel 6 pasa limpio (2026-08): propiedades, retornos y parametros con
-    # tipo declarado + PHPDoc array<...> en iterables. Los metodos que
-    # retornan fetch() conservan tipo por PHPDoc (array|false) porque un
-    # tipo nativo ahi seria incorrecto en runtime.
-    level: 6
+    level: 10
     paths:
         - config
         - controllers
@@ -16,3 +25,14 @@ parameters:
     excludePaths:
         - vendor
     treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        # PHP declara PDO::prepare()/query() como "PDOStatement|false", pero
+        # config/db.php abre SIEMPRE la conexion con
+        # PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION: ante un error se lanza
+        # PDOException en lugar de devolver false, asi que esa rama es
+        # inalcanzable. No es un bug silenciado, es corregir el modelo de tipos
+        # de PHPStan para la configuracion real del proyecto.
+        # (Un stubFile no sirve: PHPStan da prioridad a sus stubs del core.)
+        -
+            identifier: method.nonObject
+            message: '#^Cannot call method \w+\(\) on PDOStatement\|false\.$#'

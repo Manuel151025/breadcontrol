@@ -28,15 +28,15 @@ class FinanzasController {
 
         if ($modo === 'mes') {
             $desde          = "$anio-" . str_pad((string) $mes, 2, '0', STR_PAD_LEFT) . "-01";
-            $hasta          = date('Y-m-t', strtotime($desde));
-            $titulo_periodo = date('F Y', strtotime($desde));
+            $hasta          = date('Y-m-t', (int) strtotime($desde));
+            $titulo_periodo = date('F Y', (int) strtotime($desde));
         } elseif ($modo === 'semana') {
             $dto = new DateTime();
             $dto->setISODate($anio, $semana, 1);
             $desde = $dto->format('Y-m-d');
             $dto->modify('+6 days');
             $hasta          = $dto->format('Y-m-d');
-            $titulo_periodo = "Sem. $semana · " . date('d/m', strtotime($desde)) . " – " . date('d/m/Y', strtotime($hasta));
+            $titulo_periodo = "Sem. $semana · " . date('d/m', (int) strtotime($desde)) . " – " . date('d/m/Y', (int) strtotime($hasta));
         } else {
             $titulo_periodo = date('d/m/Y', strtotime($desde)) . " – " . date('d/m/Y', strtotime($hasta));
         }
@@ -111,7 +111,7 @@ class FinanzasController {
 
         $costo_prod_total = array_sum(array_column($consumo_ingredientes, 'total_costo'));
         $max_ing_costo    = !empty($consumo_ingredientes) ? max(array_column($consumo_ingredientes, 'total_costo') ?: [0]) : 1;
-        $max_ing_cant     = !empty($consumo_ingredientes) ? max(array_column($consumo_ingredientes, 'total_cant'))  : 1;
+        $max_ing_cant     = !empty($consumo_ingredientes) ? max(array_column($consumo_ingredientes, 'total_cant') ?: [0])  : 1;
 
         $page_title = 'Finanzas';
 

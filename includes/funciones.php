@@ -28,8 +28,8 @@ function limpiar(string $dato): string {
     return htmlspecialchars(strip_tags(trim($dato)), ENT_QUOTES, 'UTF-8');
 }
 
-// Redirigir con mensaje en sesión
-function redirigir(string $url, string $tipo = 'exito', string $mensaje = ''): void {
+// Redirigir con mensaje en sesión (nunca retorna: termina con exit)
+function redirigir(string $url, string $tipo = 'exito', string $mensaje = ''): never {
     if ($mensaje) {
         $_SESSION['mensaje_tipo']  = $tipo;   // 'exito', 'error', 'alerta'
         $_SESSION['mensaje_texto'] = $mensaje;
@@ -96,7 +96,7 @@ function generarNumeroLote(string $prefijo): string {
     $stmt->execute([$patron]);
     $ultimo = $stmt->fetchColumn();
     if ($ultimo) {
-        $partes = explode('-', $ultimo);
+        $partes = explode('-', (string) $ultimo);
         $seq = (int)end($partes) + 1;
     } else {
         $seq = 1;
@@ -168,13 +168,13 @@ function formatearFechaEntrega(?string $fecha_entrega, bool $html = true): strin
     if ($fecha_entrega === null || trim($fecha_entrega) === '') {
         $fecha_entrega = '1000-01-01 00:00:00';
     }
-    $yr = (int)date('Y', strtotime($fecha_entrega));
+    $yr = (int)date('Y', (int) strtotime($fecha_entrega));
     if ($yr <= 1970) {
         return $html 
             ? '<span style="color:#c62828; font-weight:700;"><i class="bi bi-clock-history"></i> Por definir (Tienda ADSO)</span>'
             : 'Por definir (Tienda ADSO)';
     }
-    return date('H:i', strtotime($fecha_entrega)) !== '00:00' 
-        ? date('d/m/Y h:i A', strtotime($fecha_entrega)) 
-        : date('d/m/Y', strtotime($fecha_entrega));
+    return date('H:i', (int) strtotime($fecha_entrega)) !== '00:00' 
+        ? date('d/m/Y h:i A', (int) strtotime($fecha_entrega)) 
+        : date('d/m/Y', (int) strtotime($fecha_entrega));
 }
