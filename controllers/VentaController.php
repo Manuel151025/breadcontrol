@@ -2,6 +2,7 @@
 // controllers/VentaController.php
 
 require_once __DIR__ . '/../models/VentaModel.php';
+require_once __DIR__ . '/../helpers/ReglasPortal.php';
 
 class VentaController {
     private $model;
@@ -122,13 +123,13 @@ class VentaController {
                         $tc->execute([$id_cliente]);
                         if ($tc->fetchColumn() === 'tienda') {
                             // TIENDA: $1.000 de crédito por cada $5.000
-                            $credito = floor($total_venta_tmp / 5000) * 1000;
+                            $credito = ReglasPortal::calcularCredito(true, $total_venta_tmp);
                             $bonificacion = ($precio > 0) ? (int)floor($credito / $precio) : 0;
                             $und_fisicas = $cantidad + $bonificacion;
                         }
                     } elseif ($tipo_salida === 'venta' && $id_cliente == 0) {
                         // MOSTRADOR: $500 de crédito por cada $5.000
-                        $credito = floor($total_venta_tmp / 5000) * 500;
+                        $credito = ReglasPortal::calcularCredito(false, $total_venta_tmp);
                         $napa = ($precio > 0) ? (int)floor($credito / $precio) : 0;
                         $und_fisicas = $cantidad + $napa;
                     }
@@ -256,13 +257,13 @@ class VentaController {
                             $tc = $this->pdo->prepare("SELECT tipo FROM cliente WHERE id_cliente = ?");
                             $tc->execute([$id_cli]);
                             if ($tc->fetchColumn() === 'tienda') {
-                                $credito = floor(($precio * $cant) / 5000) * 1000;
+                                $credito = ReglasPortal::calcularCredito(true, $precio * $cant);
                                 $bonif_calc = ($precio > 0) ? (int)floor($credito / $precio) : 0;
                                 $bonif_edit = $bonif_calc + $extra;
                                 $und_edit   = $cant + $bonif_edit;
                             }
                         } else {
-                            $credito = floor(($precio * $cant) / 5000) * 500;
+                            $credito = ReglasPortal::calcularCredito(false, $precio * $cant);
                             $bonif_edit = ($precio > 0) ? (int)floor($credito / $precio) : 0;
                             $und_edit   = $cant + $bonif_edit;
                         }

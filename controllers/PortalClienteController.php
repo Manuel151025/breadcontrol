@@ -4,6 +4,7 @@
 require_once __DIR__ . '/../models/PortalClienteModel.php';
 require_once __DIR__ . '/../includes/sesion.php';
 require_once __DIR__ . '/../includes/funciones.php';
+require_once __DIR__ . '/../helpers/ReglasPortal.php';
 
 class PortalClienteController {
     private $model;
@@ -583,7 +584,7 @@ class PortalClienteController {
                         $error_msg = 'Debes seleccionar al menos un pedido para aprobar.';
                     } elseif (empty($fecha_entrega) || empty($hora_entrega)) {
                         $error_msg = 'Debes seleccionar una fecha y hora de entrega.';
-                    } elseif ($hora_entrega < '07:00' || $hora_entrega > '20:00') {
+                    } elseif (!ReglasPortal::horarioEntregaValido($hora_entrega)) {
                         $error_msg = 'El horario de entrega de la panadería es de 7:00 AM a 8:00 PM.';
                     } elseif ($fecha_entrega < date('Y-m-d')) {
                         $error_msg = 'La fecha de entrega no puede ser en el pasado.';
@@ -638,12 +639,9 @@ class PortalClienteController {
                         throw new Exception("El aprendiz no pertenece a tu grupo.");
                     }
                     
-                    if ($nuevo_cupo < 0 || $nuevo_cupo > 100000) {
-                        throw new Exception("El cupo semanal debe estar entre $0 y $100.000 COP.");
-                    }
-                    $nuevo_cupo_int = (int)$nuevo_cupo;
-                    if ($nuevo_cupo_int % 500 !== 0 || $nuevo_cupo != $nuevo_cupo_int) {
-                        throw new Exception("El cupo semanal debe ser múltiplo de $500 COP.");
+                    $error_cupo = ReglasPortal::validarCupoSemanal($nuevo_cupo);
+                    if ($error_cupo !== null) {
+                        throw new Exception($error_cupo);
                     }
                     
                     $stmt_u = $this->pdo->prepare("UPDATE cliente SET cupo_semanal = ? WHERE id_cliente = ?");
@@ -746,13 +744,8 @@ class PortalClienteController {
 
         $detalles = $this->model->getDetallesPedido($id_pedido);
 
-        $fecha_entrega = new DateTime($pedido['fecha_entrega']);
-        $ahora = new DateTime();
-        $diff = $ahora->diff($fecha_entrega);
-        $horas_restantes = ($diff->days * 24) + $diff->h;
-        $esta_vencido = $diff->invert == 1;
-        $dentro_limite = (!$esta_vencido && $horas_restantes < 48);
-        $puede_gestionar = ($pedido['estado'] === 'pendiente' && !$esta_vencido && !$dentro_limite);
+        $dentro_limite   = ReglasPortal::dentroDeLimite48h($pedido['fecha_entrega']);
+        $puede_gestionar = ReglasPortal::puedeGestionarPedido($pedido['estado'], $pedido['fecha_entrega']);
 
         // Pago digital
         $estado_pago = $pedido['estado_pago'] ?? 'no_aplica';
@@ -884,7 +877,7 @@ class PortalClienteController {
 
                 if (!$es_adso && (empty($fecha_entrega) || empty($hora_entrega))) {
                     $error = 'Debes seleccionar una fecha y hora de entrega.';
-                } elseif (!$es_adso && ($hora_entrega < '07:00' || $hora_entrega > '20:00')) {
+                } elseif (!$es_adso && !ReglasPortal::horarioEntregaValido($hora_entrega)) {
                     $error = 'El horario de entrega de la panadería es de 7:00 AM a 8:00 PM.';
                 } elseif (!$es_adso && $fecha_entrega < $min_fecha && $edit_id == 0) {
                     if ($min_fecha > date('Y-m-d')) {
@@ -955,20 +948,14 @@ class PortalClienteController {
                     $stmt_pay_check = $this->pdo->prepare("SELECT estado FROM pago_pedido WHERE id_pago = ?");
                     $stmt_pay_check->execute([(int)$ped_edit['id_pago_activo']]);
                     $pay_status = $stmt_pay_check->fetchColumn();
-                    if ($pay_status && in_array(strtoupper($pay_status), ['PENDING', 'PENDIENTE'])) {
-                        if ($es_aprendiz) {
-                            header('Location: detalle_pedido.php?id=' . $edit_id . '&error=pago_proceso');
-                            exit;
-                        }
+                    if (ReglasPortal::bloqueoPorPagoInstructor($es_aprendiz, $pay_status !== false ? (string)$pay_status : null)) {
+                        header('Location: detalle_pedido.php?id=' . $edit_id . '&error=pago_proceso');
+                        exit;
                     }
                 }
 
                 // Validar restricción de 48 horas en la carga
-                $fe_dt = new DateTime($ped_edit['fecha_entrega']);
-                $ahora = new DateTime();
-                $diff = $ahora->diff($fe_dt);
-                $hrs = ($diff->days * 24) + $diff->h;
-                if ($diff->invert == 1 || $hrs < 48) {
+                if (ReglasPortal::fueraDeLimiteGestion($ped_edit['fecha_entrega'])) {
                     header('Location: detalle_pedido.php?id=' . $edit_id . '&error=limite_tiempo');
                     exit;
                 }
@@ -1209,10 +1196,9 @@ class PortalClienteController {
             } elseif (isset($_POST['actualizar_cupo'])) {
                 $aid  = (int)($_POST['aprendiz_id'] ?? 0);
                 $cupo = (float)($_POST['cupo_semanal'] ?? 0);
-                if ($cupo < 0 || $cupo > 100000) {
-                    $msg_err = 'El cupo semanal debe estar entre $0 y $100.000 COP.';
-                } elseif ((int)$cupo % 500 !== 0 || $cupo != (int)$cupo) {
-                    $msg_err = 'El cupo semanal debe ser múltiplo de $500 COP.';
+                $error_cupo = ReglasPortal::validarCupoSemanal($cupo);
+                if ($error_cupo !== null) {
+                    $msg_err = $error_cupo;
                 } elseif ($this->model->actualizarCupoAprendizInstructor($cliente_id, $aid, $cupo)) {
                     $msg_ok = 'Cupo semanal actualizado.';
                 } else {

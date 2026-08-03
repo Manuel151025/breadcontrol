@@ -2,6 +2,7 @@
 // models/PortalClienteModel.php
 
 require_once __DIR__ . '/../includes/estados_pago.php';
+require_once __DIR__ . '/../helpers/ReglasPortal.php';
 
 class PortalClienteModel {
     private $pdo;
@@ -551,13 +552,7 @@ class PortalClienteModel {
         }
 
         // Validar restricción de 48 horas
-        $fecha_entrega = new DateTime($pedido['fecha_entrega']);
-        $ahora = new DateTime();
-        $diff = $ahora->diff($fecha_entrega);
-        $horas_restantes = ($diff->days * 24) + $diff->h;
-        $esta_vencido = $diff->invert == 1;
-
-        if ($esta_vencido || $horas_restantes < 48) {
+        if (ReglasPortal::fueraDeLimiteGestion($pedido['fecha_entrega'])) {
             throw new Exception("No es posible cancelar este pedido (menos de 48 horas para la entrega).");
         }
 
@@ -759,7 +754,7 @@ class PortalClienteModel {
                 $stmt_cons->execute($args_consumido);
                 $consumido_semana = (float)$stmt_cons->fetchColumn();
                 
-                if ($consumido_semana + $total_dinero > $cupo_semanal) {
+                if (ReglasPortal::excedeCupoSemanal($consumido_semana, $total_dinero, $cupo_semanal)) {
                     $monto_exceso = ($consumido_semana + $total_dinero) - $cupo_semanal;
                     throw new Exception("Límite de cupo semanal excedido. Tu cupo semanal es de $" . number_format($cupo_semanal, 0, ',', '.') . " COP. Ya has consumido $" . number_format($consumido_semana, 0, ',', '.') . " COP esta semana y este pedido de $" . number_format($total_dinero, 0, ',', '.') . " COP excede el cupo en $" . number_format($monto_exceso, 0, ',', '.') . " COP.");
                 }
@@ -790,11 +785,7 @@ class PortalClienteModel {
                 }
 
                 // Validar restricción de 48 horas en el guardado
-                $fe_dt = new DateTime($ped_chk['fecha_entrega']);
-                $ahora = new DateTime();
-                $diff = $ahora->diff($fe_dt);
-                $hrs = ($diff->days * 24) + $diff->h;
-                if ($diff->invert == 1 || $hrs < 48) {
+                if (ReglasPortal::fueraDeLimiteGestion($ped_chk['fecha_entrega'])) {
                     throw new Exception("Ya no es posible editar este pedido (menos de 48 horas para la entrega).");
                 }
                 
@@ -841,7 +832,7 @@ class PortalClienteModel {
                 $es_tienda_actual = false;
             }
 
-            $max_bonif_credit = $es_tienda_actual ? floor($total_dinero / 5000) * 1000 : floor($total_dinero / 5000) * 500;
+            $max_bonif_credit = ReglasPortal::calcularCredito($es_tienda_actual, $total_dinero);
             $total_bonif_cost = 0;
             
             if (!empty($bonif_items)) {
