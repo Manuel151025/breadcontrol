@@ -109,7 +109,7 @@
         vars.forEach(function (v) {
           var inCart = cart.find(function (x) { return x.id_variedad == v.id_variedad });
           var cls = inCart ? 'prod-card in-cart' : 'prod-card';
-          var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + v.imagen + '">' : '<div class="pc-placeholder">🍞</div>';
+          var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + escHtml(v.imagen) + '">' : '<div class="pc-placeholder">🍞</div>';
           html += '<div class="' + cls + '" id="pcard-' + v.id_variedad + '">'
             + '<div onclick="tapProduct(' + v.id_variedad + ')">'
             + imgHtml
@@ -309,7 +309,7 @@
         currentCat = v.cat_nombre;
         html += '<div style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:' + colSoft + ';padding:.25rem .2rem .1rem;margin-top:.2rem;">' + currentCat + ' · $' + parseFloat(v.precio_unitario).toLocaleString('es-CO') + '</div>';
       }
-      var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + v.imagen + '">' : '<div class="br-ph">🍞</div>';
+      var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + escHtml(v.imagen) + '">' : '<div class="br-ph">🍞</div>';
       html += '<div class="bonif-row">'
         + imgHtml
         + '<span class="br-name">' + escHtml(v.nombre) + '</span>'
@@ -484,7 +484,7 @@
         vars.forEach(function (v) {
           var inCart = epCart.find(function (x) { return x.id_variedad == v.id_variedad });
           var cls = inCart ? 'prod-card in-cart' : 'prod-card';
-          var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + v.imagen + '">' : '<div class="pc-placeholder">🍞</div>';
+          var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + escHtml(v.imagen) + '">' : '<div class="pc-placeholder">🍞</div>';
           html += '<div class="' + cls + '" id="ep-pcard-' + v.id_variedad + '">'
             + '<div onclick="epTapProduct(' + v.id_variedad + ')">'
             + imgHtml
@@ -670,7 +670,7 @@
         currentCat = v.cat_nombre;
         html += '<div style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:' + colSoft + ';padding:.2rem .15rem .05rem;margin-top:.15rem;">' + currentCat + ' · $' + parseFloat(v.precio_unitario).toLocaleString('es-CO') + '</div>';
       }
-      var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + v.imagen + '">' : '<div class="br-ph">🍞</div>';
+      var imgHtml = v.imagen ? '<img src="' + appUrl + '/' + escHtml(v.imagen) + '">' : '<div class="br-ph">🍞</div>';
       html += '<div class="bonif-row">'
         + imgHtml
         + '<span class="br-name">' + escHtml(v.nombre) + '</span>'

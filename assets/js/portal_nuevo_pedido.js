@@ -52,7 +52,7 @@
                 vars.forEach(v => {
                     var inCart = cart.find(x => x.id_variedad==v.id_variedad);
                     var cls = inCart ? 'prod-card in-cart' : 'prod-card';
-                    var imgHtml = v.imagen ? '<img src="'+appUrl+'/'+v.imagen+'">' : '<div class="pc-placeholder">🍞</div>';
+                    var imgHtml = v.imagen ? '<img src="'+appUrl+'/'+escHtml(v.imagen)+'">' : '<div class="pc-placeholder">🍞</div>';
                     html += '<div class="'+cls+'" id="pcard-'+v.id_variedad+'">'
                         + '<div onclick="tapProduct('+v.id_variedad+')">'
                         + imgHtml
@@ -205,7 +205,7 @@
         }
         var html = '';
         allVarieties.forEach(v => {
-            var imgHtml = v.imagen ? '<img src="'+appUrl+'/'+v.imagen+'">' : '<div class="br-ph">🍞</div>';
+            var imgHtml = v.imagen ? '<img src="'+appUrl+'/'+escHtml(v.imagen)+'">' : '<div class="br-ph">🍞</div>';
             html += '<div class="bonif-row">'
                 + imgHtml
                 + '<span class="br-name">'+escHtml(v.nombre)+'</span>'
