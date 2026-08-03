@@ -5,7 +5,7 @@ require_once __DIR__ . '/../models/CierreModel.php';
 require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class CierreController {
-    private $model;
+    private CierreModel $model;
 
     public function __construct(PDO $pdo) {
         $this->model = new CierreModel($pdo);
@@ -14,7 +14,7 @@ class CierreController {
     /**
      * Pantalla principal de cierre del día (index.php)
      */
-    public function index() {
+    public function index(): void {
         requerirPropietario();
         $user = usuarioActual();
         $hoy  = date('Y-m-d');

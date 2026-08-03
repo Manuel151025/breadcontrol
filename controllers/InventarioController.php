@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../models/InventarioModel.php';
 
 class InventarioController {
-    private $model;
+    private InventarioModel $model;
 
     public function __construct(PDO $pdo) {
         $this->model = new InventarioModel($pdo);
@@ -13,7 +13,7 @@ class InventarioController {
     /**
      * Controlador principal para el listado de insumos (index.php)
      */
-    public function index() {
+    public function index(): void {
         requerirPropietario();
         $user = usuarioActual();
 
@@ -137,7 +137,7 @@ class InventarioController {
     /**
      * Creación de insumo clásica (crear_insumo.php)
      */
-    public function crearInsumo() {
+    public function crearInsumo(): void {
         requerirPropietario();
         $errores = [];
 
@@ -177,7 +177,7 @@ class InventarioController {
     /**
      * Edición de insumo clásica (editar_insumo.php)
      */
-    public function editarInsumo() {
+    public function editarInsumo(): void {
         requerirPropietario();
         $id = (int)($_GET['id'] ?? 0);
         $errores = [];
@@ -227,7 +227,7 @@ class InventarioController {
     /**
      * Ajuste manual de inventario e historial (ajuste.php)
      */
-    public function ajuste() {
+    public function ajuste(): void {
         requerirLogin();
         $id = (int)($_GET['id'] ?? 0);
         $errores = [];

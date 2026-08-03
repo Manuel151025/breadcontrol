@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../models/PedidoClienteModel.php';
 
 class PedidoClienteController {
-    private $model;
+    private PedidoClienteModel $model;
 
     public function __construct(PDO $pdo) {
         $this->model = new PedidoClienteModel($pdo);
@@ -13,7 +13,7 @@ class PedidoClienteController {
     /**
      * Dashboard principal de pedidos (index.php)
      */
-    public function index() {
+    public function index(): void {
         requerirPropietario();
         $user = usuarioActual();
 
@@ -157,7 +157,7 @@ class PedidoClienteController {
     /**
      * Detalle de pedido (ver_pedido.php)
      */
-    public function verPedido() {
+    public function verPedido(): void {
         requerirPropietario();
         $user = usuarioActual();
         $id_pedido = (int)($_GET['id'] ?? 0);
@@ -330,7 +330,7 @@ class PedidoClienteController {
     /**
      * Exportación de Pedidos (exportar.php)
      */
-    public function exportar() {
+    public function exportar(): void {
         requerirPropietario();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['exportar_ids'])) {

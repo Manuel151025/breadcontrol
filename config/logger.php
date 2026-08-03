@@ -7,7 +7,7 @@ if (!is_dir(LOG_PATH)) {
     @mkdir(LOG_PATH, 0777, true);
 }
 
-function log_error($error) {
+function log_error(mixed $error): void {
     $date = date('Y-m-d H:i:s');
     $logFile = LOG_PATH . '/app-' . date('Y-m-d') . '.log';
     

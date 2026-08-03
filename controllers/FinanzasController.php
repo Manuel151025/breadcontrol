@@ -5,7 +5,7 @@ require_once __DIR__ . '/../models/FinanzasModel.php';
 require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class FinanzasController {
-    private $model;
+    private FinanzasModel $model;
 
     public function __construct(PDO $pdo) {
         $this->model = new FinanzasModel($pdo);
@@ -14,7 +14,7 @@ class FinanzasController {
     /**
      * Dashboard principal de finanzas (index.php)
      */
-    public function index() {
+    public function index(): void {
         requerirPropietario();
         $user = usuarioActual();
 
@@ -123,7 +123,7 @@ class FinanzasController {
     /**
      * Exportación de reporte a PDF (exportar_pdf.php)
      */
-    public function exportarPdf() {
+    public function exportarPdf(): void {
         requerirPropietario();
         $user = usuarioActual();
 

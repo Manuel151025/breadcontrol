@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class FinanzasModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -49,18 +49,21 @@ class FinanzasModel {
         return (int)$stmt->fetchColumn();
     }
 
+    /** @return array<int, array<string, mixed>> */
     public function getVentasPorDia(string $desde, string $hasta): array {
         $stmt = $this->pdo->prepare("SELECT DATE(fecha_hora) AS dia, SUM(total_venta) AS total FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) BETWEEN :d AND :h GROUP BY DATE(fecha_hora) ORDER BY dia ASC");
         $stmt->execute([':d' => $desde, ':h' => $hasta]);
         return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
     }
 
+    /** @return array<int, array<string, mixed>> */
     public function getComprasPorDia(string $desde, string $hasta): array {
         $stmt = $this->pdo->prepare("SELECT DATE(fecha_compra) AS dia, SUM(total_pagado) AS total FROM compra WHERE DATE(fecha_compra) BETWEEN :d AND :h GROUP BY DATE(fecha_compra) ORDER BY dia ASC");
         $stmt->execute([':d' => $desde, ':h' => $hasta]);
         return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
     }
 
+    /** @return array<int, array<string, mixed>> */
     public function getTopProductos(string $desde, string $hasta, int $limit = 6): array {
         $stmt = $this->pdo->prepare("
             SELECT COALESCE(cp.nombre, p.nombre) AS nombre, 
@@ -83,6 +86,7 @@ class FinanzasModel {
         return $stmt->fetchAll();
     }
 
+    /** @return array<int, array<string, mixed>> */
     public function getTopClientes(string $desde, string $hasta, int $limit = 5): array {
         $stmt = $this->pdo->prepare("
             SELECT COALESCE(c.nombre,'Mostrador') AS cliente, c.tipo,
@@ -100,6 +104,7 @@ class FinanzasModel {
         return $stmt->fetchAll();
     }
 
+    /** @return array<int, array<string, mixed>> */
     public function getTopInsumos(string $desde, string $hasta, int $limit = 5): array {
         $stmt = $this->pdo->prepare("
             SELECT i.nombre, SUM(c.cantidad) AS cantidad, SUM(c.total_pagado) AS total, i.unidad_medida
@@ -116,6 +121,7 @@ class FinanzasModel {
         return $stmt->fetchAll();
     }
 
+    /** @return array<int, array<string, mixed>> */
     public function getGastosPorCategoria(string $desde, string $hasta): array {
         $stmt = $this->pdo->prepare("
             SELECT categoria, SUM(valor) AS total, COUNT(*) AS cantidad
@@ -126,6 +132,7 @@ class FinanzasModel {
         return $stmt->fetchAll();
     }
 
+    /** @return array<mixed> */
     public function getAniosDisponibles(): array {
         $anios = $this->pdo->query("SELECT DISTINCT YEAR(fecha_hora) AS y FROM venta WHERE tipo_salida='venta' ORDER BY y DESC")->fetchAll(PDO::FETCH_COLUMN);
         if (empty($anios)) {
@@ -134,6 +141,7 @@ class FinanzasModel {
         return $anios;
     }
 
+    /** @return array<int, array<string, mixed>> */
     public function getConsumoIngredientes(string $desde, string $hasta, int $limit = 6): array {
         $stmt = $this->pdo->prepare("
             SELECT i.nombre, i.unidad_medida,
@@ -157,6 +165,7 @@ class FinanzasModel {
         return $stmt->fetchAll();
     }
 
+    /** @return array<int, array<string, mixed>> */
     public function getConsumoIngredientesEstimado(string $desde, string $hasta, int $limit = 6): array {
         $stmt = $this->pdo->prepare("
             SELECT i.nombre, i.unidad_medida,
@@ -179,6 +188,7 @@ class FinanzasModel {
         return $stmt->fetchAll();
     }
 
+    /** @return array<int, array<string, mixed>> */
     public function getDetalleCompras(string $desde, string $hasta): array {
         $stmt = $this->pdo->prepare("
             SELECT c.fecha_compra, i.nombre AS insumo, c.cantidad, i.unidad_medida,
@@ -200,6 +210,7 @@ class FinanzasModel {
      * detallado no tiene categoría ni producto en su registro maestro (el
      * detalle vive en venta_detalle), así que se agrega un tercer fallback
      * de texto para que "producto" nunca llegue NULL a la vista PDF.
+     * @return array<int, array<string, mixed>>
      */
     public function getDetalleVentas(string $desde, string $hasta): array {
         $stmt = $this->pdo->prepare("

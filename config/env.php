@@ -17,7 +17,7 @@ if (file_exists($envPath)) {
 }
 
 if (!function_exists('get_env')) {
-    function get_env($key, $default = null) {
+    function get_env(string $key, mixed $default = null): mixed {
         if (isset($_ENV[$key])) return $_ENV[$key];
         if (getenv($key) !== false) return getenv($key);
         return $default;

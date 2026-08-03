@@ -5,7 +5,7 @@ require_once __DIR__ . '/../models/AuthModel.php';
 require_once __DIR__ . '/../includes/sesion.php';
 
 class AuthController {
-    private $model;
+    private AuthModel $model;
 
     public function __construct(PDO $pdo) {
         $this->model = new AuthModel($pdo);
@@ -14,7 +14,7 @@ class AuthController {
     /**
      * Asegura que el usuario no esté ya logueado.
      */
-    private function redirectIfLoggedIn() {
+    private function redirectIfLoggedIn(): void {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -27,7 +27,7 @@ class AuthController {
     /**
      * Muestra la portada pública con estadísticas de hoy.
      */
-    public function landing() {
+    public function landing(): void {
         $this->redirectIfLoggedIn();
 
         $stats = $this->model->getLandingStats();
@@ -51,7 +51,7 @@ class AuthController {
     /**
      * Muestra y procesa el inicio de sesión del personal administrativo.
      */
-    public function login() {
+    public function login(): void {
         $this->redirectIfLoggedIn();
 
         $error = '';
@@ -82,7 +82,7 @@ class AuthController {
     /**
      * Flujo multietapa para la recuperación de contraseña administrativa.
      */
-    public function recuperarPin() {
+    public function recuperarPin(): void {
         $this->redirectIfLoggedIn();
 
         $paso  = 1;
@@ -226,7 +226,7 @@ class AuthController {
     /**
      * Cierra la sesión activa.
      */
-    public function logout() {
+    public function logout(): void {
         cerrarSesion();
     }
 }

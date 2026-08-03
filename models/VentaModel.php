@@ -2,7 +2,7 @@
 // models/VentaModel.php
 
 class VentaModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -10,6 +10,7 @@ class VentaModel {
 
     /**
      * Obtiene el detalle de un pedido (variedades) y cliente asociado en formato JSON/Array para AJAX
+     * @return array<mixed>
      */
     public function getDetalleVentaAjax(int $id_v): array {
         $det = $this->pdo->prepare("
@@ -36,6 +37,7 @@ class VentaModel {
 
     /**
      * Obtiene todas las variedades activas (para bonificaciones en AJAX)
+     * @return array<int, array<string, mixed>>
      */
     public function getAllVariedadesAjax(): array {
         return $this->pdo->query("
@@ -50,6 +52,7 @@ class VentaModel {
 
     /**
      * Obtiene variedades activas por categoría para AJAX
+     * @return array<int, array<string, mixed>>
      */
     public function getVariedadesPorCategoriaAjax(int $id_cat): array {
         $vars = $this->pdo->prepare("SELECT id_variedad, nombre, imagen FROM variedad_pan WHERE id_categoria_precio = ? AND activo = 1 ORDER BY nombre");
@@ -106,6 +109,7 @@ class VentaModel {
 
     /**
      * Obtiene las categorías de precio activas y su stock disponible hoy
+     * @return array<mixed>
      */
     public function getCategoriasPrecio(): array {
         $categorias = $this->pdo->query("
@@ -122,6 +126,7 @@ class VentaModel {
 
     /**
      * Obtiene los clientes de tipo tienda activos
+     * @return array<int, array<string, mixed>>
      */
     public function getClientesTienda(): array {
         return $this->pdo->query("SELECT id_cliente, nombre FROM cliente WHERE activo = 1 AND tipo = 'tienda' ORDER BY nombre")->fetchAll();
@@ -129,6 +134,7 @@ class VentaModel {
 
     /**
      * Obtiene las ventas registradas el día de hoy
+     * @return array<int, array<string, mixed>>
      */
     public function getVentasHoy(): array {
         return $this->pdo->query("
@@ -147,6 +153,7 @@ class VentaModel {
 
     /**
      * Obtiene los IDs de las ventas que poseen detalles estructurados (venta_detalle)
+     * @return array<mixed>
      */
     public function getVentasConDetalleIds(): array {
         try {
@@ -197,7 +204,9 @@ class VentaModel {
      *  - stock disponible HOY por categoría de precio (ver getStockDisponibleHoy()).
      * Si cualquier ítem no pasa la validación, se aborta todo el pedido (no se guarda nada parcial).
      *
-     * @return array ['id_venta'=>int,'total_variedades'=>int,'total_unidades'=>int,'total_dinero'=>float,'bonus_units'=>int]
+     * @return array<mixed> ['id_venta'=>int,'total_variedades'=>int,'total_unidades'=>int,'total_dinero'=>float,'bonus_units'=>int]
+     * @param array<mixed> $cart
+     * @param array<mixed> $bonif_items
      */
     public function registrarPedidoDetallado(?int $id_cliente, int $id_usuario, array $cart, array $bonif_items): array {
         $this->pdo->beginTransaction();
@@ -350,7 +359,9 @@ class VentaModel {
      * la propia reserva previa de este pedido (id_v), para no bloquear una edición válida que
      * no aumenta el consumo real frente a lo que ya tenía reservado.
      *
-     * @return array ['id_venta'=>int,'total_variedades'=>int,'total_unidades'=>int,'total_dinero'=>float,'bonus_units'=>int]
+     * @return array<mixed> ['id_venta'=>int,'total_variedades'=>int,'total_unidades'=>int,'total_dinero'=>float,'bonus_units'=>int]
+     * @param array<mixed> $cart
+     * @param array<mixed> $bonif_items
      */
     public function editarPedidoDetallado(int $id_v, ?int $id_cliente, array $cart, array $bonif_items): array {
         $this->pdo->beginTransaction();
@@ -536,6 +547,7 @@ class VentaModel {
 
     /**
      * Obtiene el listado de tiendas (clientes) con estadísticas de compra
+     * @return array<int, array<string, mixed>>
      */
     public function getClientesConEstadisticas(string $busca = ''): array {
         $where  = "";
@@ -562,6 +574,7 @@ class VentaModel {
 
     /**
      * Obtiene una tienda por ID
+     * @return array<mixed>
      */
     public function getClienteById(int $id): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE id_cliente = ? AND tipo = 'tienda'");
@@ -593,6 +606,7 @@ class VentaModel {
 
     /**
      * MÓDULO NUEVA VENTA CLÁSICA: Obtiene los productos activos con sus cantidades hoy producidas menos vendidas
+     * @return array<int, array<string, mixed>>
      */
     public function getProductosActivosConStock(): array {
         return $this->pdo->query("
@@ -623,6 +637,7 @@ class VentaModel {
 
     /**
      * MÓDULO NUEVA VENTA CLÁSICA: Obtiene la lista de las últimas 20 ventas de hoy
+     * @return array<int, array<string, mixed>>
      */
     public function getVentasHoyNueva(): array {
         return $this->pdo->query("
@@ -638,6 +653,8 @@ class VentaModel {
 
     /**
      * EXPORTAR EXCEL: Obtiene listado de ventas maestras y detalles para exportación a Excel (.xls)
+     * @return array<mixed>
+     * @param array<mixed> $ids
      */
     public function getVentasPorIds(array $ids): array {
         if (empty($ids)) {

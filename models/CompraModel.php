@@ -2,7 +2,7 @@
 // models/CompraModel.php
 
 class CompraModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -10,6 +10,7 @@ class CompraModel {
 
     /**
      * Obtiene una compra por ID
+     * @return array<mixed>
      */
     public function getCompraById(int $id): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM compra WHERE id_compra = ?");
@@ -20,6 +21,8 @@ class CompraModel {
 
     /**
      * Obtiene información detallada de compras y lotes por lista de IDs (para etiquetas)
+     * @return array<mixed>
+     * @param array<mixed> $ids
      */
     public function getComprasPorIds(array $ids): array {
         if (empty($ids)) {
@@ -46,6 +49,7 @@ class CompraModel {
 
     /**
      * Obtiene el listado de compras con filtros de mes, búsqueda y alertas
+     * @return array<int, array<string, mixed>>
      */
     public function getComprasMesActual(string $mesFiltro, string $busca = '', bool $filtroAlerta = false): array {
         $where  = "WHERE 1=1";
@@ -79,6 +83,7 @@ class CompraModel {
 
     /**
      * Obtiene los KPIs de compras del mes actual
+     * @return array<mixed>
      */
     public function getKPIs(): array {
         $mes_actual = date('Y-m');
@@ -107,6 +112,7 @@ class CompraModel {
 
     /**
      * Obtiene los insumos activos para el formulario de compras
+     * @return array<int, array<string, mixed>>
      */
     public function getInsumosActivos(): array {
         return $this->pdo->query("
@@ -117,6 +123,7 @@ class CompraModel {
 
     /**
      * Obtiene los proveedores activos para el formulario de compras
+     * @return array<int, array<string, mixed>>
      */
     public function getProveedoresActivos(): array {
         return $this->pdo->query("
@@ -127,6 +134,7 @@ class CompraModel {
 
     /**
      * Registra transaccionalmente una compra y genera el lote correspondiente
+     * @return array<mixed>
      */
     public function registrarCompra(int $id_insumo, int $id_proveedor, string $fecha, float $cantidad, int $num_bultos, float $precio_bulto, int $id_usuario): array {
         if (esHoyDomingo()) {
@@ -208,6 +216,7 @@ class CompraModel {
 
     /**
      * Obtiene el listado completo de proveedores activos
+     * @return array<int, array<string, mixed>>
      */
     public function getProveedores(): array {
         return $this->pdo->query("SELECT * FROM proveedor WHERE activo = 1 ORDER BY nombre")->fetchAll();
@@ -215,6 +224,7 @@ class CompraModel {
 
     /**
      * Obtiene un proveedor por ID
+     * @return array<mixed>
      */
     public function getProveedorById(int $id): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM proveedor WHERE id_proveedor = ?");

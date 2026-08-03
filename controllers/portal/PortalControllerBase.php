@@ -12,8 +12,8 @@ require_once __DIR__ . '/../../helpers/ReglasPortal.php';
  * autorización y canje de código de aprendiz.
  */
 abstract class PortalControllerBase {
-    protected $model;
-    protected $pdo;
+    protected PortalClienteModel $model;
+    protected PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -23,7 +23,7 @@ abstract class PortalControllerBase {
     /**
      * Asegura que el cliente haya iniciado sesión.
      */
-    protected function requireCliente() {
+    protected function requireCliente(): void {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -42,7 +42,7 @@ abstract class PortalControllerBase {
     /**
      * Asegura que la sesión esté iniciada sin redireccionar de inmediato (para login/registro).
      */
-    protected function startSession() {
+    protected function startSession(): void {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }

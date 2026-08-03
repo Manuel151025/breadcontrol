@@ -2,7 +2,7 @@
 // models/ProduccionModel.php
 
 class ProduccionModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -14,6 +14,7 @@ class ProduccionModel {
 
     /**
      * Obtiene las producciones de una fecha específica con producto y operario
+     * @return array<int, array<string, mixed>>
      */
     public function getProduccionesPorFecha(string $fecha): array {
         $stmt = $this->pdo->prepare("
@@ -31,6 +32,7 @@ class ProduccionModel {
 
     /**
      * Obtiene los KPIs del panel principal: tandas hoy, ayer, registros mes, productos activos y tandas mes
+     * @return array<mixed>
      */
     public function getKPIs(): array {
         $prod_hoy = (float)$this->pdo->query(
@@ -64,6 +66,7 @@ class ProduccionModel {
 
     /**
      * Obtiene el top 5 de productos más producidos en el mes actual
+     * @return array<int, array<string, mixed>>
      */
     public function getTopProductosMes(): array {
         return $this->pdo->query("
@@ -90,6 +93,7 @@ class ProduccionModel {
 
     /**
      * Obtiene los ingredientes de una receta con datos del insumo
+     * @return array<int, array<string, mixed>>
      */
     public function getIngredientesReceta(int $id_receta): array {
         $stmt = $this->pdo->prepare("
@@ -106,6 +110,7 @@ class ProduccionModel {
 
     /**
      * Obtiene los lotes activos con disponibilidad > 0 para un insumo, ordenados FIFO
+     * @return array<int, array<string, mixed>>
      */
     public function getLotesDisponiblesInsumo(int $id_insumo): array {
         $stmt = $this->pdo->prepare("
@@ -130,9 +135,9 @@ class ProduccionModel {
     /**
      * Calcula la distribución FIFO de lotes para un ingrediente y genera la respuesta AJAX
      *
-     * @param array $ing       Fila de ingrediente con cant_por_unidad, aplica_merma, id_insumo, nombre, unidad_medida, stock_actual
+     * @param array<mixed> $ing       Fila de ingrediente con cant_por_unidad, aplica_merma, id_insumo, nombre, unidad_medida, stock_actual
      * @param int   $tandas    Número de tandas a producir
-     * @return array           Estructura con info del ingrediente y lotes a usar
+     * @return array<mixed>           Estructura con info del ingrediente y lotes a usar
      */
     public function calcularLotesFIFO(array $ing, int $tandas): array {
         $cant_necesaria = $ing['cant_por_unidad'] * $tandas;
@@ -236,11 +241,11 @@ class ProduccionModel {
      * @param int    $unidades     Unidades producidas calculadas
      * @param string $fecha_hora   Fecha y hora de producción (Y-m-d H:i:s)
      * @param string $obs          Observaciones
-     * @param array  $ingredientes Ingredientes de la receta (filas de receta_ingrediente + insumo)
-     * @param array  $dist_precios Distribución por categoría de precio [id_cat => unidades]
+     * @param array<mixed>  $ingredientes Ingredientes de la receta (filas de receta_ingrediente + insumo)
+     * @param array<mixed>  $dist_precios Distribución por categoría de precio [id_cat => unidades]
      * @param bool   $forzar       Si se fuerza el registro con stock insuficiente
      *
-     * @return array ['ok'=>bool, 'id_produccion'=>int, 'costo_total'=>float, 'costo_unitario'=>float, 'unidades'=>int]
+     * @return array<mixed> ['ok'=>bool, 'id_produccion'=>int, 'costo_total'=>float, 'costo_unitario'=>float, 'unidades'=>int]
      */
     public function registrarProduccionConConsumos(
         int $id_prod,
@@ -397,6 +402,7 @@ class ProduccionModel {
 
     /**
      * Obtiene lotes activos con disponibilidad para consumo FIFO (uso interno en transacción)
+     * @return array<int, array<string, mixed>>
      */
     private function getLotesDisponiblesFIFOParaConsumo(int $id_insumo): array {
         $stmt = $this->pdo->prepare("
@@ -418,6 +424,8 @@ class ProduccionModel {
      *
      * @return array{errores: array, avisos: array} errores bloquea (salvo forzar),
      *         avisos es solo informativo
+     * @return array<mixed>
+     * @param array<mixed> $ingredientes
      */
     public function verificarStockIngredientes(array $ingredientes, int $tandas): array {
         $errores = [];
@@ -450,6 +458,7 @@ class ProduccionModel {
 
     /**
      * Obtiene los productos activos con indicador de receta vigente
+     * @return array<int, array<string, mixed>>
      */
     public function getProductosActivosConReceta(): array {
         return $this->pdo->query("
@@ -461,6 +470,7 @@ class ProduccionModel {
 
     /**
      * Obtiene las categorías de precio activas
+     * @return array<int, array<string, mixed>>
      */
     public function getCategoriasPrecio(): array {
         return $this->pdo->query(
@@ -470,6 +480,7 @@ class ProduccionModel {
 
     /**
      * Obtiene las producciones del día de hoy con datos de producto
+     * @return array<int, array<string, mixed>>
      */
     public function getProduccionesHoy(): array {
         return $this->pdo->query("
@@ -484,6 +495,7 @@ class ProduccionModel {
 
     /**
      * Obtiene la sugerencia de producción del último cierre de día
+     * @return array<mixed>
      */
     public function getUltimaSugerenciaCierre(): ?array {
         $row = $this->pdo->query("
@@ -500,6 +512,7 @@ class ProduccionModel {
 
     /**
      * Obtiene los datos generales de una producción específica por su ID
+     * @return array<mixed>
      */
     public function getProduccionDetalle(int $id_produccion): ?array {
         $stmt = $this->pdo->prepare("
@@ -517,6 +530,7 @@ class ProduccionModel {
 
     /**
      * Obtiene los consumos de lote asociados a una producción (ingredientes + lotes FIFO descontados)
+     * @return array<int, array<string, mixed>>
      */
     public function getConsumosLote(int $id_produccion): array {
         $stmt = $this->pdo->prepare("

@@ -2,13 +2,16 @@
 require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class TableroModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
     }
 
-    public function getEstadisticasVentas() {
+    /**
+     * @return array<mixed>
+     */
+    public function getEstadisticasVentas(): array {
         $hoy = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=CURDATE()")->fetchColumn();
         $ayer = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=DATE_SUB(CURDATE(),INTERVAL 1 DAY)")->fetchColumn();
         $num_ventas = (int)$this->pdo->query("SELECT COUNT(*) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=CURDATE()")->fetchColumn();
@@ -22,7 +25,10 @@ class TableroModel {
         ];
     }
 
-    public function getFinanzasMes() {
+    /**
+     * @return array<string, float>
+     */
+    public function getFinanzasMes(): array {
         $primerDia = date('Y-m-01');
         $hoy       = date('Y-m-d');
 
@@ -42,7 +48,10 @@ class TableroModel {
         ];
     }
 
-    public function getResumenInventario() {
+    /**
+     * @return array<string, int>
+     */
+    public function getResumenInventario(): array {
         $total_insumos = (int)$this->pdo->query("SELECT COUNT(*) FROM insumo WHERE activo=1")->fetchColumn();
         $prod_hoy = (int)$this->pdo->query("SELECT COUNT(*) FROM produccion WHERE DATE(fecha_produccion)=CURDATE()")->fetchColumn();
         $prods_act = (int)$this->pdo->query("SELECT COUNT(*) FROM producto WHERE activo=1")->fetchColumn();
@@ -53,7 +62,8 @@ class TableroModel {
         ];
     }
 
-    public function getAlertas() {
+    /** @return array<int, array<string, mixed>> */
+    public function getAlertas(): array {
         return $this->pdo->query("
             SELECT * FROM v_insumos_alerta 
             ORDER BY (stock_actual / NULLIF(punto_reposicion, 0)) ASC 
@@ -61,7 +71,8 @@ class TableroModel {
         ")->fetchAll();
     }
 
-    public function getProduccionesRecientes() {
+    /** @return array<int, array<string, mixed>> */
+    public function getProduccionesRecientes(): array {
         return $this->pdo->query("
             SELECT pr.fecha_produccion, pr.cantidad_tandas, p.nombre, p.unidad_produccion
             FROM produccion pr
@@ -71,7 +82,8 @@ class TableroModel {
         ")->fetchAll();
     }
 
-    public function getTopVentas() {
+    /** @return array<int, array<string, mixed>> */
+    public function getTopVentas(): array {
         return $this->pdo->query("
             SELECT COALESCE(cp.nombre, p.nombre) AS nombre, SUM(v.unidades_vendidas) AS u, SUM(v.total_venta) AS t
             FROM venta v
@@ -84,7 +96,8 @@ class TableroModel {
         ")->fetchAll();
     }
 
-    public function getVentasUltimos7Dias() {
+    /** @return array<string, mixed> */
+    public function getVentasUltimos7Dias(): array {
         return $this->pdo->query("
             SELECT DATE(fecha_hora) AS d, COALESCE(SUM(total_venta), 0) AS t
             FROM venta
@@ -93,7 +106,8 @@ class TableroModel {
         ")->fetchAll(PDO::FETCH_KEY_PAIR);
     }
 
-    public function getConsumoHoy() {
+    /** @return array<int, array<string, mixed>> */
+    public function getConsumoHoy(): array {
         $consumo_hoy = $this->pdo->query("
             SELECT i.nombre, i.unidad_medida,
                    COALESCE(SUM(cl.cantidad_consumida),0) AS total
@@ -119,6 +133,7 @@ class TableroModel {
         return $consumo_hoy;
     }
 
+    /** @return array<string, mixed>|false */
     public function getObservacionCierre() {
         return $this->pdo->query("
             SELECT sugerencia_produccion, fecha FROM cierre_dia 

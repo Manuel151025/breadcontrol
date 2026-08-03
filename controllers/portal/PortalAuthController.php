@@ -13,7 +13,7 @@ class PortalAuthController extends PortalControllerBase {
     /**
      * Controla el inicio de sesión del portal.
      */
-    public function login() {
+    public function login(): void {
         $this->startSession();
 
         if (isset($_SESSION['cliente_id'])) {
@@ -86,7 +86,7 @@ class PortalAuthController extends PortalControllerBase {
     /**
      * Intercambia el código de Google y maneja la sesión.
      */
-    public function googleCallback() {
+    public function googleCallback(): void {
         $this->startSession();
 
         if (isset($_SESSION['cliente_id'])) {
@@ -206,7 +206,7 @@ class PortalAuthController extends PortalControllerBase {
     /**
      * Registro de nuevo cliente.
      */
-    public function registro() {
+    public function registro(): void {
         $this->startSession();
 
         if (isset($_SESSION['cliente_id'])) {
@@ -301,7 +301,7 @@ class PortalAuthController extends PortalControllerBase {
     /**
      * Lógica multietapa para la recuperación de contraseña.
      */
-    public function recuperarPass() {
+    public function recuperarPass(): void {
         $this->startSession();
 
         if (isset($_SESSION['cliente_id'])) {
@@ -448,7 +448,7 @@ class PortalAuthController extends PortalControllerBase {
     /**
      * Edición de perfil, contraseña y PIN de recuperación.
      */
-    public function perfil() {
+    public function perfil(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
         
@@ -567,7 +567,7 @@ class PortalAuthController extends PortalControllerBase {
     /**
      * Completa el perfil social de Google OAuth.
      */
-    public function completarPerfil() {
+    public function completarPerfil(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
         
@@ -621,7 +621,7 @@ class PortalAuthController extends PortalControllerBase {
      * cuenta existente por email y no crear un duplicado. NO usa requireCliente (evita el
      * bucle de redirección con la bandera falta_email).
      */
-    public function completarEmail() {
+    public function completarEmail(): void {
         $this->startSession();
         if (!isset($_SESSION['cliente_id'])) {
             header('Location: index.php');

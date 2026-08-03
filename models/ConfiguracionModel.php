@@ -2,7 +2,7 @@
 // models/ConfiguracionModel.php
 
 class ConfiguracionModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -10,6 +10,7 @@ class ConfiguracionModel {
 
     /**
      * Obtener los datos completos de un usuario
+     * @return array<string, mixed>|false
      */
     public function getUsuario(int $id_usuario) {
         $stmt = $this->pdo->prepare("SELECT * FROM usuario WHERE id_usuario = ?");
@@ -43,6 +44,7 @@ class ConfiguracionModel {
 
     /**
      * Obtener la configuración general del sistema (un solo registro)
+     * @return array<string, mixed>|false
      */
     public function getConfiguracion() {
         return $this->pdo->query("SELECT * FROM configuracion LIMIT 1")->fetch();
@@ -58,8 +60,9 @@ class ConfiguracionModel {
 
     /**
      * Obtener el listado de tiendas beneficiarias activas
+     * @return array<int, array<string, mixed>>
      */
-    public function getTiendasBeneficiarias() {
+    public function getTiendasBeneficiarias(): array {
         return $this->pdo->query("
             SELECT c.*,
               (SELECT COUNT(*) FROM pedido_cliente WHERE id_tienda_destino = c.id_cliente) AS total_pedidos_destino
@@ -71,8 +74,9 @@ class ConfiguracionModel {
 
     /**
      * Obtener el listado de clientes tipo tienda activos que no son beneficiarias
+     * @return array<int, array<string, mixed>>
      */
-    public function getTiendasCandidatas() {
+    public function getTiendasCandidatas(): array {
         return $this->pdo->query("
             SELECT id_cliente, nombre, telefono
             FROM cliente

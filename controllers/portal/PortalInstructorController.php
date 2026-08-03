@@ -14,7 +14,7 @@ class PortalInstructorController extends PortalControllerBase {
      * ve su grupo y ajusta cupos o retira aprendices. Solo cuentas instructor-capaces
      * (tienda que no es aprendiz); un instructor solo gestiona SUS aprendices.
      */
-    public function misAprendices() {
+    public function misAprendices(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
 

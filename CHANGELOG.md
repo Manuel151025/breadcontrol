@@ -4,6 +4,16 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.5.0] — 2026-08-03
+
+### Cambiado
+- **PHPStan sube al nivel 6 (máxima exigencia de tipos)**: los 257 hallazgos
+  resueltos en 44 archivos — 28 propiedades tipadas, 91 tipos de retorno,
+  4 parámetros y 134 anotaciones PHPDoc `array<...>` en iterables. Los
+  métodos que retornan `fetch()` conservan su tipo por PHPDoc
+  (`array<string, mixed>|false`) porque un tipo nativo sería incorrecto
+  en tiempo de ejecución.
+
 ## [1.4.0] — 2026-08-03
 
 ### Añadido

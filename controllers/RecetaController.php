@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../models/RecetaModel.php';
 
 class RecetaController {
-    private $model;
+    private RecetaModel $model;
 
     public function __construct(PDO $pdo) {
         $this->model = new RecetaModel($pdo);
@@ -13,7 +13,7 @@ class RecetaController {
     /**
      * Catálogo principal de Recetas (index.php)
      */
-    public function index() {
+    public function index(): void {
         requerirPropietario();
         $user = usuarioActual();
 
@@ -59,7 +59,7 @@ class RecetaController {
     /**
      * Crear nuevo producto (crear_producto.php)
      */
-    public function crearProducto() {
+    public function crearProducto(): void {
         requerirPropietario();
         $errores = [];
 
@@ -112,7 +112,7 @@ class RecetaController {
     /**
      * Editar producto (editar_producto.php)
      */
-    public function editarProducto() {
+    public function editarProducto(): void {
         requerirPropietario();
         $id_producto = (int)($_GET['id'] ?? 0);
         $errores    = [];
@@ -162,7 +162,7 @@ class RecetaController {
     /**
      * Editar receta (editar_receta.php)
      */
-    public function editarReceta() {
+    public function editarReceta(): void {
         requerirPropietario();
         $user = usuarioActual();
         $id_producto = (int)($_GET['id'] ?? 0);
@@ -242,7 +242,7 @@ class RecetaController {
     /**
      * Variedades de Pan (variedades.php)
      */
-    public function variedades() {
+    public function variedades(): void {
         requerirPropietario();
         $user = usuarioActual();
 

@@ -2,9 +2,11 @@
 # Analiza el código de lógica (modelos, helpers, controladores, config, includes).
 # Las vistas (HTML+PHP) quedan fuera: son plantillas, no lógica.
 parameters:
-    # Nivel 5 pasa limpio (2026-08). Si se quiere subir mas, revisar
-    # los hallazgos de nivel 6 (tipos de retorno/parametros sin declarar).
-    level: 5
+    # Nivel 6 pasa limpio (2026-08): propiedades, retornos y parametros con
+    # tipo declarado + PHPDoc array<...> en iterables. Los metodos que
+    # retornan fetch() conservan tipo por PHPDoc (array|false) porque un
+    # tipo nativo ahi seria incorrecto en runtime.
+    level: 6
     paths:
         - config
         - controllers

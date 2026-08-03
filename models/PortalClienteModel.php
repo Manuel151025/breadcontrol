@@ -21,7 +21,7 @@ class PortalClienteModel {
     use PagosPortalTrait;
     use InstructorPortalTrait;
 
-    private $pdo;
+    private PDO $pdo;
 
 
     public function __construct(PDO $pdo) {

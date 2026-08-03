@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../includes/estados_pago.php';
 
 class PedidoClienteModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -12,8 +12,9 @@ class PedidoClienteModel {
 
     /**
      * Obtener los cobros pendientes por tienda
+     * @return array<int, array<string, mixed>>
      */
-    public function getCobrosPendientesTiendas() {
+    public function getCobrosPendientesTiendas(): array {
         return $this->pdo->query("
             SELECT p.id_pedido, p.id_cliente, p.total_estimado, p.fecha_entrega, p.fecha_solicitud,
                    c.id_cliente AS cli_id, c.nombre AS nombre_tienda
@@ -29,6 +30,7 @@ class PedidoClienteModel {
 
     /**
      * Obtener configuración de pagos
+     * @return array<string, mixed>|false
      */
     public function getConfigPago() {
         return $this->pdo->query("SELECT nequi_link_pago, nequi_titular, wompi_habilitado, wompi_confirmar_auto FROM configuracion LIMIT 1")->fetch();
@@ -36,8 +38,11 @@ class PedidoClienteModel {
 
     /**
      * Obtener pedidos filtrados
+     * @param array<mixed> $where
+     * @return array<int, array<string, mixed>>
+     * @param array<mixed> $params
      */
-    public function getPedidos(array $where = [], array $params = []) {
+    public function getPedidos(array $where = [], array $params = []): array {
         $where[] = "p.aprobado_instructor = 1";
         $sql_where = "WHERE " . implode(" AND ", $where);
         $stmt = $this->pdo->prepare("
@@ -55,8 +60,10 @@ class PedidoClienteModel {
 
     /**
      * Obtener pedidos por un listado de IDs (para exportar)
+     * @param array<mixed> $ids
+     * @return array<int, array<string, mixed>>
      */
-    public function getPedidosPorIds(array $ids) {
+    public function getPedidosPorIds(array $ids): array {
         $inQuery = implode(',', array_fill(0, count($ids), '?'));
         $stmt = $this->pdo->prepare("
             SELECT p.*, c.nombre as cliente, c.tipo as tipo_cliente, c.telefono
@@ -71,8 +78,10 @@ class PedidoClienteModel {
 
     /**
      * Obtener detalles de productos de un listado de IDs de pedidos
+     * @param array<mixed> $ids
+     * @return array<int, array<string, mixed>>
      */
-    public function getDetallesPedidosPorIds(array $ids) {
+    public function getDetallesPedidosPorIds(array $ids): array {
         $inQuery = implode(',', array_fill(0, count($ids), '?'));
         $stmt = $this->pdo->prepare("
             SELECT d.id_pedido, d.cantidad, d.napa, d.bonificacion, vp.nombre 
@@ -86,6 +95,7 @@ class PedidoClienteModel {
 
     /**
      * Obtener un pedido por ID
+     * @return array<string, mixed>|false
      */
     public function getPedido(int $id_pedido) {
         $stmt = $this->pdo->prepare("
@@ -102,8 +112,9 @@ class PedidoClienteModel {
 
     /**
      * Obtener detalles de productos de un pedido
+     * @return array<int, array<string, mixed>>
      */
-    public function getDetallesPedido(int $id_pedido) {
+    public function getDetallesPedido(int $id_pedido): array {
         $stmt = $this->pdo->prepare("
             SELECT d.*, vp.nombre as producto 
             FROM pedido_cliente_detalle d 
@@ -116,6 +127,7 @@ class PedidoClienteModel {
 
     /**
      * Obtener registro de pago activo por ID
+     * @return array<string, mixed>|false
      */
     public function getPagoPedido(int $id_pago) {
         $stmt = $this->pdo->prepare("SELECT * FROM pago_pedido WHERE id_pago = ?");
@@ -125,8 +137,9 @@ class PedidoClienteModel {
 
     /**
      * Obtener abonos asociados a un pago
+     * @return array<int, array<string, mixed>>
      */
-    public function getAbonosPago(int $id_pago) {
+    public function getAbonosPago(int $id_pago): array {
         $stmt = $this->pdo->prepare("SELECT * FROM pago_abono WHERE id_pago = ? ORDER BY fecha_abono ASC");
         $stmt->execute([$id_pago]);
         return $stmt->fetchAll();
@@ -134,8 +147,9 @@ class PedidoClienteModel {
 
     /**
      * Obtener pedidos consolidados bajo un pago
+     * @return array<int, array<string, mixed>>
      */
-    public function getPedidosConsolidadosPago(int $id_pago) {
+    public function getPedidosConsolidadosPago(int $id_pago): array {
         $stmt = $this->pdo->prepare("SELECT id_pedido, total_estimado FROM pedido_cliente WHERE id_pago_activo = ?");
         $stmt->execute([$id_pago]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -143,6 +157,7 @@ class PedidoClienteModel {
 
     /**
      * Cambiar estado de pedidos en lote
+     * @param array<mixed> $ids
      */
     public function cambiarEstadoLote(array $ids, string $nuevo_estado): int {
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
@@ -153,6 +168,7 @@ class PedidoClienteModel {
 
     /**
      * Confirmar cobro masivo de tienda
+     * @param array<mixed> $ids_pedidos
      */
     public function confirmarCobroTienda(array $ids_pedidos, bool $auto_confirmar): int {
         $this->pdo->beginTransaction();

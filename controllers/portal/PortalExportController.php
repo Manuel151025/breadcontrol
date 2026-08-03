@@ -12,7 +12,7 @@ class PortalExportController extends PortalControllerBase {
     /**
      * Exporta pedidos seleccionados desde el dashboard en formato Excel o PDF.
      */
-    public function exportarPedidosDashboard() {
+    public function exportarPedidosDashboard(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
 
@@ -56,7 +56,7 @@ class PortalExportController extends PortalControllerBase {
     /**
      * Exporta el reporte de panes agrupado por aprendiz para una tienda.
      */
-    public function exportarReporteTienda() {
+    public function exportarReporteTienda(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
 
@@ -84,7 +84,7 @@ class PortalExportController extends PortalControllerBase {
     /**
      * Exporta la cartera de todos los aprendices vinculados al instructor en formato PDF/Impresión.
      */
-    public function exportarCarteraInstructor() {
+    public function exportarCarteraInstructor(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
 
@@ -113,7 +113,7 @@ class PortalExportController extends PortalControllerBase {
     /**
      * Exporta el recibo de un pago aprobado o parcial en formato PDF/Impresión.
      */
-    public function exportarReciboPago() {
+    public function exportarReciboPago(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
         $id_pedido  = (int)($_GET['id'] ?? 0);

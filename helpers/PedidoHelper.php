@@ -5,8 +5,8 @@ class PedidoHelper {
     /**
      * Calcula el monto esperado total de un pedido, considerando si está agrupado en un pago consolidado.
      *
-     * @param array $pedido
-     * @param array $pedidosConsolidados
+     * @param array<mixed> $pedido
+     * @param array<mixed> $pedidosConsolidados
      * @return float
      */
     public static function calcularTotalEsperado(array $pedido, array $pedidosConsolidados): float {

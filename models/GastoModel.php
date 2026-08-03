@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class GastoModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -12,6 +12,7 @@ class GastoModel {
 
     /**
      * Obtiene los gastos de una fecha específica
+     * @return array<int, array<string, mixed>>
      */
     public function getGastosPorFecha(string $fecha): array {
         $stmt = $this->pdo->prepare("
@@ -77,6 +78,7 @@ class GastoModel {
 
     /**
      * Obtiene el total de gastos acumulado por día de los últimos 7 días
+     * @return array<int, array<string, mixed>>
      */
     public function getGastosUltimos7Dias(): array {
         $stmt = $this->pdo->query("
@@ -92,6 +94,7 @@ class GastoModel {
     /**
      * Obtiene el resumen de finanzas (ingresos por ventas, compras y costo real
      * de producción del día)
+     * @return array<mixed>
      */
     public function getResumenFinanzasDia(string $fecha): array {
         $stmt_ventas = $this->pdo->prepare("SELECT COALESCE(SUM(total_venta), 0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) = ?");

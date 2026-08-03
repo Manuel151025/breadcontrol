@@ -5,8 +5,8 @@ require_once __DIR__ . '/../models/VentaModel.php';
 require_once __DIR__ . '/../helpers/ReglasPortal.php';
 
 class VentaController {
-    private $model;
-    private $pdo; // for quick internal queries if needed, though we route through Model
+    private VentaModel $model;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -16,7 +16,7 @@ class VentaController {
     /**
      * Dashboard del Punto de Venta POS (index.php)
      */
-    public function index() {
+    public function index(): void {
         requerirPropietario();
         $user = usuarioActual();
 
@@ -334,7 +334,7 @@ class VentaController {
     /**
      * Gestión de clientes de tipo tienda (clientes.php)
      */
-    public function clientes() {
+    public function clientes(): void {
         requerirPropietario();
 
         $msg_ok  = '';
@@ -420,7 +420,7 @@ class VentaController {
     /**
      * Módulo secundario clásica Nueva Venta por producto (nueva_venta.php)
      */
-    public function nuevaVenta() {
+    public function nuevaVenta(): void {
         requerirPropietario();
         $user = usuarioActual();
 
@@ -478,7 +478,7 @@ class VentaController {
     /**
      * Exportación de registros a Excel (.xls)
      */
-    public function exportarExcel() {
+    public function exportarExcel(): void {
         requerirPropietario();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['exportar_ids'])) {

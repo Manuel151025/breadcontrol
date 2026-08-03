@@ -11,7 +11,7 @@ class PortalPagoController extends PortalControllerBase {
     /**
      * Generación del link de pago consolidado y redirección.
      */
-    public function pagarConsolidado() {
+    public function pagarConsolidado(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
 

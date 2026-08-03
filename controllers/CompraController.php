@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../models/CompraModel.php';
 
 class CompraController {
-    private $model;
+    private CompraModel $model;
 
     public function __construct(PDO $pdo) {
         $this->model = new CompraModel($pdo);
@@ -13,7 +13,7 @@ class CompraController {
     /**
      * Dashboard principal de compras (index.php)
      */
-    public function index() {
+    public function index(): void {
         requerirPropietario();
         $user = usuarioActual();
 
@@ -89,7 +89,7 @@ class CompraController {
     /**
      * Gestión de proveedores (proveedores.php)
      */
-    public function proveedores() {
+    public function proveedores(): void {
         requerirLogin();
         
         $errores = [];
@@ -166,7 +166,7 @@ class CompraController {
     /**
      * Imprimir etiquetas de lote (etiqueta_lote.php)
      */
-    public function etiquetaLote() {
+    public function etiquetaLote(): void {
         requerirPropietario();
 
         // Obtener la lista de IDs a procesar

@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../models/ConfiguracionModel.php';
 
 class ConfiguracionController {
-    private $model;
+    private ConfiguracionModel $model;
 
     public function __construct(PDO $pdo) {
         $this->model = new ConfiguracionModel($pdo);
@@ -13,7 +13,7 @@ class ConfiguracionController {
     /**
      * Gestión del Perfil de Usuario (perfil.php)
      */
-    public function perfil() {
+    public function perfil(): void {
         requerirPropietario();
         $user = usuarioActual();
 
@@ -110,7 +110,7 @@ class ConfiguracionController {
     /**
      * Configuración de Pagos Digitales (pagos.php)
      */
-    public function pagos() {
+    public function pagos(): void {
         requerirPropietario();
         $user = usuarioActual();
 
@@ -160,7 +160,7 @@ class ConfiguracionController {
     /**
      * Configuración de PIN de recuperación (pin.php)
      */
-    public function pin() {
+    public function pin(): void {
         requerirPropietario();
         $user = usuarioActual();
 
@@ -204,7 +204,7 @@ class ConfiguracionController {
     /**
      * Gestión de Tiendas Beneficiarias (tiendas.php)
      */
-    public function tiendas() {
+    public function tiendas(): void {
         requerirPropietario();
         $user = usuarioActual();
 

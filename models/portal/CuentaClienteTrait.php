@@ -10,6 +10,7 @@ trait CuentaClienteTrait {
 
     /**
      * Busca un cliente activo por nombre de usuario.
+     * @return array<mixed>
      */
     public function getClienteByUsuario(string $usuario): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE usuario = ? AND activo = 1");
@@ -20,6 +21,7 @@ trait CuentaClienteTrait {
 
     /**
      * Busca un cliente por ID.
+     * @return array<mixed>
      */
     public function getClienteById(int $id): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE id_cliente = ?");
@@ -30,6 +32,7 @@ trait CuentaClienteTrait {
 
     /**
      * Busca un cliente por correo electrónico (Google OAuth).
+     * @return array<mixed>
      */
     public function getClienteByEmail(string $email): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE email = ? AND activo = 1 LIMIT 1");
@@ -40,6 +43,7 @@ trait CuentaClienteTrait {
 
     /**
      * Busca un cliente por google_id.
+     * @return array<mixed>
      */
     public function getClienteByGoogleId(string $google_id): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE google_id = ? AND activo = 1 LIMIT 1");

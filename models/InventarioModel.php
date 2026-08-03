@@ -2,7 +2,7 @@
 // models/InventarioModel.php
 
 class InventarioModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -10,6 +10,7 @@ class InventarioModel {
 
     /**
      * Obtiene un insumo por ID
+     * @return array<mixed>
      */
     public function getInsumoById(int $id): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM insumo WHERE id_insumo = ?");
@@ -20,6 +21,7 @@ class InventarioModel {
 
     /**
      * Obtiene un insumo activo por ID
+     * @return array<mixed>
      */
     public function getInsumoActivoById(int $id): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM insumo WHERE id_insumo = ? AND activo = 1");
@@ -30,6 +32,7 @@ class InventarioModel {
 
     /**
      * Verifica si ya existe un insumo con un nombre dado, excluyendo un ID específico si se edita
+     * @return array<mixed>
      */
     public function getInsumoPorNombre(string $nombre, ?int $exceptId = null): ?array {
         if ($exceptId) {
@@ -89,6 +92,7 @@ class InventarioModel {
 
     /**
      * Desactivación lógica de múltiples insumos en lote
+     * @param array<mixed> $ids
      */
     public function desactivarMultiplesInsumos(array $ids): bool {
         if (empty($ids)) {
@@ -101,6 +105,7 @@ class InventarioModel {
 
     /**
      * Obtiene la lista de insumos activos aplicando filtros de búsqueda y nivel de alerta
+     * @return array<int, array<string, mixed>>
      */
     public function getInsumosList(string $busca = '', bool $soloAlertas = false): array {
         $where  = "WHERE i.activo = 1";
@@ -134,6 +139,7 @@ class InventarioModel {
 
     /**
      * Obtiene los KPIs generales del inventario
+     * @return array<mixed>
      */
     public function getKPIs(): array {
         $total_insumos = (int)$this->pdo->query("SELECT COUNT(*) FROM insumo WHERE activo = 1")->fetchColumn();
@@ -155,6 +161,7 @@ class InventarioModel {
 
     /**
      * Registra un ajuste de inventario y sincroniza los lotes activos usando FIFO
+     * @return array<mixed>
      */
     public function registrarAjusteInventario(int $id_insumo, int $id_usuario, float $cantidad_real, string $motivo): array {
         // Obtener stock actual antes del ajuste
@@ -248,6 +255,7 @@ class InventarioModel {
 
     /**
      * Obtiene el historial de ajustes de un insumo
+     * @return array<int, array<string, mixed>>
      */
     public function getHistorialAjustes(int $id_insumo, int $limite = 10): array {
         $stmt = $this->pdo->prepare("

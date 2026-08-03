@@ -2,13 +2,13 @@
 require_once __DIR__ . '/../models/TableroModel.php';
 
 class TableroController {
-    private $model;
+    private TableroModel $model;
     
-    public function __construct($pdo) {
+    public function __construct(PDO $pdo) {
         $this->model = new TableroModel($pdo);
     }
     
-    public function index() {
+    public function index(): void {
         // Preparar entorno
         requerirPropietario();
         $user = usuarioActual();

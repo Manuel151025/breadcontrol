@@ -93,6 +93,7 @@ function cerrarSesion(): void {
 }
 
 // Obtener el usuario actual
+/** @return array<mixed> */
 function usuarioActual(): array {
     return [
         'id_usuario' => $_SESSION['id_usuario']      ?? null,

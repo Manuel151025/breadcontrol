@@ -2,7 +2,7 @@
 // models/RecetaModel.php
 
 class RecetaModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -10,8 +10,9 @@ class RecetaModel {
 
     /**
      * Obtener lista de productos activos con su id_receta (vigente) e ingredientes
+     * @return array<int, array<string, mixed>>
      */
-    public function getProductos(?string $busca = null) {
+    public function getProductos(?string $busca = null): array {
         $sql = "
             SELECT p.*, r.id_receta, COUNT(DISTINCT ri.id_insumo) AS num_ingredientes
             FROM producto p
@@ -39,6 +40,7 @@ class RecetaModel {
 
     /**
      * Obtener los datos de un producto activo
+     * @return array<string, mixed>|false
      */
     public function getProducto(int $id_producto) {
         $stmt = $this->pdo->prepare("SELECT * FROM producto WHERE id_producto = ? AND activo = 1");
@@ -48,6 +50,7 @@ class RecetaModel {
 
     /**
      * Obtener producto por nombre (activo o inactivo)
+     * @return array<string, mixed>|false
      */
     public function getProductoByName(string $nombre) {
         $stmt = $this->pdo->prepare("SELECT id_producto, activo FROM producto WHERE nombre = ?");
@@ -93,6 +96,7 @@ class RecetaModel {
 
     /**
      * Obtener el id de la receta vigente para un producto
+     * @return mixed
      */
     public function getRecetaVigenteId(int $id_producto) {
         $stmt = $this->pdo->prepare("SELECT id_receta FROM receta WHERE id_producto = ? AND es_vigente = 1 LIMIT 1");
@@ -102,6 +106,7 @@ class RecetaModel {
 
     /**
      * Obtener unidad de medida de un insumo
+     * @return mixed
      */
     public function getIngredienteUnidadMedida(int $id_insumo) {
         $stmt = $this->pdo->prepare("SELECT unidad_medida FROM insumo WHERE id_insumo = ?");
@@ -142,8 +147,9 @@ class RecetaModel {
 
     /**
      * Obtener ingredientes de una receta específica con cálculo de cant_mostrar
+     * @return array<int, array<string, mixed>>
      */
-    public function getIngredientesReceta(int $id_receta) {
+    public function getIngredientesReceta(int $id_receta): array {
         $stmt = $this->pdo->prepare("
             SELECT ri.*, i.nombre AS nombre_insumo, i.unidad_medida, i.es_harina,
                    CASE WHEN i.unidad_medida IN ('kg','L') THEN ri.cantidad*1000 ELSE ri.cantidad END AS cant_mostrar
@@ -157,20 +163,23 @@ class RecetaModel {
 
     /**
      * Obtener todos los insumos activos para el selector
+     * @return array<int, array<string, mixed>>
      */
-    public function getInsumosActivos() {
+    public function getInsumosActivos(): array {
         return $this->pdo->query("SELECT id_insumo, nombre, unidad_medida, es_harina FROM insumo WHERE activo = 1 ORDER BY nombre")->fetchAll();
     }
 
     /**
      * Obtener categorías de precios activas
+     * @return array<int, array<string, mixed>>
      */
-    public function getCategoriasPrecio() {
+    public function getCategoriasPrecio(): array {
         return $this->pdo->query("SELECT * FROM categoria_precio WHERE activo = 1 ORDER BY precio_unitario")->fetchAll();
     }
 
     /**
      * Verificar si ya existe variedad con el mismo nombre y categoría
+     * @return array<string, mixed>|false
      */
     public function getVariedadPanExistente(string $nombre, int $id_cat) {
         $stmt = $this->pdo->prepare("SELECT id_variedad FROM variedad_pan WHERE nombre = ? AND id_categoria_precio = ? AND activo = 1");
@@ -209,8 +218,9 @@ class RecetaModel {
 
     /**
      * Obtener todas las variedades de pan vigentes
+     * @return array<int, array<string, mixed>>
      */
-    public function getVariedadesPan() {
+    public function getVariedadesPan(): array {
         return $this->pdo->query("
             SELECT v.*, cp.nombre AS cat_nombre, cp.precio_unitario 
             FROM variedad_pan v 

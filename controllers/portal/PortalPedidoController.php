@@ -12,7 +12,7 @@ class PortalPedidoController extends PortalControllerBase {
     /**
      * Carga el Dashboard del portal.
      */
-    public function dashboard() {
+    public function dashboard(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
 
@@ -206,7 +206,7 @@ class PortalPedidoController extends PortalControllerBase {
     /**
      * Muestra la vista detallada de un pedido específico.
      */
-    public function detallePedido() {
+    public function detallePedido(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
         $id_pedido  = (int)($_GET['id'] ?? 0);
@@ -284,7 +284,7 @@ class PortalPedidoController extends PortalControllerBase {
     /**
      * Creación y edición de pedidos.
      */
-    public function nuevoPedido() {
+    public function nuevoPedido(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
 
@@ -488,7 +488,7 @@ class PortalPedidoController extends PortalControllerBase {
     /**
      * Cancela un pedido.
      */
-    public function cancelarPedido() {
+    public function cancelarPedido(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
         $id_pedido  = (int)($_GET['id'] ?? 0);

@@ -70,6 +70,7 @@ function esHoySabado(): bool {
 }
 
 // Obtener configuración del sistema
+/** @return array<mixed> */
 function getConfiguracion(): array {
     static $config = null;
     if ($config === null) {
@@ -134,6 +135,7 @@ function getStockProducto(int $id_producto): float {
  * Retorna un array:
  *   ['ok' => true]  → hay suficiente stock
  *   ['ok' => false, 'mensaje' => '...', 'disponible' => N]  → no hay stock
+ * @return array<mixed>
  */
 function validarStockVenta(int $id_producto, int $cantidad): array {
     $disponible = getStockProducto($id_producto);

@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class CierreModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -81,6 +81,7 @@ class CierreModel {
 
     /**
      * Ventas agrupadas por producto/categoría
+     * @return array<int, array<string, mixed>>
      */
     public function getVentasPorProducto(string $fecha): array {
         $stmt = $this->pdo->prepare("
@@ -95,6 +96,7 @@ class CierreModel {
 
     /**
      * Ventas agrupadas por cliente
+     * @return array<int, array<string, mixed>>
      */
     public function getVentasPorCliente(string $fecha): array {
         $stmt = $this->pdo->prepare("
@@ -110,6 +112,7 @@ class CierreModel {
 
     /**
      * Producciones del día con nombre de producto
+     * @return array<int, array<string, mixed>>
      */
     public function getProduccionesHoy(string $fecha): array {
         $stmt = $this->pdo->prepare("
@@ -124,6 +127,7 @@ class CierreModel {
 
     /**
      * Compras del día con datos de insumo
+     * @return array<int, array<string, mixed>>
      */
     public function getComprasHoy(string $fecha): array {
         $stmt = $this->pdo->prepare("
@@ -137,6 +141,7 @@ class CierreModel {
 
     /**
      * Insumos con stock actual por debajo del punto de reposición
+     * @return array<int, array<string, mixed>>
      */
     public function getAlertasStockBajo(): array {
         return $this->pdo->query("
@@ -163,6 +168,7 @@ class CierreModel {
      * getVentasSinProductoHoy() y el panel las muestra como nota separada.
      * Arreglo de fondo (trabajo futuro): que el POS moderno registre también
      * el id_producto vendido, no solo la categoría de precio.
+     * @return array<int, array<string, mixed>>
      */
     public function getSobrantesHoy(string $fecha): array {
         $stmt = $this->pdo->prepare("
@@ -214,6 +220,7 @@ class CierreModel {
 
     /**
      * Obtiene el cierre guardado de una fecha específica (o null si no existe)
+     * @return array<mixed>
      */
     public function getCierreGuardado(string $fecha): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM cierre_dia WHERE fecha=?");
@@ -224,6 +231,7 @@ class CierreModel {
 
     /**
      * Últimos N cierres con nombre de usuario
+     * @return array<int, array<string, mixed>>
      */
     public function getHistorialCierres(int $limite = 7): array {
         return $this->pdo->query("

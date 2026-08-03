@@ -4,6 +4,7 @@
 // Requiere que generar_token_csrf() (includes/sesion.php) ya este cargado.
 
 if (!function_exists('boton_eliminar')) {
+    /** @param array<mixed> $opts */
     function boton_eliminar(array $opts): void {
         $accion  = $opts['accion'];
         $campo   = $opts['campo'];

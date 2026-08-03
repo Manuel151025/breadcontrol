@@ -10,6 +10,8 @@ trait PedidosPortalTrait {
 
     /**
      * Obtiene los pedidos asociados a un cliente, aplicando filtros de estado, orden, variedad y aprendiz.
+     * @return array<int, array<string, mixed>>
+     * @param array<mixed> $filtros
      */
     public function getPedidosFiltrados(int $cliente_id, bool $es_instructor, array $filtros): array {
         $f_estado   = $filtros['estado'] ?? '';
@@ -72,6 +74,7 @@ trait PedidosPortalTrait {
 
     /**
      * Obtiene un pedido específico del cliente o creador.
+     * @return array<string, mixed>|null
      */
     public function getPedido(int $id_pedido, int $cliente_id): ?array {
         $stmt = $this->pdo->prepare("
@@ -89,6 +92,7 @@ trait PedidosPortalTrait {
 
     /**
      * Obtiene los detalles (productos) de un pedido.
+     * @return array<int, array<string, mixed>>
      */
     public function getDetallesPedido(int $id_pedido): array {
         $stmt = $this->pdo->prepare("
@@ -103,6 +107,7 @@ trait PedidosPortalTrait {
 
     /**
      * Obtiene la información del tipo de cliente asociado a un pedido.
+     * @return array<mixed>
      */
     public function getClienteTipoAsociadoPedido(int $id_pedido): ?array {
         $stmt = $this->pdo->prepare("
@@ -130,6 +135,7 @@ trait PedidosPortalTrait {
 
     /**
      * Obtiene el reporte agrupado por aprendiz y producto para tiendas.
+     * @return array<string, list<array<string, mixed>>>
      */
     public function getReporteAgrupadoTienda(int $id_cliente, string $fecha_entrega): array {
         $stmt = $this->pdo->prepare("
@@ -233,6 +239,8 @@ trait PedidosPortalTrait {
 
     /**
      * Transacción para crear o actualizar un pedido con su detalle y validaciones de bonificación/ñapa.
+     * @param array<mixed> $cart
+     * @param array<mixed> $bonif_items
      */
     public function crearPedido(int $cliente_id, int $id_creador, string $fecha_entrega, array $cart, array $bonif_items, ?int $edit_id = null): int {
         try {
@@ -438,6 +446,7 @@ trait PedidosPortalTrait {
 
     /**
      * Verifica que un conjunto de IDs de pedidos pertenezcan a un cliente (como cliente o creador).
+     * @param array<mixed> $ids
      */
     public function verificarPedidosPertenecenCliente(array $ids, int $cliente_id): bool {
         if (empty($ids)) return false;
@@ -452,6 +461,8 @@ trait PedidosPortalTrait {
 
     /**
      * Obtiene los pedidos seleccionados con sus respectivos aprendices.
+     * @return array<int, array<string, mixed>>
+     * @param array<mixed> $ids
      */
     public function getPedidosDetalladosParaExportacion(array $ids): array {
         if (empty($ids)) return [];
@@ -470,6 +481,8 @@ trait PedidosPortalTrait {
 
     /**
      * Obtiene todos los detalles de productos para un conjunto de IDs de pedidos.
+     * @return array<int, array<string, mixed>>
+     * @param array<mixed> $ids
      */
     public function getDetallesPedidosParaExportacion(array $ids): array {
         if (empty($ids)) return [];
@@ -488,6 +501,7 @@ trait PedidosPortalTrait {
 
     /**
      * Obtiene la información de un pedido y verifica que sea de tipo tienda y pertenezca al cliente.
+     * @return array<string, mixed>|null
      */
     public function getPedidoTiendaParaExportacion(int $id_pedido, int $cliente_id): ?array {
         $stmt = $this->pdo->prepare("

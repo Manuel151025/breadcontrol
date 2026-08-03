@@ -10,6 +10,7 @@ trait InstructorPortalTrait {
 
     /**
      * Obtiene los KPIs de un instructor.
+     * @return array<string, mixed>
      */
     public function getInstructorStats(int $cliente_id): array {
         // Resumen financiero global
@@ -66,6 +67,7 @@ trait InstructorPortalTrait {
 
     /**
      * Obtiene el listado de alumnos y sus deudas.
+     * @return array<int, array<string, mixed>>
      */
     public function getAprendicesResumen(int $cliente_id): array {
         $sa = $this->pdo->prepare("
@@ -123,6 +125,7 @@ trait InstructorPortalTrait {
 
     /**
      * Obtiene pedidos de aprendices listos para ser pagados por el instructor.
+     * @return array<int, array<string, mixed>>
      */
     public function getPedidosPagoInstructor(int $cliente_id): array {
         $sp = $this->pdo->prepare("
@@ -143,6 +146,7 @@ trait InstructorPortalTrait {
 
     /**
      * Obtiene el listado de instructores (clientes tipo tienda activos).
+     * @return array<int, array<string, mixed>>
      */
     public function getInstructoresActivos(): array {
         return $this->pdo->query("SELECT id_cliente, nombre FROM cliente WHERE tipo = 'tienda' AND activo = 1 AND es_aprendiz = 0 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
@@ -158,6 +162,7 @@ trait InstructorPortalTrait {
      * NUNCA busca por nombre. Si la clave falta o apunta a una cuenta inexistente o
      * inactiva, devuelve id=0 con un mensaje claro para mostrar al usuario (falla
      * de forma visible, jamás en silencio ni con un fallback por nombre).
+     * @return array<mixed>
      */
     public function getClienteAdso(): array {
         static $cache = null;
@@ -197,6 +202,7 @@ trait InstructorPortalTrait {
      * en producción las 46 cuentas son tipo='tienda' (incluidas personas), así que 'tipo'
      * no discrimina y habilitaría a todas. Si más adelante hay varios instructores, se
      * amplía aquí; por ahora es una sola cuenta.
+     * @param array<mixed> $cliente
      */
     public function esInstructorCapaz(?array $cliente): bool {
         if ($cliente === null) return false;
@@ -206,6 +212,7 @@ trait InstructorPortalTrait {
 
     /**
      * Código activo del instructor (el más reciente sin desactivar), o null.
+     * @return array<mixed>
      */
     public function getCodigoActivoInstructor(int $instructor_id): ?array {
         $stmt = $this->pdo->prepare("
@@ -287,6 +294,7 @@ trait InstructorPortalTrait {
 
     /**
      * Aprendices vinculados a un instructor (para la pantalla "Mis aprendices").
+     * @return array<int, array<string, mixed>>
      */
     public function getAprendicesGestion(int $instructor_id): array {
         $stmt = $this->pdo->prepare("
@@ -329,6 +337,7 @@ trait InstructorPortalTrait {
      * Canjea un código de aprendiz. Devuelve ['ok'=>bool, 'error'=>string, 'instructor'=>string].
      * Valida todo transaccionalmente con FOR UPDATE sobre la fila del código para que dos
      * canjes simultáneos no excedan el límite de usos. cupo_semanal por defecto = 20000.
+     * @return array<mixed>
      */
     public function canjearCodigoAprendiz(int $cliente_id, string $codigo): array {
         $codigo = strtoupper(trim($codigo));
@@ -406,6 +415,7 @@ trait InstructorPortalTrait {
 
     /**
      * Obtiene pedidos de aprendices vinculados al instructor que están pendientes de aprobación.
+     * @return array<int, array<string, mixed>>
      */
     public function getPedidosPendientesAprobacionInstructor(int $instructor_id): array {
         $stmt = $this->pdo->prepare("
@@ -432,6 +442,7 @@ trait InstructorPortalTrait {
 
     /**
      * Aprueba pedidos de aprendices en lote (por el instructor) y les asigna una fecha y hora.
+     * @param array<mixed> $ids
      */
     public function aprobarPedidosInstructorLote(array $ids, int $instructor_id, string $datetime_entrega): int {
         if (empty($ids)) return 0;
@@ -466,6 +477,7 @@ trait InstructorPortalTrait {
 
     /**
      * Rechaza pedidos de aprendices en lote (por el instructor).
+     * @param array<mixed> $ids
      */
     public function rechazarPedidosInstructorLote(array $ids, int $instructor_id): int {
         if (empty($ids)) return 0;

@@ -5,13 +5,13 @@ require_once __DIR__ . '/../models/GastoModel.php';
 require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class GastoController {
-    private $model;
+    private GastoModel $model;
     
     public function __construct(PDO $pdo) {
         $this->model = new GastoModel($pdo);
     }
     
-    public function index() {
+    public function index(): void {
         // Asegurar que el usuario sea propietario
         requerirPropietario();
         $user = usuarioActual();

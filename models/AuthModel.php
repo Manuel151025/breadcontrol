@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 
 class AuthModel {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
@@ -12,6 +12,7 @@ class AuthModel {
 
     /**
      * Obtiene los detalles de un usuario activo por su nombre de usuario.
+     * @return array<mixed>
      */
     public function getUsuarioPorNombre(string $usuario): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM usuario WHERE nombre_usuario = ? AND activo = 1");
@@ -22,6 +23,7 @@ class AuthModel {
 
     /**
      * Obtiene detalles de un usuario por su ID.
+     * @return array<mixed>
      */
     public function getUsuarioPorId(int $id): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM usuario WHERE id_usuario = ?");
@@ -56,6 +58,7 @@ class AuthModel {
 
     /**
      * Obtiene de manera centralizada las estadísticas diarias para la portada pública.
+     * @return array<mixed>
      */
     public function getLandingStats(): array {
         $stats = [];

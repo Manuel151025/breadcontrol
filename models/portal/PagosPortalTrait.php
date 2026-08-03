@@ -10,6 +10,7 @@ trait PagosPortalTrait {
 
     /**
      * Obtiene abonos relacionados a un pago.
+     * @return array<int, array<string, mixed>>
      */
     public function getAbonos(int $id_pago): array {
         $stmt = $this->pdo->prepare("SELECT * FROM pago_abono WHERE id_pago = ? ORDER BY fecha_abono ASC");
@@ -28,6 +29,7 @@ trait PagosPortalTrait {
      * Regla de aprobacion (D5): un pedido dirigido a OTRA cuenta (id_cliente != id_creador)
      * solo es pagable si el instructor ya lo aprobo (aprobado_instructor = 1). Un pedido
      * personal (id_cliente = id_creador) es pagable sin aprobacion previa.
+     * @return array<int, array<string, mixed>>
      */
     public function getPedidosPendientesPago(int $cliente_id, int $id_pedido_spec = 0): array {
         $cond = "id_cliente = ?
@@ -57,6 +59,7 @@ trait PagosPortalTrait {
 
     /**
      * Obtiene un pago pendiente por su ID.
+     * @return array<mixed>
      */
     public function getPagoPendientePorId(int $id_pago): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM pago_pedido WHERE id_pago = ? AND estado IN (" . EstadoPagoPedido::pendientesSql() . ")");
@@ -67,6 +70,8 @@ trait PagosPortalTrait {
 
     /**
      * Registra el inicio de un pago consolidado.
+     * @param array<mixed> $pedidos
+     * @param array<mixed> $ids_pedidos
      */
     public function iniciarPagoConsolidado(int $cliente_id, array $pedidos, array $ids_pedidos, float $total_saldo, string $referencia, ?string $link_id, string $link_pago_url, string $nota_consolidado): int {
         try {

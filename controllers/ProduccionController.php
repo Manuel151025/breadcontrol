@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../models/ProduccionModel.php';
 
 class ProduccionController {
-    private $model;
+    private ProduccionModel $model;
 
     public function __construct(PDO $pdo) {
         $this->model = new ProduccionModel($pdo);
@@ -13,7 +13,7 @@ class ProduccionController {
     /**
      * Historial de producción (index.php)
      */
-    public function index() {
+    public function index(): void {
         requerirPropietario();
 
         // ── Filtro por fecha ────────────────────────────────────────
@@ -46,7 +46,7 @@ class ProduccionController {
     /**
      * Registro de nueva producción con recetas y consumo FIFO (nueva_produccion.php)
      */
-    public function nuevaProduccion() {
+    public function nuevaProduccion(): void {
         requerirPropietario();
         $user = usuarioActual();
 
@@ -199,7 +199,7 @@ class ProduccionController {
     /**
      * Detalle de una producción específica (detalle.php)
      */
-    public function detalle() {
+    public function detalle(): void {
         requerirLogin();
         $id_produccion = (int)($_GET['id'] ?? 0);
 
@@ -226,7 +226,7 @@ class ProduccionController {
     /**
      * Exporta el reporte de producción del día en formato imprimible.
      */
-    public function exportarPDF() {
+    public function exportarPDF(): void {
         requerirPropietario();
 
         $fecha_fil = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha'] ?? '') ? $_GET['fecha'] : date('Y-m-d');

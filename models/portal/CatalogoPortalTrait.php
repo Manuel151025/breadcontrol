@@ -10,6 +10,7 @@ trait CatalogoPortalTrait {
 
     /**
      * Obtiene los datos de pago configurados en la panadería.
+     * @return array<string, mixed>
      */
     public function getConfiguracionPago(): array {
         return $this->pdo->query("SELECT nequi_link_pago, nequi_titular, wompi_habilitado FROM configuracion LIMIT 1")->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -17,6 +18,7 @@ trait CatalogoPortalTrait {
 
     /**
      * Obtiene variedades activas.
+     * @return array<int, array<string, mixed>>
      */
     public function getVariedadesPanActivas(): array {
         $stmt = $this->pdo->query("SELECT id_variedad, nombre, imagen FROM variedad_pan WHERE activo = 1 ORDER BY nombre ASC");
@@ -25,6 +27,7 @@ trait CatalogoPortalTrait {
 
     /**
      * Obtiene el catálogo completo de productos con precio.
+     * @return array<int, array<string, mixed>>
      */
     public function getProductosActivos(): array {
         return $this->pdo->query("
@@ -39,6 +42,7 @@ trait CatalogoPortalTrait {
 
     /**
      * Obtiene el listado de categorías activas para los productos.
+     * @return array<int, array<string, mixed>>
      */
     public function getCategoriasActivas(): array {
         return $this->pdo->query("SELECT * FROM categoria_precio WHERE activo = 1 ORDER BY precio_unitario")->fetchAll(PDO::FETCH_ASSOC);
@@ -46,6 +50,7 @@ trait CatalogoPortalTrait {
 
     /**
      * Obtiene variedades activas por categoría.
+     * @return array<int, array<string, mixed>>
      */
     public function getVariedadesPorCategoria(int $id_cat): array {
         $stmt = $this->pdo->prepare("SELECT id_variedad, nombre, imagen FROM variedad_pan WHERE id_categoria_precio = ? AND activo = 1 ORDER BY nombre");
