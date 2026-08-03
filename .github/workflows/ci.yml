@@ -116,3 +116,42 @@ jobs:
 
       - name: Ejecutar suite de integración
         run: vendor/bin/phpunit --testsuite Integracion
+
+  seguridad:
+    name: Seguridad (Snyk)
+    runs-on: ubuntu-latest
+    env:
+      # Configurar en: Settings > Secrets and variables > Actions > New repository secret
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Avisar si no hay token
+        if: env.SNYK_TOKEN == ''
+        run: echo "::notice::SNYK_TOKEN no configurado; se omite el análisis de seguridad."
+
+      - name: Instalar PHP 8.2
+        if: env.SNYK_TOKEN != ''
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Instalar dependencias
+        if: env.SNYK_TOKEN != ''
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Instalar Snyk CLI
+        if: env.SNYK_TOKEN != ''
+        run: npm install -g snyk
+
+      # Umbral "high": los hallazgos MEDIUM actuales son falsos positivos del
+      # SAST (no reconoce escHtml(), el sanitizador propio de assets/js/utils.js),
+      # así que no deben bloquear el CI. Un fallo HIGH sí lo bloquea.
+      - name: Vulnerabilidades en dependencias
+        if: env.SNYK_TOKEN != ''
+        run: snyk test --severity-threshold=high
+
+      - name: Análisis estático de seguridad (SAST)
+        if: env.SNYK_TOKEN != ''
+        run: snyk code test --severity-threshold=high

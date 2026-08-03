@@ -97,7 +97,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 | **Dependencias** | Composer |
 | **Pruebas** | PHPUnit 11 (unitarias + integración) |
 | **Análisis estático** | PHPStan **nivel 10** (niveles 1-8 corregidos; 9-10 con baseline) |
-| **CI** | GitHub Actions (4 verificaciones por push/PR) |
+| **CI** | GitHub Actions (5 verificaciones por push/PR) |
 | **Gestión** | Jira (Scrum), GitHub |
 
 ---
@@ -388,7 +388,7 @@ vendor/bin/phpstan analyse # análisis estático (nivel 10)
 ## 🔁 Integración Continua
 
 Cada push y pull request dispara el workflow [`ci.yml`](.github/workflows/ci.yml)
-con 4 verificaciones independientes:
+con 5 verificaciones independientes:
 
 1. **Sintaxis PHP** — `php -l` sobre todos los archivos del proyecto.
 2. **Análisis estático** — PHPStan nivel 10 sobre `config/`, `controllers/`,
@@ -400,6 +400,10 @@ con 4 verificaciones independientes:
 4. **Pruebas de integración** — suite `Integracion` contra un servicio MySQL 8.0
    real, creado desde el esquema versionado (`sql/init/01_esquema_base.sql`) más
    la semilla mínima (`sql/init/90_semilla_ci.sql`).
+5. **Seguridad (Snyk)** — vulnerabilidades conocidas en las dependencias y
+   análisis estático de seguridad (SAST) del código. Requiere el secreto
+   `SNYK_TOKEN` en el repositorio; si no está configurado, el job se omite
+   sin romper el CI. Solo bloquea ante hallazgos de severidad *high*.
 
 ---
 
