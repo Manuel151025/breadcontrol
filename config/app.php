@@ -29,7 +29,7 @@ unset($app_es_local);
 require_once __DIR__ . '/logger.php';
 
 define('APP_NOMBRE',   'Sistema Inventario Panadería');
-define('APP_VERSION',  '1.1.0'); // mantener en sincronía con CHANGELOG.md
+define('APP_VERSION',  '1.2.0'); // mantener en sincronía con CHANGELOG.md
 
 // APP_URL viene del .env (fuente de verdad). Si no esta configurado,
 // se detecta automaticamente a partir del Host de la peticion como respaldo

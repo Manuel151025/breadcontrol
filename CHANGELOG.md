@@ -4,6 +4,14 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.2.0] — 2026-08-03
+
+### Cambiado
+- `PortalClienteModel` (1.298 líneas, 62 métodos) dividido por responsabilidad
+  en 5 traits bajo `models/portal/` (cuenta, catálogo, pedidos, pagos e
+  instructor). La clase pública sigue siendo una sola — controladores y
+  pruebas no cambian — pero cada archivo es pequeño y cohesivo.
+
 ## [1.1.0] — 2026-08-03
 
 ### Cambiado

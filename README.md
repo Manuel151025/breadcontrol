@@ -9,7 +9,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 [![CI](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml/badge.svg)](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml)
 [![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%208.2-777bb4.svg)](composer.json)
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.1.0-blue.svg)](CHANGELOG.md)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.2.0-blue.svg)](CHANGELOG.md)
 
 ---
 
@@ -261,7 +261,13 @@ BreadControl/
 ├── models/                  # Modelos de base de datos
 │   ├── AuthModel.php
 │   ├── InventarioModel.php
-│   ├── PortalClienteModel.php
+│   ├── PortalClienteModel.php   # Fachada única del portal (usa los traits)
+│   ├── portal/              # Traits del modelo del portal por responsabilidad
+│   │   ├── CuentaClienteTrait.php    # Registro, perfil, contraseña, Google
+│   │   ├── CatalogoPortalTrait.php   # Variedades, productos, categorías
+│   │   ├── PedidosPortalTrait.php    # Pedidos, reportes y exportaciones
+│   │   ├── PagosPortalTrait.php      # Pagos consolidados y abonos
+│   │   └── InstructorPortalTrait.php # Aprendices, códigos, cupos, aprobaciones
 │   └── ...
 │
 ├── helpers/                 # Lógica de negocio pura y reutilizable
@@ -431,7 +437,7 @@ correr las pruebas antes de abrir un Pull Request. En resumen:
 4. Abre el PR: el CI debe pasar en verde sus 4 verificaciones.
 
 El historial de versiones vive en [CHANGELOG.md](CHANGELOG.md)
-(versión actual: **1.1.0**, sincronizada con `APP_VERSION` en `config/app.php`).
+(versión actual: **1.2.0**, sincronizada con `APP_VERSION` en `config/app.php`).
 
 ---
 
