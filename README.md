@@ -6,6 +6,11 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 
 > 🌐 **Demo en vivo:** [breadcontrol.manuelcardenas.online](https://breadcontrol.manuelcardenas.online)
 
+[![CI](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml/badge.svg)](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml)
+[![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
+[![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%208.2-777bb4.svg)](composer.json)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.0.0-blue.svg)](CHANGELOG.md)
+
 ---
 
 ## 📋 Tabla de Contenido
@@ -18,7 +23,10 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 - [Configuración inicial en un despliegue nuevo](#️-configuración-inicial-en-un-despliegue-nuevo)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
 - [Base de Datos](#-base-de-datos)
+- [Pruebas](#-pruebas)
+- [Integración Continua](#-integración-continua)
 - [Seguridad](#-seguridad)
+- [Contribuir](#-contribuir)
 - [Autor](#-autor)
 - [Licencia](#-licencia)
 
@@ -86,6 +94,10 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 | **Pagos** | Nequi Negocios (link de pago estático; confirmación manual del propietario) |
 | **Autenticación externa** | Google API Client (OAuth 2.0) |
 | **Hosting** | Hostinger (PHP + MySQL) |
+| **Dependencias** | Composer |
+| **Pruebas** | PHPUnit 11 (unitarias + integración) |
+| **Análisis estático** | PHPStan (nivel 4) |
+| **CI** | GitHub Actions (4 verificaciones por push/PR) |
 | **Gestión** | Jira (Scrum), GitHub |
 
 ---
@@ -130,12 +142,19 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 
 ### Pasos
 
-1. **Clonar el repositorio**
+1. **Clonar el repositorio e instalar dependencias**
    ```bash
-   git clone https://github.com/Manuel151025/BreadControl.git
+   git clone https://github.com/Manuel151025/breadcontrol.git
+   cd breadcontrol
+   composer install
    ```
 
 2. **Configurar la base de datos**
+
+   Para un **clon fresco del repositorio** basta con el esquema versionado:
+   ```bash
+   mysql -u root panaderia_bd < sql/init/01_esquema_base.sql
+   ```
 
    El esquema se compone del dump base **más** las extensiones del portal/flujo de
    pedidos. Ejecuta los scripts **en este orden**:
@@ -161,29 +180,16 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
    - `sql/migraciones/2026-07-23_05_id_cliente_adso.sql`
    - `sql/migraciones/2026-07-23_06_aprobado_instructor_default_0.sql`
 
-3. **Configurar conexión y entorno**
-   - Crear y editar el archivo `config/db.php` con los datos de tu servidor:
-     ```php
-     $host = 'localhost';
-     $db   = 'tu_base_de_datos';
-     $user = 'tu_usuario';
-     $pass = 'tu_contraseña';
-     ```
-
-4. **Configurar la aplicación**
-   - Configurar variables de URL en `config/app.php`:
-     ```php
-     define('APP_URL', 'https://tu-dominio.com');
-     ```
-
-5. **Configurar credenciales SMTP y Google OAuth**
-   - Crear un archivo `.env` en la raíz (usando `.env.example` como base) y completar las credenciales:
+3. **Configurar entorno y credenciales**
+   - Crear un archivo `.env` en la raíz (usando `.env.example` como base) y completar:
+     * `APP_ENV` (`local` o `production`) y `APP_URL`
      * `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
      * `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
      * `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URL`
+   - Las variables de entorno **reales** (del sistema, Docker o CI) tienen prioridad sobre `.env`.
    - El link de pago de Nequi se configura desde la app (Configuración → Pagos), no por `.env`.
 
-6. **Acceder al sistema**
+4. **Acceder al sistema**
    - Abrir en el navegador: `https://tu-dominio.com/login.php`
 
 ---
@@ -252,6 +258,11 @@ BreadControl/
 │   ├── PortalClienteModel.php
 │   └── ...
 │
+├── helpers/                 # Lógica de negocio pura y reutilizable
+│   ├── ReglasPortal.php     # Reglas del portal (crédito, 48h, cupo, horario)
+│   ├── PedidoHelper.php     # Totales y deudas de pedidos
+│   └── FinanzasHelper.php   # Costo de producción y utilidades
+│
 ├── includes/
 │   ├── sesion.php           # Control de sesión, CSRF y auto-logout
 │   ├── funciones.php        # Helpers (formato, lote FIFO, stock dinámico)
@@ -282,10 +293,24 @@ BreadControl/
 │   └── img/                 # Recursos gráficos y fotos de variedades
 │
 ├── sql/                     # Migraciones y scripts de base de datos
+│   ├── init/                # Esquema base versionado + semilla de CI
+│   └── migraciones/         # Scripts incrementales por fecha
+│
+├── tests/                   # Suite de pruebas PHPUnit
+│   ├── Unit/                # Unitarias (sin base de datos)
+│   └── Integration/         # Integración (transacción + rollback)
+│
+├── .github/workflows/       # Integración continua (ci.yml)
+├── composer.json            # Metadatos, dependencias y scripts de prueba
+├── phpunit.xml              # Configuración de PHPUnit
+├── phpstan.neon.dist        # Configuración de PHPStan (nivel 4)
 ├── login.php                # Inicio de sesión del personal
 ├── logout.php               # Cierre de sesión
 ├── recuperar_pin.php        # Recuperación de clave por PIN
 ├── index.php                # Landing page pública
+├── CHANGELOG.md             # Historial de versiones
+├── CONTRIBUTING.md          # Guía de contribución
+├── LICENSE                  # Licencia MIT
 └── README.md
 ```
 
@@ -323,6 +348,46 @@ BreadControl/
 
 ---
 
+## 🧪 Pruebas
+
+El proyecto usa **PHPUnit 11** con dos suites (98 pruebas, 149 aserciones):
+
+| Suite | Qué cubre | Requiere BD |
+|-------|-----------|-------------|
+| **Unitarias** | Reglas de negocio del portal ([ReglasPortal](helpers/ReglasPortal.php)), helpers de pedidos y finanzas, funciones de formato/sanitización, CSRF, sesión y contraseñas | No |
+| **Integración** | AuthModel (login, recuperación), PortalClienteModel (aprobación/rechazo en lote), validación de stock de ventas y generación de lotes | Sí (MySQL) |
+
+```bash
+composer install           # una sola vez
+composer test              # suite completa
+composer test:unit         # solo unitarias (no necesitan MySQL)
+composer test:integracion  # solo integración
+vendor/bin/phpstan analyse # análisis estático (nivel 4)
+```
+
+- Las pruebas de integración corren dentro de una **transacción con rollback**:
+  nunca dejan datos en la base.
+- Sin MySQL disponible, la suite de integración **se omite** en lugar de fallar.
+- Para apuntar a otra base: `DB_NAME=otra_bd composer test` (las variables de
+  entorno reales tienen prioridad sobre `.env`).
+
+---
+
+## 🔁 Integración Continua
+
+Cada push y pull request dispara el workflow [`ci.yml`](.github/workflows/ci.yml)
+con 4 verificaciones independientes:
+
+1. **Sintaxis PHP** — `php -l` sobre todos los archivos del proyecto.
+2. **Análisis estático** — PHPStan nivel 4 sobre `config/`, `controllers/`,
+   `helpers/`, `includes/` y `models/`.
+3. **Pruebas unitarias** — suite `Unitarias` de PHPUnit.
+4. **Pruebas de integración** — suite `Integracion` contra un servicio MySQL 8.0
+   real, creado desde el esquema versionado (`sql/init/01_esquema_base.sql`) más
+   la semilla mínima (`sql/init/90_semilla_ci.sql`).
+
+---
+
 ## 🔒 Seguridad
 
 - **Contraseñas cifradas** con `password_hash()` (bcrypt).
@@ -348,6 +413,22 @@ BreadControl/
 
 ---
 
+## 🤝 Contribuir
+
+Las contribuciones son bienvenidas. Lee la [guía de contribución](CONTRIBUTING.md)
+para conocer el flujo de trabajo, los estándares de código y commits, y cómo
+correr las pruebas antes de abrir un Pull Request. En resumen:
+
+1. Crea una rama desde `master` (`fix/...`, `feat/...`).
+2. Acompaña tus cambios con pruebas.
+3. Verifica en local: `composer test` + `vendor/bin/phpstan analyse`.
+4. Abre el PR: el CI debe pasar en verde sus 4 verificaciones.
+
+El historial de versiones vive en [CHANGELOG.md](CHANGELOG.md)
+(versión actual: **1.0.0**, sincronizada con `APP_VERSION` en `config/app.php`).
+
+---
+
 ## 👨‍💻 Autor
 
 **Manuel Cardenas Suarez**
@@ -360,9 +441,12 @@ BreadControl/
 
 ## 📄 Licencia
 
-Este proyecto fue desarrollado como trabajo académico para el programa **Tecnólogo en Análisis y Desarrollo de Software** del **SENA** (Servicio Nacional de Aprendizaje), Centro de Formación Agroindustrial La Angostura, Florencia, Caquetá.
+Distribuido bajo la **licencia MIT** — ver el archivo [LICENSE](LICENSE) para el
+texto completo. Puedes usar, modificar y distribuir el código citando la autoría.
 
-Uso exclusivamente educativo y demostrativo.
+Este proyecto nació como trabajo académico para el programa **Tecnólogo en
+Análisis y Desarrollo de Software** del **SENA** (Servicio Nacional de
+Aprendizaje), Centro de Formación Agroindustrial La Angostura, Florencia, Caquetá.
 
 ---
 
