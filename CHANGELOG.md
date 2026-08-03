@@ -4,6 +4,15 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.1.0] — 2026-08-03
+
+### Cambiado
+- `PortalClienteController` (1.651 líneas, 21 métodos) dividido en 5
+  controladores por responsabilidad bajo `controllers/portal/` con una base
+  común (`PortalControllerBase`): autenticación/cuenta, pedidos, pago
+  consolidado, gestión de instructor y exportaciones. Los 17 puntos de
+  entrada de `portal/` ahora instancian el controlador que les corresponde.
+
 ## [1.0.0] — 2026-08-03
 
 Primera versión estable formalizada.

@@ -5,9 +5,10 @@
  * Reglas de negocio del Portal de Clientes y ventas.
  *
  * Fuente única de estas reglas: antes vivían duplicadas (y a veces con
- * copias ligeramente distintas) en PortalClienteController, VentaController
- * y PortalClienteModel. Son funciones puras (sin base de datos ni sesión),
- * por lo que se prueban directamente en tests/Unit/ReglasPortalTest.php.
+ * copias ligeramente distintas) en los controladores del portal (hoy
+ * divididos en controllers/portal/), VentaController y PortalClienteModel.
+ * Son funciones puras (sin base de datos ni sesión), por lo que se
+ * prueban directamente en tests/Unit/ReglasPortalTest.php.
  *
  * Las vistas JS (nuevo_pedido.php, ventas/index.php) replican el cálculo de
  * crédito solo como previsualización; el valor definitivo siempre sale de aquí.

@@ -1,9 +1,10 @@
 <?php
 // tests/Unit/ReglasPortalTest.php
 // Pruebas de las reglas de negocio del Portal de Clientes contra la clase REAL
-// de producción helpers/ReglasPortal.php (usada por PortalClienteController,
-// VentaController y PortalClienteModel): crédito/ñapa, límite de gestión de
-// 48 h, bloqueo por pago del instructor, cupo semanal y horario de entrega.
+// de producción helpers/ReglasPortal.php (usada por los controladores de
+// controllers/portal/, VentaController y PortalClienteModel): crédito/ñapa,
+// límite de gestión de 48 h, bloqueo por pago del instructor, cupo semanal
+// y horario de entrega.
 //
 // Los grupos de visibilidad/cartera y fecha mínima nocturna replican reglas
 // que viven en SQL y en JS respectivamente; se documentan aquí como espejo.
