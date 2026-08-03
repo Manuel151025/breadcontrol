@@ -9,7 +9,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 [![CI](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml/badge.svg)](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml)
 [![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%208.2-777bb4.svg)](composer.json)
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.2.0-blue.svg)](CHANGELOG.md)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.3.0-blue.svg)](CHANGELOG.md)
 
 ---
 
@@ -96,7 +96,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 | **Hosting** | Hostinger (PHP + MySQL) |
 | **Dependencias** | Composer |
 | **Pruebas** | PHPUnit 11 (unitarias + integración) |
-| **Análisis estático** | PHPStan (nivel 4) |
+| **Análisis estático** | PHPStan (nivel 5) |
 | **CI** | GitHub Actions (4 verificaciones por push/PR) |
 | **Gestión** | Jira (Scrum), GitHub |
 
@@ -315,7 +315,7 @@ BreadControl/
 ├── .github/workflows/       # Integración continua (ci.yml)
 ├── composer.json            # Metadatos, dependencias y scripts de prueba
 ├── phpunit.xml              # Configuración de PHPUnit
-├── phpstan.neon.dist        # Configuración de PHPStan (nivel 4)
+├── phpstan.neon.dist        # Configuración de PHPStan (nivel 5)
 ├── login.php                # Inicio de sesión del personal
 ├── logout.php               # Cierre de sesión
 ├── recuperar_pin.php        # Recuperación de clave por PIN
@@ -362,7 +362,7 @@ BreadControl/
 
 ## 🧪 Pruebas
 
-El proyecto usa **PHPUnit 11** con dos suites (98 pruebas, 149 aserciones):
+El proyecto usa **PHPUnit 11** con dos suites (111 pruebas, 212 aserciones):
 
 | Suite | Qué cubre | Requiere BD |
 |-------|-----------|-------------|
@@ -374,7 +374,7 @@ composer install           # una sola vez
 composer test              # suite completa
 composer test:unit         # solo unitarias (no necesitan MySQL)
 composer test:integracion  # solo integración
-vendor/bin/phpstan analyse # análisis estático (nivel 4)
+vendor/bin/phpstan analyse # análisis estático (nivel 5)
 ```
 
 - Las pruebas de integración corren dentro de una **transacción con rollback**:
@@ -391,7 +391,7 @@ Cada push y pull request dispara el workflow [`ci.yml`](.github/workflows/ci.yml
 con 4 verificaciones independientes:
 
 1. **Sintaxis PHP** — `php -l` sobre todos los archivos del proyecto.
-2. **Análisis estático** — PHPStan nivel 4 sobre `config/`, `controllers/`,
+2. **Análisis estático** — PHPStan nivel 5 sobre `config/`, `controllers/`,
    `helpers/`, `includes/` y `models/`.
 3. **Pruebas unitarias** — suite `Unitarias` de PHPUnit.
 4. **Pruebas de integración** — suite `Integracion` contra un servicio MySQL 8.0
@@ -437,7 +437,7 @@ correr las pruebas antes de abrir un Pull Request. En resumen:
 4. Abre el PR: el CI debe pasar en verde sus 4 verificaciones.
 
 El historial de versiones vive en [CHANGELOG.md](CHANGELOG.md)
-(versión actual: **1.2.0**, sincronizada con `APP_VERSION` en `config/app.php`).
+(versión actual: **1.3.0**, sincronizada con `APP_VERSION` en `config/app.php`).
 
 ---
 

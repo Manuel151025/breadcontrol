@@ -4,6 +4,21 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.3.0] — 2026-08-03
+
+### Añadido
+- 13 pruebas de integración para el núcleo financiero: cálculo FIFO de lotes,
+  registro de producción con costeo real (incluido el lote sintético `EST-`
+  para remanentes sin lote) y ventas rápidas con stock del día
+  (111 pruebas, 212 aserciones en total).
+
+### Cambiado
+- PHPStan sube al **nivel 5** (5 hallazgos de tipos corregidos).
+- CSS/JS extraídos de tres vistas más: `portal/detalle_pedido.php`
+  (672→472), `finanzas/exportar_pdf.php` (614→290) y
+  `portal/nuevo_pedido.php` (609→173, su carrito JS ahora vive en
+  `assets/js/portal_nuevo_pedido.js`).
+
 ## [1.2.0] — 2026-08-03
 
 ### Cambiado
