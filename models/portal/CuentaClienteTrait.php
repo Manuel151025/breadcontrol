@@ -5,12 +5,38 @@
  * Cuenta del cliente del portal: búsqueda por usuario/email/Google,
  * registro (tradicional y OAuth), perfil, contraseña, PIN y recuperación.
  * Parte de PortalClienteModel (dividido por responsabilidad).
+ *
+ * Fila completa de `cliente` (SELECT *). Tipos según lo que entrega PDO con
+ * EMULATE_PREPARES = false: INT/TINYINT como int, DECIMAL y fechas como string.
+ *
+ * @phpstan-type FilaCliente array{
+ *     id_cliente: int,
+ *     nombre: string,
+ *     tipo: string,
+ *     telefono: string|null,
+ *     activo: int,
+ *     fecha_creacion: string,
+ *     usuario: string|null,
+ *     contrasena_hash: string|null,
+ *     es_aprendiz: int,
+ *     cupo_semanal: string,
+ *     id_instructor: int|null,
+ *     email: string|null,
+ *     foto_url: string|null,
+ *     google_id: string|null,
+ *     notas: string|null,
+ *     es_beneficiaria: int,
+ *     pin_recuperacion: string|null,
+ *     codigo_recuperacion: string|null,
+ *     codigo_expira: string|null,
+ *     fecha_aprendiz: string|null
+ * }
  */
 trait CuentaClienteTrait {
 
     /**
      * Busca un cliente activo por nombre de usuario.
-     * @return array<mixed>
+     * @return FilaCliente|null
      */
     public function getClienteByUsuario(string $usuario): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE usuario = ? AND activo = 1");
@@ -21,7 +47,7 @@ trait CuentaClienteTrait {
 
     /**
      * Busca un cliente por ID.
-     * @return array<mixed>
+     * @return FilaCliente|null
      */
     public function getClienteById(int $id): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE id_cliente = ?");
@@ -32,7 +58,7 @@ trait CuentaClienteTrait {
 
     /**
      * Busca un cliente por correo electrónico (Google OAuth).
-     * @return array<mixed>
+     * @return FilaCliente|null
      */
     public function getClienteByEmail(string $email): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE email = ? AND activo = 1 LIMIT 1");
@@ -43,7 +69,7 @@ trait CuentaClienteTrait {
 
     /**
      * Busca un cliente por google_id.
-     * @return array<mixed>
+     * @return FilaCliente|null
      */
     public function getClienteByGoogleId(string $google_id): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM cliente WHERE google_id = ? AND activo = 1 LIMIT 1");

@@ -5,13 +5,81 @@
  * Ciclo de vida de los pedidos del portal: consulta, creación/edición,
  * cancelación, reportes por tienda y datos para exportaciones.
  * Parte de PortalClienteModel (dividido por responsabilidad).
+ *
+ * Formas de fila que devuelven las consultas de este trait. Los tipos
+ * corresponden a lo que PDO entrega realmente con la configuración de
+ * config/db.php (EMULATE_PREPARES = false): las columnas INT/TINYINT
+ * llegan como int y las DECIMAL, DATE y DATETIME como string.
+ *
+ * @phpstan-type FilaPedidoCliente array{
+ *     id_pedido: int,
+ *     id_cliente: int,
+ *     id_creador: int|null,
+ *     fecha_entrega: string,
+ *     fecha_solicitud: string,
+ *     total_estimado: string,
+ *     aprobado_instructor: int,
+ *     estado: string,
+ *     estado_pago: string,
+ *     id_pago_activo: int|null,
+ *     mensaje_propietario: string|null,
+ *     id_tienda_destino: int|null
+ * }
+ * Los alias se escriben completos y no como intersección (`A&array{...}`):
+ * PHPStan no resuelve intersecciones dentro de @phpstan-type y el alias
+ * quedaría silenciosamente inservible.
+ *
+ * @phpstan-type FilaPedidoConCreador array{
+ *     id_pedido: int,
+ *     id_cliente: int,
+ *     id_creador: int|null,
+ *     fecha_entrega: string,
+ *     fecha_solicitud: string,
+ *     total_estimado: string,
+ *     aprobado_instructor: int,
+ *     estado: string,
+ *     estado_pago: string,
+ *     id_pago_activo: int|null,
+ *     mensaje_propietario: string|null,
+ *     id_tienda_destino: int|null,
+ *     nombre_creador: string|null,
+ *     creador_es_aprendiz: int|null
+ * }
+ * @phpstan-type FilaPedidoDetallado array{
+ *     id_pedido: int,
+ *     id_cliente: int,
+ *     id_creador: int|null,
+ *     fecha_entrega: string,
+ *     fecha_solicitud: string,
+ *     total_estimado: string,
+ *     aprobado_instructor: int,
+ *     estado: string,
+ *     estado_pago: string,
+ *     id_pago_activo: int|null,
+ *     mensaje_propietario: string|null,
+ *     id_tienda_destino: int|null,
+ *     nombre_cliente: string,
+ *     tipo_cliente: string,
+ *     nombre_creador: string|null,
+ *     creador_es_aprendiz: int|null
+ * }
+ * @phpstan-type FilaDetallePedido array{
+ *     id_detalle: int,
+ *     id_pedido: int,
+ *     id_variedad: int,
+ *     cantidad: int,
+ *     precio_unitario: string,
+ *     napa: int,
+ *     bonificacion: int,
+ *     producto: string
+ * }
  */
 trait PedidosPortalTrait {
 
     /**
      * Obtiene los pedidos asociados a un cliente, aplicando filtros de estado, orden, variedad y aprendiz.
-     * @return array<int, array<string, mixed>>
-     * @param array<mixed> $filtros
+     * @param array{estado?: string, orden?: string, aprendiz_id?: int|string, variedad_id?: int|string} $filtros
+     * @return array<int, FilaPedidoConCreador>
      */
     public function getPedidosFiltrados(int $cliente_id, bool $es_instructor, array $filtros): array {
         $f_estado   = $filtros['estado'] ?? '';
@@ -74,7 +142,7 @@ trait PedidosPortalTrait {
 
     /**
      * Obtiene un pedido específico del cliente o creador.
-     * @return array<string, mixed>|null
+     * @return FilaPedidoDetallado|null
      */
     public function getPedido(int $id_pedido, int $cliente_id): ?array {
         $stmt = $this->pdo->prepare("
@@ -92,7 +160,7 @@ trait PedidosPortalTrait {
 
     /**
      * Obtiene los detalles (productos) de un pedido.
-     * @return array<int, array<string, mixed>>
+     * @return array<int, FilaDetallePedido>
      */
     public function getDetallesPedido(int $id_pedido): array {
         $stmt = $this->pdo->prepare("

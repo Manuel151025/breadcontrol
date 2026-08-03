@@ -1413,11 +1413,11 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 6
+			count: 3
 			path: controllers/portal/PortalAuthController.php
 
 		-
-			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
+			message: '#^Parameter \#1 \$datetime of function strtotime expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/portal/PortalAuthController.php
@@ -1459,25 +1459,7 @@ parameters:
 			path: controllers/portal/PortalAuthController.php
 
 		-
-			message: '#^Parameter \#1 \$id_cliente of method PortalClienteModel\:\:registrarCodigoRecuperacion\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalAuthController.php
-
-		-
-			message: '#^Parameter \#1 \$id_cliente of method PortalClienteModel\:\:vincularGoogleId\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalAuthController.php
-
-		-
 			message: '#^Parameter \#1 \$known_string of function hash_equals expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalAuthController.php
-
-		-
-			message: '#^Parameter \#1 \$nombre of function correo_codigo_html expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/portal/PortalAuthController.php
@@ -1507,12 +1489,6 @@ parameters:
 			path: controllers/portal/PortalAuthController.php
 
 		-
-			message: '#^Parameter \#1 \$to of function enviar_correo expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalAuthController.php
-
-		-
 			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 6
@@ -1537,13 +1513,7 @@ parameters:
 			path: controllers/portal/PortalAuthController.php
 
 		-
-			message: '#^Parameter \#2 \$hash of function password_verify expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: controllers/portal/PortalAuthController.php
-
-		-
-			message: '#^Parameter \#2 \$to_nombre of function enviar_correo expects string, mixed given\.$#'
+			message: '#^Parameter \#2 \$hash of function password_verify expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/portal/PortalAuthController.php
@@ -1569,7 +1539,7 @@ parameters:
 		-
 			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
 			identifier: argument.type
-			count: 3
+			count: 2
 			path: controllers/portal/PortalAuthController.php
 
 		-
@@ -1623,7 +1593,7 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 7
+			count: 6
 			path: controllers/portal/PortalExportController.php
 
 		-
@@ -1833,7 +1803,7 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 27
+			count: 20
 			path: controllers/portal/PortalPedidoController.php
 
 		-
@@ -1849,45 +1819,9 @@ parameters:
 			path: controllers/portal/PortalPedidoController.php
 
 		-
-			message: '#^Parameter \#1 \$datetime of class DateTime constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#1 \$estado of static method ReglasPortal\:\:puedeGestionarPedido\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#1 \$fecha_entrega of static method ReglasPortal\:\:dentroDeLimite48h\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#1 \$fecha_entrega of static method ReglasPortal\:\:fueraDeLimiteGestion\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
 			message: '#^Parameter \#1 \$hora of static method ReglasPortal\:\:horarioEntregaValido\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 2
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#1 \$id_pago of method PortalClienteModel\:\:getAbonos\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#1 \$id_pago of method PortalClienteModel\:\:getPagoPendientePorId\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: controllers/portal/PortalPedidoController.php
 
 		-
@@ -1916,30 +1850,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#2 \$codigo of method PortalControllerBase\:\:intentarCanjeCodigo\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#2 \$fecha_entrega of method PortalClienteModel\:\:getCountPedidosPendientesTiendaFecha\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#2 \$fecha_entrega of method PortalClienteModel\:\:getReporteAgrupadoTienda\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#2 \$fecha_entrega of method PortalClienteModel\:\:getTotalGeneralReporteTienda\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#2 \$fecha_entrega of static method ReglasPortal\:\:puedeGestionarPedido\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/portal/PortalPedidoController.php
@@ -2487,7 +2397,7 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 21
+			count: 19
 			path: models/PortalClienteModel.php
 
 		-
@@ -2521,25 +2431,25 @@ parameters:
 			path: models/PortalClienteModel.php
 
 		-
-			message: '#^Method PortalClienteModel\:\:getClienteByEmail\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			message: '#^Method PortalClienteModel\:\:getClienteByEmail\(\) should return array\{id_cliente\: int, nombre\: string, tipo\: string, telefono\: string\|null, activo\: int, fecha_creacion\: string, usuario\: string\|null, contrasena_hash\: string\|null, \.\.\.\}\|null but returns mixed\.$#'
 			identifier: return.type
 			count: 1
 			path: models/PortalClienteModel.php
 
 		-
-			message: '#^Method PortalClienteModel\:\:getClienteByGoogleId\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			message: '#^Method PortalClienteModel\:\:getClienteByGoogleId\(\) should return array\{id_cliente\: int, nombre\: string, tipo\: string, telefono\: string\|null, activo\: int, fecha_creacion\: string, usuario\: string\|null, contrasena_hash\: string\|null, \.\.\.\}\|null but returns mixed\.$#'
 			identifier: return.type
 			count: 1
 			path: models/PortalClienteModel.php
 
 		-
-			message: '#^Method PortalClienteModel\:\:getClienteById\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			message: '#^Method PortalClienteModel\:\:getClienteById\(\) should return array\{id_cliente\: int, nombre\: string, tipo\: string, telefono\: string\|null, activo\: int, fecha_creacion\: string, usuario\: string\|null, contrasena_hash\: string\|null, \.\.\.\}\|null but returns mixed\.$#'
 			identifier: return.type
 			count: 1
 			path: models/PortalClienteModel.php
 
 		-
-			message: '#^Method PortalClienteModel\:\:getClienteByUsuario\(\) should return array\<mixed\>\|null but returns mixed\.$#'
+			message: '#^Method PortalClienteModel\:\:getClienteByUsuario\(\) should return array\{id_cliente\: int, nombre\: string, tipo\: string, telefono\: string\|null, activo\: int, fecha_creacion\: string, usuario\: string\|null, contrasena_hash\: string\|null, \.\.\.\}\|null but returns mixed\.$#'
 			identifier: return.type
 			count: 1
 			path: models/PortalClienteModel.php
@@ -2563,7 +2473,7 @@ parameters:
 			path: models/PortalClienteModel.php
 
 		-
-			message: '#^Method PortalClienteModel\:\:getDetallesPedido\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			message: '#^Method PortalClienteModel\:\:getDetallesPedido\(\) should return array\<int, array\{id_detalle\: int, id_pedido\: int, id_variedad\: int, cantidad\: int, precio_unitario\: string, napa\: int, bonificacion\: int, producto\: string\}\> but returns array\.$#'
 			identifier: return.type
 			count: 1
 			path: models/PortalClienteModel.php
@@ -2599,7 +2509,7 @@ parameters:
 			path: models/PortalClienteModel.php
 
 		-
-			message: '#^Method PortalClienteModel\:\:getPedido\(\) should return array\<string, mixed\>\|null but returns mixed\.$#'
+			message: '#^Method PortalClienteModel\:\:getPedido\(\) should return array\{id_pedido\: int, id_cliente\: int, id_creador\: int\|null, fecha_entrega\: string, fecha_solicitud\: string, total_estimado\: string, aprobado_instructor\: int, estado\: string, \.\.\.\}\|null but returns mixed\.$#'
 			identifier: return.type
 			count: 1
 			path: models/PortalClienteModel.php
@@ -2617,7 +2527,7 @@ parameters:
 			path: models/PortalClienteModel.php
 
 		-
-			message: '#^Method PortalClienteModel\:\:getPedidosFiltrados\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			message: '#^Method PortalClienteModel\:\:getPedidosFiltrados\(\) should return array\<int, array\{id_pedido\: int, id_cliente\: int, id_creador\: int\|null, fecha_entrega\: string, fecha_solicitud\: string, total_estimado\: string, aprobado_instructor\: int, estado\: string, \.\.\.\}\> but returns array\.$#'
 			identifier: return.type
 			count: 1
 			path: models/PortalClienteModel.php

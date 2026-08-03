@@ -59,6 +59,49 @@ Notas:
 - **Seguridad:** toda salida escapada con `htmlspecialchars`, todo POST de
   mutación con token CSRF, y consultas siempre preparadas (PDO).
 
+## Reducir el baseline de PHPStan (nivel 9-10)
+
+`phpstan-baseline.neon` inventaría las ocurrencias heredadas de los niveles
+9-10. Casi todas tienen la misma causa: PDO devuelve las filas como
+`array<string, mixed>`, así que **todo dato que sale de la base es `mixed`**
+y no se puede pasar a una función tipada ni castear.
+
+Se reducen declarando la **forma exacta** de cada consulta en el modelo:
+
+```php
+/**
+ * @phpstan-type FilaCliente array{id_cliente: int, nombre: string, cupo_semanal: string, ...}
+ */
+trait CuentaClienteTrait {
+    /** @return FilaCliente|null */
+    public function getClienteById(int $id): ?array { ... }
+}
+```
+
+Tipos que devuelve PDO en este proyecto (`EMULATE_PREPARES = false`,
+comprobado contra la base real):
+
+| Columna SQL | Tipo PHP |
+|---|---|
+| `INT`, `TINYINT`, `COUNT(...)` | `int` |
+| `DECIMAL`, `SUM(...)` | `string` |
+| `VARCHAR`, `DATE`, `DATETIME` | `string` |
+| Columna anulable | añadir `\|null` |
+
+Dos reglas aprendidas a fuerza de probarlas:
+
+- **No uses intersecciones en `@phpstan-type`** (`FilaBase&array{...}`):
+  PHPStan no las resuelve y el alias queda inservible *en silencio*. Escribe
+  cada alias completo.
+- **Verifica siempre que el número baje.** Anota, ejecuta
+  `vendor/bin/phpstan analyse`, y si no baja es que el alias no resolvió.
+
+Al terminar una tanda, regenera el inventario y comprueba que el total bajó:
+
+```bash
+vendor/bin/phpstan analyse --generate-baseline
+```
+
 ## Proceso para enviar cambios
 
 1. Crea una rama desde `master`: `git checkout -b fix/descripcion-corta`
