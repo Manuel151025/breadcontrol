@@ -4,6 +4,22 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.6.2] — 2026-08-03
+
+### Añadido
+- **Diagrama de componentes y responsabilidades** en el README (Mermaid, que
+  GitHub renderiza de forma nativa), con la tabla de qué hace cada capa y —
+  más importante— qué **no** le corresponde hacer: los controladores no
+  consultan la base, las reglas de negocio no leen datos, las vistas no
+  calculan. Atiende la recomendación de validar la arquitectura mediante un
+  diagrama de componentes.
+- Segundo diagrama de infraestructura y servicios externos (SendGrid, Google
+  OAuth, Open-Meteo, Nequi) incluyendo la cadena CI → despliegue.
+
+### Corregido
+- La sección de arquitectura describía los assets con archivos de ejemplo que
+  ya no reflejaban la estructura real.
+
 ## [1.6.1] — 2026-08-03
 
 ### Cambiado

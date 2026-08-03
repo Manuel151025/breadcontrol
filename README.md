@@ -9,7 +9,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 [![CI](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml/badge.svg)](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml)
 [![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%208.2-777bb4.svg)](composer.json)
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.6.1-blue.svg)](CHANGELOG.md)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.6.2-blue.svg)](CHANGELOG.md)
 
 ---
 
@@ -104,32 +104,83 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 
 ## 🏗 Arquitectura
 
+### Componentes y responsabilidades
+
+```mermaid
+flowchart TD
+    BO["<b>modules/</b> · 11 módulos<br/>Puntos de entrada del back-office"]
+    PT["<b>portal/</b> · 17 páginas<br/>Puntos de entrada del portal"]
+
+    CBO["<b>controllers/</b> · 12 controladores<br/>Inventario · Producción · Ventas<br/>Compras · Finanzas · Cierre · …"]
+    CPT["<b>controllers/portal/</b> · 6 clases<br/>Base · Auth · Pedido<br/>Pago · Instructor · Export"]
+
+    RP["<b>ReglasPortal</b><br/>crédito y ñapa · límite de 48 h<br/>cupo semanal · horario de entrega"]
+    PH["<b>PedidoHelper</b><br/>total esperado y deuda"]
+    FH["<b>FinanzasHelper</b><br/>costo real de producción<br/>y utilidad bruta/neta"]
+
+    MBO["<b>models/</b> · 12 modelos<br/>Consultas preparadas por entidad"]
+    MPT["<b>PortalClienteModel</b><br/>fachada de 5 traits:<br/>Cuenta · Catálogo · Pedidos<br/>Pagos · Instructor"]
+
+    SES["<b>includes/sesion.php</b><br/>sesión · CSRF · autorización"]
+    CFG["<b>config/</b><br/>entorno · conexión PDO · logger"]
+
+    VW["<b>views/</b><br/>plantillas HTML sin cálculos"]
+    AS["<b>assets/</b><br/>CSS y JS externos"]
+
+    BD[("MySQL 8")]
+
+    BO --> CBO
+    PT --> CPT
+    CBO --> MBO
+    CPT --> MPT
+    CBO --> RP
+    CBO --> FH
+    CPT --> RP
+    CPT --> PH
+    MBO --> RP
+    MBO --> FH
+    MPT --> RP
+    MBO --> BD
+    MPT --> BD
+    CBO --> VW
+    CPT --> VW
+    VW --> AS
+    CBO -.-> SES
+    CPT -.-> SES
+    MBO -.-> CFG
+    MPT -.-> CFG
 ```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   Navegador  │────▶│   PHP 8      │────▶│   MySQL 8    │
-│  (Frontend)  │◀────│  (Backend)   │◀────│    (BD)      │
-└──────────────┘     └──────────────┘     └──────────────┘
-       │                    │
-       │              ┌─────┴──────────────┐
-       │              │  PHPMailer (SMTP)  │
-       │              │  Google OAuth SDK  │
-       │              └────────────────────┘
-       │
-   ┌───┴──────────┐
-   │ Open-Meteo   │
-   │ Nequi (link) │
-   └──────────────┘
+
+| Capa | Responsabilidad única | Lo que **no** puede hacer |
+|---|---|---|
+| **Puntos de entrada** (`modules/`, `portal/`) | Recibir la petición e instanciar su controlador | Contener lógica: son 10 líneas cada uno |
+| **Controladores** | Validar la entrada, orquestar el flujo y elegir la vista | Consultar la base de datos directamente |
+| **Reglas de negocio** (`helpers/`) | Decidir según las reglas del negocio. Funciones **puras**: sin base de datos ni sesión | Leer o escribir datos |
+| **Modelos** (`models/`) | Único punto de acceso a la base, siempre con consultas preparadas | Imprimir HTML o redirigir |
+| **Vistas** (`views/`) | Presentar datos ya calculados y escaparlos con `htmlspecialchars` | Calcular reglas de negocio |
+| **Infraestructura** (`config/`, `includes/`) | Sesión, CSRF, conexión, registro de errores y correo | Conocer reglas del dominio |
+
+**Por qué las reglas viven aparte:** `ReglasPortal` es la fuente única del crédito/ñapa, el límite de 48 horas, el cupo semanal y el horario de entrega. Antes esas reglas estaban duplicadas hasta en cinco sitios, con copias que se desviaban entre sí. Al ser funciones puras se prueban directamente, sin base de datos: son las que sostienen buena parte de las 122 pruebas.
+
+### Infraestructura y servicios externos
+
+```mermaid
+flowchart LR
+    NAV["Navegador"] <--> APP["PHP 8.2<br/>BreadControl"]
+    APP <--> BD[("MySQL 8")]
+    APP --> SG["SendGrid<br/>correo"]
+    APP --> GO["Google OAuth 2.0<br/>acceso de clientes"]
+    APP --> OM["Open-Meteo<br/>clima"]
+    APP --> NQ["Nequi Negocios<br/>enlace de pago"]
+    GH["GitHub Actions<br/>5 verificaciones"] -.->|"despliegue"| DK["Dokploy · VPS<br/>Docker"]
+    DK -.-> APP
 ```
 
-**Patrón:** Arquitectura MVC modular (config, includes, controllers, models, views, modules).
+**Patrón:** MVC modular. Cada módulo del back-office y cada página del portal entra por un archivo mínimo que delega en su controlador.
 
-**Principios de Limpieza SOLID y Frontend:**
-- **Responsabilidad Única (SRP):** Las vistas no realizan cálculos matemáticos de negocio (como balances de deuda o de consolidación de pedidos), delegando estas responsabilidades a componentes auxiliares en el backend como [PedidoHelper](file:///c:/xampp/htdocs/panaderia/helpers/PedidoHelper.php).
-- **Separación de Diseño y Lógica:** Se evita el código "inline". Los estilos CSS de diagramación y scripts interactivos de interacción con el DOM son extraídos hacia recursos estáticos organizados en `/assets/css/` (ej. `main.css`, `pedidos.css`) y `/assets/js/` (ej. `main.js`, `pedidos.js`).
+**Método de inventario:** FIFO (*First In, First Out*) — los lotes más antiguos se consumen primero, de forma transaccional y con costeo real por lote.
 
-**Método de inventario:** FIFO (First In, First Out) — los lotes más antiguos de ingredientes se consumen primero de forma transaccional.
-
-**Producción:** Las unidades producidas se distribuyen por categoría de precio para el control exacto de stock disponible al vender.
+**Producción:** las unidades producidas se distribuyen por categoría de precio, lo que permite calcular el stock disponible del día como *producido − vendido*.
 
 ---
 
@@ -444,7 +495,7 @@ correr las pruebas antes de abrir un Pull Request. En resumen:
 4. Abre el PR: el CI debe pasar en verde sus 4 verificaciones.
 
 El historial de versiones vive en [CHANGELOG.md](CHANGELOG.md)
-(versión actual: **1.6.1**, sincronizada con `APP_VERSION` en `config/app.php`).
+(versión actual: **1.6.2**, sincronizada con `APP_VERSION` en `config/app.php`).
 
 ---
 
