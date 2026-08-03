@@ -9,7 +9,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 [![CI](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml/badge.svg)](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml)
 [![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%208.2-777bb4.svg)](composer.json)
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.3.0-blue.svg)](CHANGELOG.md)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.4.0-blue.svg)](CHANGELOG.md)
 
 ---
 
@@ -362,7 +362,7 @@ BreadControl/
 
 ## 🧪 Pruebas
 
-El proyecto usa **PHPUnit 11** con dos suites (111 pruebas, 212 aserciones):
+El proyecto usa **PHPUnit 11** con dos suites (122 pruebas, 248 aserciones):
 
 | Suite | Qué cubre | Requiere BD |
 |-------|-----------|-------------|
@@ -437,7 +437,7 @@ correr las pruebas antes de abrir un Pull Request. En resumen:
 4. Abre el PR: el CI debe pasar en verde sus 4 verificaciones.
 
 El historial de versiones vive en [CHANGELOG.md](CHANGELOG.md)
-(versión actual: **1.3.0**, sincronizada con `APP_VERSION` en `config/app.php`).
+(versión actual: **1.4.0**, sincronizada con `APP_VERSION` en `config/app.php`).
 
 ---
 

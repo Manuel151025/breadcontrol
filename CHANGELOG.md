@@ -4,6 +4,23 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.4.0] — 2026-08-03
+
+### Añadido
+- 11 pruebas de integración para compras y cierre del día: merma del 6% en
+  harina con lote FIFO, variación de precio en `historial_precio`, agregados
+  del cierre aislados por fecha futura y upsert de `guardarCierre`
+  (122 pruebas, 248 aserciones en total).
+
+### Cambiado
+- CSS/JS extraídos de cuatro vistas más del back-office:
+  `recetas/editar_receta.php` (491→173), `pedidos_clientes/index.php`
+  (490→313), `cierre/index.php` (449→333) y `gastos/index.php` (442→306).
+
+### Decidido
+- PHPStan permanece en nivel 5: el nivel 6 exige 257 correcciones
+  (mayormente anotaciones PHPDoc) con retorno bajo; se pospone.
+
 ## [1.3.0] — 2026-08-03
 
 ### Añadido
