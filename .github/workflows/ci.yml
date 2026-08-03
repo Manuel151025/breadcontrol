@@ -1,0 +1,118 @@
+# ============================================================
+#  Integración Continua (CI) — BreadControl
+#  Corre en cada push y pull request:
+#    1. compilación  → sintaxis de todos los archivos PHP (php -l)
+#    2. análisis     → PHPStan (phpstan.neon.dist, nivel 3)
+#    3. unitarias    → PHPUnit suite "Unitarias" (sin base de datos)
+#    4. integración  → PHPUnit suite "Integracion" contra MySQL 8
+#                      (mismo motor que docker-compose.yml)
+# ============================================================
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  compilacion:
+    name: Sintaxis PHP (php -l)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Verificar sintaxis de todos los archivos PHP
+        run: |
+          fallos=0
+          while IFS= read -r -d '' archivo; do
+            if ! php -l "$archivo" > /dev/null; then
+              fallos=1
+            fi
+          done < <(find . -name '*.php' -not -path './vendor/*' -print0)
+          exit $fallos
+
+  analisis-estatico:
+    name: Análisis estático (PHPStan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Instalar dependencias
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Ejecutar PHPStan
+        run: vendor/bin/phpstan analyse --no-progress --error-format=github
+
+  pruebas-unitarias:
+    name: Pruebas unitarias (PHPUnit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql
+          coverage: none
+
+      - name: Instalar dependencias
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Ejecutar suite unitaria
+        run: vendor/bin/phpunit --testsuite Unitarias
+
+  pruebas-integracion:
+    name: Pruebas de integración (PHPUnit + MySQL)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: panaderia_bd
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USER: root
+      DB_PASS: root
+      DB_NAME: panaderia_bd
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql
+          coverage: none
+
+      - name: Instalar dependencias
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Importar esquema y semilla de pruebas
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot panaderia_bd < sql/init/01_esquema_base.sql
+          mysql -h 127.0.0.1 -uroot -proot panaderia_bd < sql/init/90_semilla_ci.sql
+
+      - name: Ejecutar suite de integración
+        run: vendor/bin/phpunit --testsuite Integracion
