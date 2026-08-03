@@ -9,7 +9,7 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 [![CI](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml/badge.svg)](https://github.com/Manuel151025/breadcontrol/actions/workflows/ci.yml)
 [![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-%E2%89%A5%208.2-777bb4.svg)](composer.json)
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.6.0-blue.svg)](CHANGELOG.md)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-1.6.1-blue.svg)](CHANGELOG.md)
 
 ---
 
@@ -393,8 +393,9 @@ con 4 verificaciones independientes:
 1. **Sintaxis PHP** — `php -l` sobre todos los archivos del proyecto.
 2. **Análisis estático** — PHPStan nivel 10 sobre `config/`, `controllers/`,
    `helpers/`, `includes/` y `models/`. Los niveles 1-8 están corregidos en el
-   código; los niveles 9-10 se exigen a todo código nuevo, mientras las 886
-   ocurrencias heredadas quedan inventariadas en `phpstan-baseline.neon`.
+   código; los niveles 9-10 se exigen a todo código nuevo, mientras las
+   ocurrencias heredadas quedan inventariadas en `phpstan-baseline.neon`
+   (854 y bajando; ver [CONTRIBUTING.md](CONTRIBUTING.md) para reducirlas).
 3. **Pruebas unitarias** — suite `Unitarias` de PHPUnit.
 4. **Pruebas de integración** — suite `Integracion` contra un servicio MySQL 8.0
    real, creado desde el esquema versionado (`sql/init/01_esquema_base.sql`) más
@@ -439,7 +440,7 @@ correr las pruebas antes de abrir un Pull Request. En resumen:
 4. Abre el PR: el CI debe pasar en verde sus 4 verificaciones.
 
 El historial de versiones vive en [CHANGELOG.md](CHANGELOG.md)
-(versión actual: **1.6.0**, sincronizada con `APP_VERSION` en `config/app.php`).
+(versión actual: **1.6.1**, sincronizada con `APP_VERSION` en `config/app.php`).
 
 ---
 

@@ -4,6 +4,28 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.6.1] — 2026-08-03
+
+### Cambiado
+- Primera reducción del baseline de nivel 9-10: **886 → 854**. Se declararon
+  las formas exactas de fila (`@phpstan-type`) en `PedidosPortalTrait` y
+  `CuentaClienteTrait`, con los tipos verificados contra la base real
+  (`INT` → `int`, `DECIMAL`/`SUM()` → `string`).
+
+### Añadido
+- `CONTRIBUTING.md` documenta cómo seguir reduciendo el baseline: tabla de
+  equivalencias SQL → PHP y las dos trampas que cuesta descubrir — PHPStan
+  no resuelve intersecciones en los alias de tipo (el alias queda
+  inservible en silencio) y escribir la etiqueta dentro del texto en prosa
+  del comentario rompe el análisis.
+
+### Nota
+- Reducir el resto es trabajo incremental de largo plazo: aproximadamente
+  dos tercios de las ocurrencias restantes están en controladores que
+  consultan la base directamente, y requieren mover esas consultas al
+  modelo antes de poder tiparlas. No condiciona el funcionamiento ni la
+  cobertura de pruebas del sistema.
+
 ## [1.6.0] — 2026-08-03
 
 ### Cambiado
