@@ -32,7 +32,7 @@ error_log
 
 # PHP
 vendor/
-composer.lock
+.phpunit.cache/
 
 # SQL (dumps ignorados, pero las migraciones y scripts de init SI se versionan)
 *.sql
