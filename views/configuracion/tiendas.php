@@ -92,9 +92,6 @@
                         <div class="tienda-info">
                             <div class="nombre">
                                 <?= htmlspecialchars($b['nombre'] ?? '') ?>
-                                <?php if ($b['total_pedidos_destino'] > 0): ?>
-                                    <span class="badge"><?= $b['total_pedidos_destino'] ?> pedido<?= $b['total_pedidos_destino']>1?'s':'' ?></span>
-                                <?php endif; ?>
                             </div>
                             <div class="meta">
                                 <?php if ($b['telefono']): ?><i class="bi bi-telephone"></i> <?= htmlspecialchars($b['telefono'] ?? '') ?> · <?php endif; ?>
@@ -102,6 +99,7 @@
                             </div>
                         </div>
                         <form method="post" style="margin:0;">
+                          <?= campo_csrf() ?>
                             <input type="hidden" name="id_cliente" value="<?= $b['id_cliente'] ?>">
                             <button type="submit" name="toggle_beneficiaria" value="desmarcar" class="pf-btn-sm pf-btn-desmarcar" onclick="return confirm('¿Quitar como tienda beneficiaria?')">
                                 <i class="bi bi-x-circle"></i> Quitar
@@ -126,6 +124,7 @@
                                 </div>
                             </div>
                             <form method="post" style="margin:0;">
+                              <?= campo_csrf() ?>
                                 <input type="hidden" name="id_cliente" value="<?= $c['id_cliente'] ?>">
                                 <button type="submit" name="toggle_beneficiaria" value="marcar" class="pf-btn-sm pf-btn-marcar">
                                     <i class="bi bi-check-circle"></i> Marcar
@@ -140,6 +139,7 @@
         <!-- Columna derecha: crear nueva tienda -->
         <div>
             <form method="post" class="pf-card">
+              <?= campo_csrf() ?>
                 <h2>
                     <i class="bi bi-plus-circle" style="color:var(--c3);"></i>
                     Crear tienda nueva

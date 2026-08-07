@@ -22,8 +22,7 @@
  *     estado: string,
  *     estado_pago: string,
  *     id_pago_activo: int|null,
- *     mensaje_propietario: string|null,
- *     id_tienda_destino: int|null
+ *     mensaje_propietario: string|null
  * }
  * Los alias se escriben completos y no como intersección (`A&array{...}`):
  * PHPStan no resuelve intersecciones dentro de @phpstan-type y el alias
@@ -41,7 +40,6 @@
  *     estado_pago: string,
  *     id_pago_activo: int|null,
  *     mensaje_propietario: string|null,
- *     id_tienda_destino: int|null,
  *     nombre_creador: string|null,
  *     creador_es_aprendiz: int|null
  * }
@@ -57,7 +55,6 @@
  *     estado_pago: string,
  *     id_pago_activo: int|null,
  *     mensaje_propietario: string|null,
- *     id_tienda_destino: int|null,
  *     nombre_cliente: string,
  *     tipo_cliente: string,
  *     nombre_creador: string|null,

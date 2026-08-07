@@ -205,7 +205,7 @@
             </div>
             <div class="field">
                 <label>Contraseña</label>
-                <input type="password" name="contrasena" placeholder="Mínimo 4 letras" required minlength="4" maxlength="255">
+                <input type="password" name="contrasena" placeholder="Mínimo <?= Seguridad::CONTRASENA_MIN ?> caracteres, con letras y números" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" maxlength="255">
             </div>
         </div>
 

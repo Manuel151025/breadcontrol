@@ -62,6 +62,7 @@
         <?php endif; ?>
 
         <form method="post" id="form-prod">
+          <?= campo_csrf() ?>
 
           <div class="fl">
             <label>Producto</label>

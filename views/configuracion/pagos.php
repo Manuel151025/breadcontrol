@@ -95,6 +95,7 @@ html,body{min-height:100%;overflow-x:hidden;font-family:'Plus Jakarta Sans',sans
     <div class="pf-container">
         <!-- Tarjeta principal: configuracion del link -->
         <form method="post" class="pf-card">
+          <?= campo_csrf() ?>
             <h2>
                 <i class="bi bi-credit-card-2-front" style="color:var(--c3);"></i>
                 Tu link de Nequi Negocios

@@ -78,6 +78,7 @@
         <div class="edit-banner"><i class="bi bi-pencil-square"></i> Editando: <strong><?= htmlspecialchars($editando['nombre'] ?? '') ?></strong></div>
         <?php endif; ?>
         <form method="post">
+          <?= campo_csrf() ?>
           <?php if ($editando): ?><input type="hidden" name="id_insumo" value="<?= $editando['id_insumo'] ?>"><?php endif; ?>
           <div class="fl">
             <label>Nombre del insumo</label>
@@ -140,6 +141,7 @@
         </div>
         <?php else: ?>
         <form method="post">
+        <?= campo_csrf() ?>
         <table class="gt">
           <thead>
             <tr>

@@ -129,7 +129,7 @@ CREATE TABLE `cliente` (
   `notas` varchar(255) DEFAULT NULL,
   `es_beneficiaria` tinyint(1) NOT NULL DEFAULT 0,
   `pin_recuperacion` varchar(255) DEFAULT NULL,
-  `codigo_recuperacion` varchar(10) DEFAULT NULL,
+  `codigo_recuperacion` varchar(255) DEFAULT NULL,
   `codigo_expira` datetime DEFAULT NULL,
   `fecha_aprendiz` datetime DEFAULT NULL,
   PRIMARY KEY (`id_cliente`),
@@ -308,6 +308,25 @@ CREATE TABLE `insumo` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `intento_login`
+--
+
+DROP TABLE IF EXISTS `intento_login`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `intento_login` (
+  `id_intento` int(11) NOT NULL AUTO_INCREMENT,
+  `ambito` enum('admin','portal') NOT NULL,
+  `identificador` varchar(150) NOT NULL COMMENT 'Nombre de usuario tecleado en el intento',
+  `ip` varchar(45) DEFAULT NULL COMMENT 'IPv4 o IPv6 de origen',
+  `fecha` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_intento`),
+  KEY `idx_intento_cuenta` (`ambito`,`identificador`,`fecha`),
+  KEY `idx_intento_ip` (`ip`,`fecha`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Intentos fallidos de inicio de sesion (anti fuerza bruta)';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `lote`
 --
 
@@ -397,11 +416,9 @@ CREATE TABLE `pedido_cliente` (
   `estado_pago` varchar(20) NOT NULL DEFAULT 'no_aplica',
   `id_pago_activo` int(11) DEFAULT NULL,
   `mensaje_propietario` varchar(255) DEFAULT NULL,
-  `id_tienda_destino` int(11) DEFAULT NULL,
   PRIMARY KEY (`id_pedido`),
   KEY `id_cliente` (`id_cliente`),
   KEY `id_creador` (`id_creador`),
-  KEY `id_tienda_destino` (`id_tienda_destino`),
   CONSTRAINT `fk_ped_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`),
   CONSTRAINT `fk_ped_creador` FOREIGN KEY (`id_creador`) REFERENCES `cliente` (`id_cliente`) ON DELETE SET NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -606,7 +623,7 @@ CREATE TABLE `usuario` (
   `telefono` varchar(20) DEFAULT NULL,
   `contrasena_hash` varchar(255) NOT NULL,
   `pin_recuperacion` varchar(255) DEFAULT NULL,
-  `codigo_recuperacion` varchar(10) DEFAULT NULL,
+  `codigo_recuperacion` varchar(255) DEFAULT NULL,
   `codigo_expira` datetime DEFAULT NULL,
   `rol` enum('propietario','empleado') NOT NULL DEFAULT 'empleado',
   `activo` tinyint(1) NOT NULL DEFAULT 1,

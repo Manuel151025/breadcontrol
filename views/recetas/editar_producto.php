@@ -99,6 +99,7 @@
         <?php endif; ?>
 
         <form method="post">
+          <?= campo_csrf() ?>
           <div class="fl">
             <label>Categoría</label>
             <div class="cat-row">

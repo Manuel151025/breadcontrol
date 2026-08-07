@@ -94,6 +94,13 @@ class ProduccionController {
             $msg_ok = $_SESSION['msg_ok_prod'];
             unset($_SESSION['msg_ok_prod']);
         }
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('nueva_produccion.php?err=csrf');
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar'])) {
             $id_prod  = (int)($_POST['id_producto']         ?? 0);

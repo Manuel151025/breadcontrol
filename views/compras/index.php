@@ -86,6 +86,7 @@
         <?php endif; ?>
 
         <form method="POST" id="form-compra" onsubmit="prepararEnvio()">
+          <?= campo_csrf() ?>
           <input type="hidden" name="id_insumo"    id="inp-id-insumo">
           <input type="hidden" name="id_proveedor" id="inp-id-proveedor">
           <input type="hidden" name="cantidad"     id="inp-cantidad">

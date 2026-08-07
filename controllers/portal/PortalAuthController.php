@@ -2,6 +2,8 @@
 // controllers/portal/PortalAuthController.php
 
 require_once __DIR__ . '/PortalControllerBase.php';
+require_once __DIR__ . '/../../models/IntentoLoginModel.php';
+require_once __DIR__ . '/../../helpers/Seguridad.php';
 
 /**
  * Autenticación y cuenta del Portal de Clientes: login (tradicional y
@@ -54,11 +56,19 @@ class PortalAuthController extends PortalControllerBase {
             } else {
                 $usuario = trim($_POST['usuario'] ?? '');
                 $contrasena = $_POST['contrasena'] ?? '';
+                $ip = ip_cliente();
+                $intentos = new IntentoLoginModel($this->pdo);
 
-                if ($usuario && $contrasena) {
+                if ($usuario && $contrasena && $intentos->estaBloqueado(IntentoLoginModel::AMBITO_PORTAL, $usuario, $ip)) {
+                    // Mismo mensaje se acierte o no la contraseña: si distinguiera,
+                    // el bloqueo revelaría qué nombres de usuario existen.
+                    $error = 'Demasiados intentos fallidos. Espera '
+                        . Seguridad::LOGIN_VENTANA_MINUTOS . ' minutos e intenta de nuevo.';
+                } elseif ($usuario && $contrasena) {
                     $cliente = $this->model->getClienteByUsuario($usuario);
 
                     if ($cliente && password_verify($contrasena, $cliente['contrasena_hash'])) {
+                        $intentos->limpiar(IntentoLoginModel::AMBITO_PORTAL, $usuario);
                         $_SESSION['cliente_id'] = $cliente['id_cliente'];
                         $_SESSION['cliente_nombre'] = $cliente['nombre'];
                         // Cuentas de portal antiguas sin correo: pedirlo antes de continuar,
@@ -72,6 +82,7 @@ class PortalAuthController extends PortalControllerBase {
                         }
                         exit;
                     } else {
+                        $intentos->registrarFallo(IntentoLoginModel::AMBITO_PORTAL, $usuario, $ip);
                         $error = 'Usuario o contraseña incorrectos.';
                     }
                 } else {
@@ -241,8 +252,8 @@ class PortalAuthController extends PortalControllerBase {
                 }
                 $tipo = 'mostrador';
                 $email = trim($_POST['email'] ?? '');
-                $usuario = trim($_POST['usuario'] ?? '');
-                $contrasena = $_POST['contrasena'] ?? '';
+                $usuario = trim(post_texto('usuario'));
+                $contrasena = post_texto('contrasena');
                 // El vínculo aprendiz-instructor ya NO es manual: se hace canjeando un
                 // código del instructor (campo opcional). Ver canjearCodigoAprendiz.
                 $codigo_canje = strtoupper(trim($_POST['codigo_aprendiz'] ?? ''));
@@ -258,8 +269,8 @@ class PortalAuthController extends PortalControllerBase {
                         $error = 'El correo electrónico no es válido.';
                     } elseif (mb_strlen($email) > 150) {
                         $error = 'El correo electrónico es demasiado largo.';
-                    } elseif (strlen($contrasena) < 4) {
-                        $error = 'La contraseña debe tener al menos 4 caracteres.';
+                    } elseif (($fallo = Seguridad::validarContrasena($contrasena)) !== null) {
+                        $error = $fallo;
                     } elseif ($this->model->getClienteByUsuario($usuario)) {
                         $error = 'El nombre de usuario ya está en uso. Elige otro.';
                     } elseif ($this->model->emailRegistrado($email)) {
@@ -350,7 +361,12 @@ class PortalAuthController extends PortalControllerBase {
                             } else {
                                 $codigo = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
                                 $expira = date('Y-m-d H:i:s', strtotime('+10 minutes'));
-                                $this->model->registrarCodigoRecuperacion($cliente['id_cliente'], $codigo, $expira);
+                                // Se guarda hasheado; el código en claro solo viaja al correo.
+                                $this->model->registrarCodigoRecuperacion(
+                                    $cliente['id_cliente'],
+                                    Seguridad::hashCodigoRecuperacion($codigo),
+                                    $expira
+                                );
 
                                 $html    = correo_codigo_html($cliente['nombre'], $codigo, 'Solicitaste recuperar tu contraseña en el portal BreadControl. Tu código es:');
                                 $enviado = enviar_correo($cliente['email'], $cliente['nombre'], 'BreadControl — Código de recuperación', $html);
@@ -390,7 +406,7 @@ class PortalAuthController extends PortalControllerBase {
                         $paso  = 2;
                     } elseif ($metodo === 'email') {
                         $cliente = $this->model->getClienteById($cid);
-                        if (!$cliente || $cliente['codigo_recuperacion'] !== $codigo) {
+                        if (!$cliente || !Seguridad::verificarCodigoRecuperacion($codigo, $cliente['codigo_recuperacion'])) {
                             $error = 'Código incorrecto.';
                             $paso  = 2;
                         } elseif (strtotime($cliente['codigo_expira']) < time()) {
@@ -416,16 +432,16 @@ class PortalAuthController extends PortalControllerBase {
                 }
                 // ── PASO 3: nueva contraseña
                 elseif (isset($_POST['cambiar_pass'])) {
-                    $nueva   = $_POST['nueva']   ?? '';
-                    $confirm = $_POST['confirm'] ?? '';
+                    $nueva   = post_texto('nueva');
+                    $confirm = post_texto('confirm');
                     $cid     = $_SESSION['recover_cid']    ?? 0;
                     $pin_ok  = $_SESSION['recover_pin_ok'] ?? false;
 
                     if (!$cid || !$pin_ok) {
                         header('Location: recuperar_pass.php?reiniciar=1');
                         exit;
-                    } elseif (strlen($nueva) < 6) {
-                        $error = 'Mínimo 6 caracteres.';
+                    } elseif (($fallo = Seguridad::validarContrasena($nueva)) !== null) {
+                        $error = $fallo;
                         $paso  = 3;
                     } elseif ($nueva !== $confirm) {
                         $error = 'Las contraseñas no coinciden.';
@@ -513,20 +529,21 @@ class PortalAuthController extends PortalControllerBase {
                         $msg_err = $r['error'];
                     }
                 } elseif (isset($_POST['cambiar_pass'])) {
-                $actual = $_POST['pass_actual'] ?? '';
-                $nueva = $_POST['pass_nueva'] ?? '';
-                $confirm = $_POST['pass_confirm'] ?? '';
+                $actual  = post_texto('pass_actual');
+                $nueva   = post_texto('pass_nueva');
+                $confirm = post_texto('pass_confirm');
 
                 if (empty($cliente['contrasena_hash'])) {
                     $msg_err = 'Tu cuenta accede con Google; no tiene contraseña que cambiar.';
                 } elseif (password_verify($actual, $cliente['contrasena_hash'])) {
                     if ($nueva === $confirm) {
-                        if (strlen($nueva) >= 4) {
+                        $fallo = Seguridad::validarContrasena($nueva);
+                        if ($fallo === null) {
                             $hash = password_hash($nueva, PASSWORD_DEFAULT);
                             $this->model->actualizarPassword($cliente_id, $hash);
                             $msg_ok = 'Contraseña cambiada exitosamente.';
                         } else {
-                            $msg_err = 'La nueva contraseña debe tener al menos 4 caracteres.';
+                            $msg_err = $fallo;
                         }
                     } else {
                         $msg_err = 'Las contraseñas nuevas no coinciden.';

@@ -62,8 +62,12 @@ class RecetaController {
     public function crearProducto(): void {
         requerirPropietario();
         $errores = [];
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $errores[] = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('crear_producto.php?err=csrf');
             $nombre         = trim($_POST['nombre']              ?? '');
             $categoria      = in_array($_POST['categoria'] ?? '', ['sal','dulce','especial']) ? $_POST['categoria'] : 'sal';
             $unidad         = trim($_POST['unidad_produccion']   ?? '');
@@ -124,7 +128,12 @@ class RecetaController {
             redirigir(APP_URL . '/modules/recetas/index.php');
         }
 
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $errores[] = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('editar_producto.php?id=' . $id_producto . '&err=csrf');
             $nombre         = trim($_POST['nombre']              ?? '');
             $categoria      = in_array($_POST['categoria'] ?? '', ['sal','dulce','especial']) ? $_POST['categoria'] : 'sal';
             $unidad         = trim($_POST['unidad_produccion']   ?? '');
@@ -174,7 +183,12 @@ class RecetaController {
             redirigir(APP_URL . '/modules/recetas/index.php');
         }
 
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $errores[] = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('editar_receta.php?id=' . $id_producto . '&err=csrf');
             $ids_insumo   = $_POST['id_insumo']   ?? [];
             $cantidades   = $_POST['cantidad']    ?? [];
             $notas        = $_POST['notas']       ?? [];
@@ -257,11 +271,12 @@ class RecetaController {
             mkdir($upload_dir, 0755, true);
         }
 
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('variedades.php?err=csrf');
+        }
+
         // ── 1. Eliminar variedad ─────────────────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['del_var'])) {
-            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
-                redirigir(APP_URL . '/modules/recetas/variedades.php?err=csrf');
-            }
             try {
                 $this->model->desactivarVariedadPan((int)$_POST['del_var']);
             } catch (Exception $e) {

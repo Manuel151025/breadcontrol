@@ -4,6 +4,82 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.7.0] — 2026-08-06
+
+Tanda de seguridad y cierre de decisiones pendientes. Cierra 9 de las
+limitaciones del anexo `LIMITACIONES_Y_TRABAJO_FUTURO.md`, que se reescribió
+por completo contra el código real: varias que seguían listadas como abiertas
+ya estaban resueltas desde la v1.0.0 y el documento no lo reflejaba.
+
+### Seguridad
+
+- **CSRF en todo el back-office.** Antes solo el Portal de Clientes validaba el
+  token; los ~13 controladores administrativos no lo hacían. Se añadieron
+  `requerir_csrf()` y `campo_csrf()` en `includes/sesion.php` y el guardián se
+  aplica **una vez por método de controlador que procesa POST**, antes de mirar
+  qué acción se pidió: así una rama nueva queda protegida sin que nadie tenga
+  que acordarse. 30 formularios incluyen ahora el token.
+- **Límite de intentos en el inicio de sesión** (administrativo y del portal):
+  5 fallos por cuenta y 20 por IP en 15 minutos, con tabla `intento_login`.
+  Se persiste en base de datos y no en sesión porque un atacante controla su
+  propia cookie. El mensaje de bloqueo no distingue si la contraseña era
+  correcta, para no revelar qué nombres de usuario existen.
+- **El código de recuperación por correo se guarda hasheado** (bcrypt), igual
+  que el PIN. Antes se guardaba en claro y se comparaba con `!==`.
+- **Política de contraseña única**: mínimo 8 caracteres con al menos una letra
+  y un número, en `helpers/Seguridad.php`. Antes había cuatro mínimos distintos
+  (4, 4, 6 y 6) copiados a mano en cada pantalla. Solo afecta a contraseñas
+  nuevas o cambiadas.
+- **`docker-compose.yml` ya no versiona las credenciales de MySQL**: se leen del
+  `.env` y el arranque falla con un mensaje claro si faltan, en vez de usar una
+  contraseña que cualquiera puede leer en el repositorio.
+
+### Corregido
+
+- **Los ingresos del Portal de Clientes ya cuentan en los reportes.** Los pedidos
+  del portal nunca generan una fila en `venta`, así que su dinero no sumaba a la
+  utilidad, mientras que el costo de ese pan sí se contabilizaba al registrar la
+  producción: la utilidad tenía un sesgo sistemático a la baja.
+  `FinanzasHelper::ingresosPortalEnRango()` los suma en portada, cierre del día,
+  finanzas por rango, tablero y resumen diario. Se suma el **estado** del pedido
+  en lugar de crear una venta espejo, de modo que el anti-doble-conteo es
+  inherente; la fecha del ingreso es `fecha_entrega`, para que cuadre con la
+  producción que lo costeó.
+- **Un despliegue limpio con Docker ya levanta el esquema real.** `initdb`
+  apuntaba al dump antiguo, que crea `cliente` con 6 de sus 14 columnas y dejaba
+  el login del portal, Google OAuth y el flujo instructor-aprendiz rotos. Ahora
+  usa `sql/init/01_esquema_base.sql`, el mismo esquema versionado que usa el CI.
+
+### Eliminado
+
+- **Columna `pedido_cliente.id_tienda_destino`** y la subconsulta que la leía.
+  Ningún punto del código la escribía: el contador de pedidos por tienda
+  beneficiaria marcaba 0 para todas, siempre. Decisión del propietario
+  documentada en `docs/id_tienda_destino.md`.
+
+### Pruebas
+
+- 151 pruebas (antes 122): `SeguridadTest` (política y hashing),
+  `IntentoLoginModelTest` (umbrales, ventana, aislamiento de ámbitos) e
+  `IngresosPortalTest` (solo cuenta lo cobrado, cae en el día de entrega, leer
+  dos veces no duplica).
+- Verificación en ejecución contra el servidor real, no solo estática: un POST
+  sin token es rechazado antes de validar credenciales, y el sexto intento
+  seguido de login responde "Demasiados intentos".
+- PHPStan sigue limpio en nivel 10; el baseline heredado baja de 854 a **834**
+  al eliminarse comprobaciones manuales de `$_POST` en favor de `post_texto()`,
+  que devuelve siempre una cadena (un formulario manipulado puede enviar un
+  array donde se espera texto).
+
+### Migraciones (aplicar EN ORDEN en el VPS, después de desplegar el código)
+
+1. `sql/migraciones/2026-08-06_01_seguridad_login_y_codigo.sql` — ensancha
+   `codigo_recuperacion` a `varchar(255)` en `usuario` y `cliente` (un hash
+   bcrypt no cabe en los 10 caracteres anteriores; sin esto, **ningún código de
+   recuperación validaría**) y crea la tabla `intento_login`.
+2. `sql/migraciones/2026-08-06_02_eliminar_id_tienda_destino.sql` — elimina la
+   columna huérfana.
+
 ## [1.6.2] — 2026-08-03
 
 ### Añadido

@@ -68,7 +68,9 @@ class AuthModel {
             $stats['insumos_bajos']  = (int)$this->pdo->query("SELECT COUNT(*) FROM insumo WHERE stock_actual <= punto_reposicion AND activo = 1")->fetchColumn();
             $stats['prod_hoy']       = (int)$this->pdo->query("SELECT COUNT(*) FROM produccion WHERE DATE(fecha_produccion) = CURDATE()")->fetchColumn();
             $stats['tandas_hoy']     = (float)$this->pdo->query("SELECT COALESCE(SUM(cantidad_tandas),0) FROM produccion WHERE DATE(fecha_produccion) = CURDATE()")->fetchColumn();
-            $stats['ventas_hoy']     = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) = CURDATE()")->fetchColumn();
+            // POS + pedidos del portal ya cobrados (ver FinanzasHelper::ingresosPortalEnRango).
+            $stats['ventas_hoy']     = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) = CURDATE()")->fetchColumn()
+                                     + FinanzasHelper::ingresosPortalEnRango($this->pdo, $hoy, $hoy);
             $stats['num_ventas']     = (int)$this->pdo->query("SELECT COUNT(*) FROM venta WHERE DATE(fecha_hora) = CURDATE()")->fetchColumn();
             $stats['gastos_hoy']     = (float)$this->pdo->query("SELECT COALESCE(SUM(valor),0) FROM gasto WHERE DATE(fecha_gasto) = CURDATE()")->fetchColumn();
             $stats['costo_prod_hoy'] = FinanzasHelper::costoProduccionEnRango($this->pdo, $hoy, $hoy);

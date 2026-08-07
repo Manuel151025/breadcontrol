@@ -15,6 +15,7 @@
     <div class="card">
       <div class="card-body">
         <form method="POST">
+          <?= campo_csrf() ?>
 
           <div class="mb-3">
             <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>

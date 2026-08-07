@@ -1,5 +1,13 @@
-# Docker Compose file for the Panaderia application
+# Docker Compose para levantar BreadControl desde cero (evaluacion, desarrollo
+# o una demo local). NO es el esquema de despliegue de produccion: el VPS usa
+# Dokploy con su propia configuracion de entorno.
 # (la clave 'version' es obsoleta en Compose v2+ y se elimino para evitar el warning)
+#
+# Credenciales: se toman del archivo .env de la raiz (el mismo que usa la
+# aplicacion), NUNCA escritas en este archivo. La sintaxis ${VAR:?mensaje} hace
+# que Compose falle con ese mensaje si la variable no esta definida, en lugar de
+# arrancar con una contrasena conocida por cualquiera que lea el repositorio.
+# Ver .env.example para la plantilla.
 
 services:
   app:
@@ -19,16 +27,28 @@ services:
     command: --sql_mode="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
     restart: always
     environment:
-      MYSQL_DATABASE: panaderia_bd
-      MYSQL_USER: panaderia_user
-      MYSQL_PASSWORD: panaderia_password
-      MYSQL_ROOT_PASSWORD: panaderia_root_password
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-panaderia_bd}
+      MYSQL_USER: ${MYSQL_USER:?define MYSQL_USER en tu .env}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?define MYSQL_PASSWORD en tu .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?define MYSQL_ROOT_PASSWORD en tu .env}
     volumes:
       - panaderia_db_data:/var/lib/mysql
       # initdb ejecuta los .sql en orden alfabetico SOLO en un volumen vacio (primer arranque).
-      # 01 = dump base; 02 = columnas del portal + tablas del flujo + FKs (E1/E2/C1).
-      - ./sql/panaderia_bd.sql:/docker-entrypoint-initdb.d/01_base.sql
-      - ./sql/init/02_extensiones_flujo.sql:/docker-entrypoint-initdb.d/02_extensiones.sql
+      #
+      # Se monta UN solo script: sql/init/01_esquema_base.sql, el esquema real
+      # versionado (generado con mysqldump --no-data de la base de produccion).
+      # Ya trae las 14 columnas reales de `cliente` (login del portal, Google
+      # OAuth, aprendiz/cupo) y todas las tablas del flujo de pedidos.
+      #
+      # NO se monta sql/init/02_extensiones_flujo.sql: ese script parte del dump
+      # antiguo y anade esas mismas columnas/tablas con ALTER TABLE ADD COLUMN y
+      # CREATE TABLE sin IF NOT EXISTS, asi que sobre el 01 fallaria por duplicado
+      # y el contenedor abortaria la inicializacion. Sigue siendo util solo para
+      # una base creada con el dump viejo.
+      #
+      # Tampoco se usa sql/panaderia_bd.sql: crea `cliente` con solo 6 columnas y
+      # deja el portal roto en un despliegue limpio.
+      - ./sql/init/01_esquema_base.sql:/docker-entrypoint-initdb.d/01_base.sql
 
 volumes:
   panaderia_db_data:

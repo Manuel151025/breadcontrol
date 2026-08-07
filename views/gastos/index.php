@@ -67,6 +67,7 @@
         <?php endif; ?>
 
         <form method="POST">
+          <?= campo_csrf() ?>
           <div class="fl">
             <label>Categoría</label>
             <div class="cat-grid">
@@ -262,6 +263,7 @@ function selCat(k) {
       <button onclick="cerrarEditGasto()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--ink3);">&times;</button>
     </div>
     <form method="POST">
+      <?= campo_csrf() ?>
       <input type="hidden" name="id_gasto" id="eg-id">
       <div style="margin-bottom:.7rem;">
         <label style="font-size:.75rem;font-weight:700;color:var(--ink2);display:block;margin-bottom:.3rem;">Categoría</label>

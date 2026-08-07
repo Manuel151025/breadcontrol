@@ -2,6 +2,24 @@
 
 **Fecha:** 2026-07-23 · **Rama:** `fix/flujo-pedido-pago`
 
+> ## ✅ DECIDIDO Y APLICADO — 2026-08-06: Opción A (eliminar la columna)
+>
+> El propietario eligió la Opción A. Se aplicaron los **dos cambios acoplados**:
+>
+> 1. `ConfiguracionModel::getTiendasBeneficiarias()` ya no trae la subconsulta
+>    muerta, y `views/configuracion/tiendas.php` ya no muestra el contador
+>    `total_pedidos_destino` (que siempre marcaba 0).
+> 2. Migración `sql/migraciones/2026-08-06_02_eliminar_id_tienda_destino.sql`,
+>    más la eliminación de la columna en `sql/init/01_esquema_base.sql` y
+>    `sql/init/02_extensiones_flujo.sql` para que un despliegue limpio tampoco
+>    la cree.
+>
+> **Orden obligatorio en el VPS:** primero desplegar el código, después correr la
+> migración. Al revés, la pantalla de Tiendas Beneficiarias falla entre el
+> `ALTER` y el despliegue.
+>
+> El resto del documento se conserva como el análisis que sustentó la decisión.
+
 ## Qué es
 
 `pedido_cliente.id_tienda_destino` (`int(11) NULL`, con índice `KEY id_tienda_destino`)

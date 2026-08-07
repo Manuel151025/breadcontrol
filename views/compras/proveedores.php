@@ -129,6 +129,7 @@
         <?php endif; ?>
 
         <form method="POST">
+          <?= campo_csrf() ?>
           <?php if ($editando): ?>
           <input type="hidden" name="id_proveedor" value="<?= $editando['id_proveedor'] ?>">
           <?php endif; ?>

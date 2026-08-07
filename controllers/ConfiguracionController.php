@@ -2,6 +2,8 @@
 // controllers/ConfiguracionController.php
 
 require_once __DIR__ . '/../models/ConfiguracionModel.php';
+require_once __DIR__ . '/../helpers/Seguridad.php';
+require_once __DIR__ . '/../includes/funciones.php';
 
 class ConfiguracionController {
     private ConfiguracionModel $model;
@@ -26,7 +28,13 @@ class ConfiguracionController {
             cerrarSesion(); // la sesión apunta a un usuario que ya no existe
         }
 
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('perfil.php?err=csrf');
+
             // ── 1. Guardar Datos Personales ──────────────────────────────────
             if (isset($_POST['guardar_perfil'])) {
                 $nombre   = trim($_POST['nombre_completo'] ?? '');
@@ -51,14 +59,14 @@ class ConfiguracionController {
 
             // ── 2. Cambiar Contraseña ────────────────────────────────────────
             elseif (isset($_POST['cambiar_clave'])) {
-                $actual = $_POST['clave_actual'] ?? '';
-                $nueva  = $_POST['clave_nueva'] ?? '';
-                $conf   = $_POST['clave_confirmar'] ?? '';
+                $actual = post_texto('clave_actual');
+                $nueva  = post_texto('clave_nueva');
+                $conf   = post_texto('clave_confirmar');
 
                 if (!password_verify($actual, $datos['contrasena_hash'])) {
                     $msg_err = 'Contraseña actual incorrecta.';
-                } elseif (strlen($nueva) < 6) {
-                    $msg_err = 'Mínimo 6 caracteres.';
+                } elseif (($fallo = Seguridad::validarContrasena($nueva)) !== null) {
+                    $msg_err = $fallo;
                 } elseif ($nueva !== $conf) {
                     $msg_err = 'Las contraseñas no coinciden.';
                 } else {
@@ -123,6 +131,13 @@ class ConfiguracionController {
         // Cargar configuracion actual
         $config = $this->model->getConfiguracion();
 
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('pagos.php?err=csrf');
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_link'])) {
             $link     = trim($_POST['nequi_link_pago'] ?? '');
             $titular  = trim($_POST['nequi_titular'] ?? '');
@@ -177,6 +192,13 @@ class ConfiguracionController {
         }
         $tiene_pin = !empty($datos['pin_recuperacion']);
 
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('pin.php?err=csrf');
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_pin'])) {
             $clave_actual = $_POST['clave_actual'] ?? '';
             $pin          = trim($_POST['pin'] ?? '');
@@ -216,8 +238,13 @@ class ConfiguracionController {
 
         $msg_ok = '';
         $msg_err = '';
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('tiendas.php?err=csrf');
+
             // ── 1. Crear nueva tienda beneficiaria ───────────────────────────
             if (isset($_POST['crear_tienda'])) {
                 $nombre   = trim($_POST['nombre'] ?? '');

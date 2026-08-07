@@ -141,6 +141,7 @@
         <?php endif; ?>
 
         <form method="POST" enctype="multipart/form-data" class="add-form">
+          <?= campo_csrf() ?>
           <input type="hidden" name="id_categoria" value="<?= $cat['id_categoria'] ?>">
           <div class="fl">
             <label>Nombre</label>
@@ -163,6 +164,7 @@
   <div class="modal-box">
     <h4><i class="bi bi-pencil-square"></i> Editar variedad</h4>
     <form method="POST" enctype="multipart/form-data">
+      <?= campo_csrf() ?>
       <input type="hidden" name="id_variedad" id="edit-id">
       <img id="edit-preview" class="modal-preview" src="" style="display:none;">
       <div class="fl">

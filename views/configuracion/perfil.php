@@ -180,6 +180,7 @@ html,body{min-height:100%;overflow-x:hidden;font-family:'Plus Jakarta Sans',sans
       <div class="pf-body">
         <div class="tab-panel active" id="panel-datos">
           <form method="POST">
+            <?= campo_csrf() ?>
             <div class="fl"><label>Usuario</label><div class="fl-wrap"><i class="bi bi-person"></i><input type="text" value="<?= htmlspecialchars($datos['nombre_usuario'] ?? '') ?>" disabled></div><div class="hint">El nombre de usuario no se puede cambiar</div></div>
             <div class="fl"><label>Nombre completo *</label><div class="fl-wrap"><i class="bi bi-person-fill"></i><input type="text" name="nombre_completo" value="<?= htmlspecialchars($datos['nombre_completo'] ?? '') ?>" required></div></div>
             <div class="fl-row">
@@ -192,10 +193,11 @@ html,body{min-height:100%;overflow-x:hidden;font-family:'Plus Jakarta Sans',sans
 
         <div class="tab-panel" id="panel-seguridad">
           <form method="POST">
+            <?= campo_csrf() ?>
             <div class="fl"><label>Contraseña actual</label><div class="fl-wrap"><i class="bi bi-lock"></i><input type="password" name="clave_actual" id="p-actual" required placeholder="••••••••"><button type="button" class="eye-btn" onclick="toggleEye('p-actual',this)"><i class="bi bi-eye"></i></button></div></div>
             <div class="fl-row">
-              <div class="fl"><label>Nueva contraseña</label><div class="fl-wrap"><i class="bi bi-shield-lock"></i><input type="password" name="clave_nueva" id="p-nueva" required minlength="6" placeholder="Mínimo 6 caracteres"><button type="button" class="eye-btn" onclick="toggleEye('p-nueva',this)"><i class="bi bi-eye"></i></button></div></div>
-              <div class="fl"><label>Confirmar</label><div class="fl-wrap"><i class="bi bi-shield-check"></i><input type="password" name="clave_confirmar" id="p-conf" required minlength="6" placeholder="Repite"><button type="button" class="eye-btn" onclick="toggleEye('p-conf',this)"><i class="bi bi-eye"></i></button></div></div>
+              <div class="fl"><label>Nueva contraseña</label><div class="fl-wrap"><i class="bi bi-shield-lock"></i><input type="password" name="clave_nueva" id="p-nueva" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" placeholder="Mínimo <?= Seguridad::CONTRASENA_MIN ?> caracteres, con letras y números"><button type="button" class="eye-btn" onclick="toggleEye('p-nueva',this)"><i class="bi bi-eye"></i></button></div></div>
+              <div class="fl"><label>Confirmar</label><div class="fl-wrap"><i class="bi bi-shield-check"></i><input type="password" name="clave_confirmar" id="p-conf" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" placeholder="Repite"><button type="button" class="eye-btn" onclick="toggleEye('p-conf',this)"><i class="bi bi-eye"></i></button></div></div>
             </div>
             <div class="sec-tip"><strong>Recomendaciones de seguridad</strong>Usa una contraseña única. Combina mayúsculas, minúsculas, números y símbolos.</div>
             <button type="submit" name="cambiar_clave" class="btn-save"><i class="bi bi-key-fill"></i> Actualizar contraseña</button>
@@ -204,6 +206,7 @@ html,body{min-height:100%;overflow-x:hidden;font-family:'Plus Jakarta Sans',sans
 
         <div class="tab-panel" id="panel-pin">
           <form method="POST">
+            <?= campo_csrf() ?>
             <?php if (!empty($datos['pin_recuperacion'])): ?><div class="pin-badge pin-ok"><i class="bi bi-check-circle-fill"></i> PIN configurado correctamente</div>
             <?php else: ?><div class="pin-badge pin-no"><i class="bi bi-exclamation-triangle-fill"></i> PIN no configurado</div><?php endif; ?>
             <div class="fl"><label>Tu contraseña</label><div class="fl-wrap"><i class="bi bi-lock"></i><input type="password" name="clave_pin" required placeholder="Confirma tu contraseña"></div></div>

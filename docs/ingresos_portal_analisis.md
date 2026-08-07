@@ -1,6 +1,28 @@
 # Ingresos del portal fuera de los reportes — análisis
 
-**Fecha:** 2026-07-23 · **Rama:** `fix/flujo-pedido-pago` · **Estado:** análisis, NO implementado.
+**Fecha:** 2026-07-23 · **Rama:** `fix/flujo-pedido-pago` · **Estado:** análisis.
+
+> ## ✅ DECIDIDO E IMPLEMENTADO — 2026-08-06: Opción B.2
+>
+> El propietario eligió **B.2** (sumar el portal en los reportes, sin crear
+> filas en `venta`). Implementación:
+>
+> - `FinanzasHelper::ingresosPortalEnRango($pdo, $desde, $hasta)` suma
+>   `pedido_cliente.total_estimado` de los pedidos con `estado_pago='aprobado'`.
+> - Se incorpora en los cinco puntos que calculan ingresos: `AuthModel`
+>   (portada), `CierreModel` (hoy y ayer), `FinanzasModel` (rango),
+>   `TableroModel` (hoy/ayer/mes) y `GastoModel` (resumen diario).
+> - **La fecha del ingreso es `fecha_entrega`**, no la del cobro, para que el
+>   ingreso caiga el mismo día que la producción que lo costeó.
+> - Sin migración y sin backfill: se lee un estado, no se crea una fila, así que
+>   el anti-doble-conteo es inherente.
+> - Pruebas: `tests/Integration/IngresosPortalTest.php`.
+>
+> **Lo que B.2 NO resuelve, y sigue abierto:** el POS no ve el pan comprometido
+> a pedidos del portal del mismo día, así que puede sobre-vender (punto (b) de
+> este análisis). Eso requeriría la opción B.1.
+>
+> El resto del documento se conserva como el análisis que sustentó la decisión.
 
 ## Problema
 

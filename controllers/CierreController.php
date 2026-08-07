@@ -21,6 +21,13 @@ class CierreController {
 
         $msg_ok  = '';
         $msg_err = '';
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('index.php?err=csrf');
+        }
 
         // ── POST: Confirmar cierre ──────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirmar_cierre'])) {

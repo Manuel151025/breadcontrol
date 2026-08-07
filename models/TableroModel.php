@@ -12,8 +12,14 @@ class TableroModel {
      * @return array<mixed>
      */
     public function getEstadisticasVentas(): array {
-        $hoy = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=CURDATE()")->fetchColumn();
-        $ayer = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=DATE_SUB(CURDATE(),INTERVAL 1 DAY)")->fetchColumn();
+        // POS + pedidos del portal ya cobrados (ver FinanzasHelper::ingresosPortalEnRango).
+        $fecha_hoy  = date('Y-m-d');
+        $fecha_ayer = date('Y-m-d', (int) strtotime('-1 day'));
+
+        $hoy = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=CURDATE()")->fetchColumn()
+             + FinanzasHelper::ingresosPortalEnRango($this->pdo, $fecha_hoy, $fecha_hoy);
+        $ayer = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=DATE_SUB(CURDATE(),INTERVAL 1 DAY)")->fetchColumn()
+             + FinanzasHelper::ingresosPortalEnRango($this->pdo, $fecha_ayer, $fecha_ayer);
         $num_ventas = (int)$this->pdo->query("SELECT COUNT(*) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=CURDATE()")->fetchColumn();
         $diff_v = $ayer > 0 ? round((($hoy - $ayer) / $ayer) * 100, 1) : null;
         
@@ -32,7 +38,8 @@ class TableroModel {
         $primerDia = date('Y-m-01');
         $hoy       = date('Y-m-d');
 
-        $ingresos = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND MONTH(fecha_hora)=MONTH(CURDATE()) AND YEAR(fecha_hora)=YEAR(CURDATE())")->fetchColumn();
+        $ingresos = (float)$this->pdo->query("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND MONTH(fecha_hora)=MONTH(CURDATE()) AND YEAR(fecha_hora)=YEAR(CURDATE())")->fetchColumn()
+                  + FinanzasHelper::ingresosPortalEnRango($this->pdo, $primerDia, $hoy);
         $compras = (float)$this->pdo->query("SELECT COALESCE(SUM(total_pagado),0) FROM compra WHERE MONTH(fecha_compra)=MONTH(CURDATE()) AND YEAR(fecha_compra)=YEAR(CURDATE())")->fetchColumn();
         $gastos  = (float)$this->pdo->query("SELECT COALESCE(SUM(valor),0) FROM gasto WHERE MONTH(fecha_gasto)=MONTH(CURDATE()) AND YEAR(fecha_gasto)=YEAR(CURDATE())")->fetchColumn();
         $costoProduccion = FinanzasHelper::costoProduccionEnRango($this->pdo, $primerDia, $hoy);

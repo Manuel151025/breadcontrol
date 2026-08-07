@@ -273,6 +273,7 @@
 <!-- Login -->
 <div class="login-wrap">
   <form method="POST" class="glass-card" id="login-form">
+    <?= campo_csrf() ?>
 
     <div class="card-logo">
       <img src="<?= APP_URL ?>/assets/img/logo.png" alt="Logo">

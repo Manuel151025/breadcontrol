@@ -74,6 +74,7 @@
         </div>
 
         <form method="post">
+          <?= campo_csrf() ?>
           <!-- CATEGORÍA -->
           <div class="fl">
             <label>Categoría</label>

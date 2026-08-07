@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../models/GastoModel.php';
 require_once __DIR__ . '/../helpers/FinanzasHelper.php';
+require_once __DIR__ . '/../includes/funciones.php';
 
 class GastoController {
     private GastoModel $model;
@@ -23,13 +24,15 @@ class GastoController {
             $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
         }
         
+        // Guarda CSRF única para TODAS las acciones POST de esta pantalla.
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $fecha_post = preg_match('/^\d{4}-\d{2}-\d{2}$/', post_texto('fecha')) ? post_texto('fecha') : $hoy;
+            requerir_csrf('index.php?fecha=' . $fecha_post . '&err=csrf');
+        }
+
         // ── 1. Eliminar gasto (POST ?del=ID) ─────────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['del'])) {
             $redir_fecha = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_POST['fecha'] ?? '') ? $_POST['fecha'] : $hoy;
-            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
-                header('Location: index.php?fecha=' . $redir_fecha . '&err=csrf');
-                exit;
-            }
             $id_g = (int)$_POST['del'];
             try {
                 $this->model->eliminarGasto($id_g);

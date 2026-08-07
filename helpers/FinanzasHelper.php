@@ -20,6 +20,35 @@ class FinanzasHelper {
     }
 
     /**
+     * Ingresos de los pedidos del Portal de Clientes ya cobrados, en un rango.
+     *
+     * Los pedidos del portal viven en `pedido_cliente` y NUNCA generan una fila
+     * en `venta`, así que los reportes —que leen `venta`— dejaban fuera todo lo
+     * despachado por el portal. El costo de esos panes sí se contaba (se
+     * descuenta al registrar la producción del día), de modo que la utilidad
+     * quedaba sesgada a la baja.
+     *
+     * Se suma el estado actual del pedido en vez de crear una venta espejo: es
+     * idempotente por diseño (leer un estado no puede contar doble) y no toca
+     * inventario ni el POS. La contrapartida, asumida y documentada, es que
+     * siguen existiendo dos fuentes de ingreso que hay que sumar en cada reporte
+     * —por eso esta consulta vive aquí y no copiada en cada modelo.
+     *
+     * La fecha del ingreso es `fecha_entrega`, no la del cobro: así el ingreso
+     * cae el mismo día que la producción que lo costeó y el cierre diario cuadra.
+     */
+    public static function ingresosPortalEnRango(PDO $pdo, string $desde, string $hasta): float {
+        $stmt = $pdo->prepare("
+            SELECT COALESCE(SUM(total_estimado),0)
+            FROM pedido_cliente
+            WHERE estado_pago = 'aprobado'
+              AND DATE(fecha_entrega) BETWEEN ? AND ?
+        ");
+        $stmt->execute([$desde, $hasta]);
+        return (float)$stmt->fetchColumn();
+    }
+
+    /**
      * Utilidad bruta y neta con el criterio correcto: ventas menos costo real de
      * producción (no compras), menos gastos operativos.
      *

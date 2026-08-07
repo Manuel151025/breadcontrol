@@ -2,13 +2,18 @@
 // controllers/AuthController.php
 
 require_once __DIR__ . '/../models/AuthModel.php';
+require_once __DIR__ . '/../models/IntentoLoginModel.php';
+require_once __DIR__ . '/../helpers/Seguridad.php';
 require_once __DIR__ . '/../includes/sesion.php';
+require_once __DIR__ . '/../includes/funciones.php';
 
 class AuthController {
     private AuthModel $model;
+    private IntentoLoginModel $intentos;
 
     public function __construct(PDO $pdo) {
-        $this->model = new AuthModel($pdo);
+        $this->model    = new AuthModel($pdo);
+        $this->intentos = new IntentoLoginModel($pdo);
     }
 
     /**
@@ -60,17 +65,31 @@ class AuthController {
         }
         $nombre_saludo = '';
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !validar_token_csrf(post_texto('csrf_token'))) {
+            // Aquí no se redirige (como en el back-office) sino que se muestra el
+            // aviso en la propia pantalla: quien llega al login suele venir de una
+            // pestaña vieja cuyo token expiró, y recargar basta.
+            $error = 'Token de seguridad inválido o expirado. Recarga la página e intenta de nuevo.';
+        } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $usuario = trim($_POST['usuario'] ?? '');
             $clave   = $_POST['clave'] ?? '';
-            
+
+            $ip = ip_cliente();
+
             if (empty($usuario) || empty($clave)) {
                 $error = 'Por favor ingresa tu usuario y contraseña.';
+            } elseif ($this->intentos->estaBloqueado(IntentoLoginModel::AMBITO_ADMIN, $usuario, $ip)) {
+                // Mismo mensaje se acierte o no la contraseña: si distinguiera,
+                // el bloqueo revelaría qué nombres de usuario existen.
+                $error = 'Demasiados intentos fallidos. Espera '
+                    . Seguridad::LOGIN_VENTANA_MINUTOS . ' minutos e intenta de nuevo.';
             } else {
                 if (iniciarSesion($usuario, $clave)) {
+                    $this->intentos->limpiar(IntentoLoginModel::AMBITO_ADMIN, $usuario);
                     header('Location: ' . APP_URL . '/modules/tablero/index.php');
                     exit;
                 } else {
+                    $this->intentos->registrarFallo(IntentoLoginModel::AMBITO_ADMIN, $usuario, $ip);
                     $error = 'Usuario o contraseña incorrectos.';
                 }
             }
@@ -98,7 +117,9 @@ class AuthController {
         if (isset($_SESSION['recover_pin_ok']))  $paso = 3;
         elseif (isset($_SESSION['recover_user_id'])) $paso = 2;
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !validar_token_csrf(post_texto('csrf_token'))) {
+            $error = 'Token de seguridad inválido o expirado. Recarga la página e intenta de nuevo.';
+        } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // PASO 1: Identificación y envío/elección de método
             if (isset($_POST['verificar_usuario'])) {
@@ -118,7 +139,12 @@ class AuthController {
                         } else {
                             $codigo = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
                             $expira = date('Y-m-d H:i:s', strtotime('+5 minutes'));
-                            $this->model->registrarCodigoRecuperacion($user['id_usuario'], $codigo, $expira);
+                            // Se guarda hasheado; el código en claro solo viaja al correo.
+                            $this->model->registrarCodigoRecuperacion(
+                                $user['id_usuario'],
+                                Seguridad::hashCodigoRecuperacion($codigo),
+                                $expira
+                            );
 
                             require_once __DIR__ . '/../includes/mailer.php';
                             $to      = $user['correo_electronico'];
@@ -168,7 +194,7 @@ class AuthController {
                 } else {
                     if ($metodo === 'email') {
                         $user = $this->model->getUsuarioPorId($uid);
-                        if (!$user || $user['codigo_recuperacion'] !== $codigo) {
+                        if (!$user || !Seguridad::verificarCodigoRecuperacion($codigo, $user['codigo_recuperacion'])) {
                             $error = 'Codigo incorrecto.'; 
                             $paso = 2;
                         } elseif (strtotime($user['codigo_expira']) < time()) {
@@ -196,16 +222,16 @@ class AuthController {
 
             // PASO 3: Ingreso de la nueva contraseña
             if (isset($_POST['cambiar_clave'])) {
-                $nueva = $_POST['nueva_clave'] ?? '';
-                $conf = $_POST['confirmar_clave'] ?? '';
+                $nueva = post_texto('nueva_clave');
+                $conf  = post_texto('confirmar_clave');
                 $uid = $_SESSION['recover_user_id'] ?? null;
                 $pin_ok = $_SESSION['recover_pin_ok'] ?? false;
 
                 if (!$uid || !$pin_ok) {
-                    $error = 'Sesion expirada.'; 
+                    $error = 'Sesion expirada.';
                     $paso = 1;
-                } elseif (strlen($nueva) < 6) {
-                    $error = 'Minimo 6 caracteres.'; 
+                } elseif (($fallo = Seguridad::validarContrasena($nueva)) !== null) {
+                    $error = $fallo;
                     $paso = 3;
                 } elseif ($nueva !== $conf) {
                     $error = 'Las contrasenas no coinciden.'; 

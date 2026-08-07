@@ -174,7 +174,7 @@
           <label>Nueva contraseña</label>
           <div class="inp-wrap">
             <i class="bi bi-shield-lock ico"></i>
-            <input type="password" name="nueva" id="p1" placeholder="Mínimo 6 caracteres" required minlength="6" autofocus>
+            <input type="password" name="nueva" id="p1" placeholder="Mínimo <?= Seguridad::CONTRASENA_MIN ?> caracteres, con letras y números" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" autofocus>
             <button type="button" class="eye-btn" onclick="tg('p1',this)"><i class="bi bi-eye"></i></button>
           </div>
         </div>
@@ -182,7 +182,7 @@
           <label>Confirmar contraseña</label>
           <div class="inp-wrap">
             <i class="bi bi-shield-check ico"></i>
-            <input type="password" name="confirm" id="p2" placeholder="Repite la contraseña" required minlength="6">
+            <input type="password" name="confirm" id="p2" placeholder="Repite la contraseña" required minlength="<?= Seguridad::CONTRASENA_MIN ?>">
             <button type="button" class="eye-btn" onclick="tg('p2',this)"><i class="bi bi-eye"></i></button>
           </div>
         </div>

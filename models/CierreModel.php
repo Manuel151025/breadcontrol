@@ -15,12 +15,15 @@ class CierreModel {
     // ══════════════════════════════════════════════════════════════
 
     /**
-     * Total facturado en ventas del día
+     * Total facturado en ventas del día: POS más pedidos del portal ya cobrados
+     * (ver FinanzasHelper::ingresosPortalEnRango, que explica por qué el portal
+     * no aparece en la tabla `venta`).
      */
     public function getTotalVentasHoy(string $fecha): float {
         $stmt = $this->pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=?");
         $stmt->execute([$fecha]);
-        return (float)$stmt->fetchColumn();
+        return (float)$stmt->fetchColumn()
+             + FinanzasHelper::ingresosPortalEnRango($this->pdo, $fecha, $fecha);
     }
 
     /**
@@ -38,7 +41,9 @@ class CierreModel {
     public function getVentasAyer(string $fecha): float {
         $stmt = $this->pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora)=DATE_SUB(?,INTERVAL 1 DAY)");
         $stmt->execute([$fecha]);
-        return (float)$stmt->fetchColumn();
+        $ayer = date('Y-m-d', (int) strtotime($fecha . ' -1 day'));
+        return (float)$stmt->fetchColumn()
+             + FinanzasHelper::ingresosPortalEnRango($this->pdo, $ayer, $ayer);
     }
 
     /**

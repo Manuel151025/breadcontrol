@@ -46,6 +46,7 @@
         <?php endif; ?>
 
         <form method="POST">
+          <?= campo_csrf() ?>
           <div class="fl">
             <label>Cantidad real contada (<?= $insumo['unidad_medida'] ?>) <span style="color:#c62828;">*</span></label>
             <input type="number" name="cantidad_real" id="cantidad_real"

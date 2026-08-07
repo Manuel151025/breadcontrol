@@ -109,18 +109,6 @@ parameters:
 			path: controllers/AuthController.php
 
 		-
-			message: '#^Parameter \#1 \$password of function password_hash expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/AuthController.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strlen expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/AuthController.php
-
-		-
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 3
@@ -319,12 +307,6 @@ parameters:
 			path: controllers/CompraController.php
 
 		-
-			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/CompraController.php
-
-		-
 			message: '#^Parameter \#1 \$valor of function formatoInteligente expects float, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -415,27 +397,15 @@ parameters:
 			path: controllers/ConfiguracionController.php
 
 		-
-			message: '#^Parameter \#1 \$password of function password_hash expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/ConfiguracionController.php
-
-		-
 			message: '#^Parameter \#1 \$password of function password_verify expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 3
+			count: 2
 			path: controllers/ConfiguracionController.php
 
 		-
 			message: '#^Parameter \#1 \$string of function mb_substr expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 2
-			path: controllers/ConfiguracionController.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strlen expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: controllers/ConfiguracionController.php
 
 		-
@@ -675,7 +645,7 @@ parameters:
 		-
 			message: '#^Binary operation "\." between ''Location\: index\.php…'' and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
-			count: 2
+			count: 1
 			path: controllers/GastoController.php
 
 		-
@@ -706,12 +676,6 @@ parameters:
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 2
-			path: controllers/GastoController.php
-
-		-
-			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: controllers/GastoController.php
 
 		-
@@ -796,12 +760,6 @@ parameters:
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 3
-			path: controllers/InventarioController.php
-
-		-
-			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: controllers/InventarioController.php
 
 		-
@@ -1167,7 +1125,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 1
 			path: controllers/RecetaController.php
 
 		-
@@ -1300,12 +1258,6 @@ parameters:
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 3
-			path: controllers/VentaController.php
-
-		-
-			message: '#^Parameter \#1 \$token of function validar_token_csrf expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
 			path: controllers/VentaController.php
 
 		-
@@ -1465,27 +1417,15 @@ parameters:
 			path: controllers/portal/PortalAuthController.php
 
 		-
-			message: '#^Parameter \#1 \$password of function password_hash expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: controllers/portal/PortalAuthController.php
-
-		-
 			message: '#^Parameter \#1 \$password of function password_verify expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 3
-			path: controllers/portal/PortalAuthController.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strlen expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 3
+			count: 2
 			path: controllers/portal/PortalAuthController.php
 
 		-
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 12
+			count: 11
 			path: controllers/portal/PortalAuthController.php
 
 		-

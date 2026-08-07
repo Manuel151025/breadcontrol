@@ -63,9 +63,14 @@ class ConfiguracionModel {
      * @return array<int, array<string, mixed>>
      */
     public function getTiendasBeneficiarias(): array {
+        // Aquí había una subconsulta que contaba pedidos por
+        // `pedido_cliente.id_tienda_destino`. Ningún punto del código escribía
+        // esa columna (la feature "pedido dirigido a una tienda beneficiaria"
+        // nunca se completó del lado de escritura), así que el contador daba 0
+        // para todas, siempre. Se eliminaron subconsulta y columna; el
+        // destinatario real de un pedido es `id_cliente`.
         return $this->pdo->query("
-            SELECT c.*,
-              (SELECT COUNT(*) FROM pedido_cliente WHERE id_tienda_destino = c.id_cliente) AS total_pedidos_destino
+            SELECT c.*
             FROM cliente c
             WHERE c.es_beneficiaria = 1 AND c.activo = 1
             ORDER BY c.nombre

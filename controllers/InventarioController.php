@@ -23,6 +23,13 @@ class InventarioController {
             $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
         }
 
+        // Guarda CSRF única para TODAS las acciones POST de esta pantalla: se
+        // valida antes de mirar qué acción se pidió, así ninguna rama nueva
+        // puede quedar sin protección por olvido.
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('index.php?err=csrf');
+        }
+
         // ── 1. Guardar/Editar insumo (POST guardar_insumo) ───────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_insumo'])) {
             $nombre  = trim($_POST['nombre'] ?? '');
@@ -79,10 +86,6 @@ class InventarioController {
 
         // ── 2. Desactivar insumo individual (POST del) ─────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['del'])) {
-            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
-                header('Location: index.php?err=csrf');
-                exit;
-            }
             $id_del = (int)$_POST['del'];
             try {
                 $this->model->desactivarInsumo($id_del);
@@ -140,8 +143,12 @@ class InventarioController {
     public function crearInsumo(): void {
         requerirPropietario();
         $errores = [];
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $errores[] = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('crear_insumo.php?err=csrf');
             $nombre      = limpiar($_POST['nombre'] ?? '');
             $unidad      = limpiar($_POST['unidad_medida'] ?? '');
             $es_harina   = isset($_POST['es_harina']) ? 1 : 0;
@@ -186,8 +193,12 @@ class InventarioController {
         if (!$insumo) {
             redirigir(APP_URL . '/modules/inventario/index.php', 'error', 'Insumo no encontrado.');
         }
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $errores[] = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('editar_insumo.php?id=' . $id . '&err=csrf');
             $nombre      = limpiar($_POST['nombre'] ?? '');
             $unidad      = limpiar($_POST['unidad_medida'] ?? '');
             $es_harina   = isset($_POST['es_harina']) ? 1 : 0;
@@ -236,8 +247,12 @@ class InventarioController {
         if (!$insumo) {
             redirigir(APP_URL . '/modules/inventario/index.php', 'error', 'Insumo no encontrado.');
         }
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $errores[] = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('ajuste.php?id=' . $id . '&err=csrf');
             $cantidad_real = (float)($_POST['cantidad_real'] ?? -1);
             $motivo        = limpiar($_POST['motivo'] ?? '');
 

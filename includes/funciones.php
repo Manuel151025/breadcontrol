@@ -28,6 +28,19 @@ function limpiar(string $dato): string {
     return htmlspecialchars(strip_tags(trim($dato)), ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Valor de texto de un campo del formulario.
+ *
+ * Un formulario manipulado puede enviar `campo[]` y convertir el valor en un
+ * array: leer `$_POST['campo'] ?? ''` y tratarlo como texto revienta o se
+ * comporta de forma imprevista. Esta función devuelve siempre una cadena, y
+ * cadena vacía si llegó cualquier otra cosa.
+ */
+function post_texto(string $clave): string {
+    $valor = $_POST[$clave] ?? '';
+    return is_string($valor) ? $valor : '';
+}
+
 // Redirigir con mensaje en sesión (nunca retorna: termina con exit)
 function redirigir(string $url, string $tipo = 'exito', string $mensaje = ''): never {
     if ($mensaje) {

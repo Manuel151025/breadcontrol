@@ -1,33 +1,36 @@
 # Limitaciones Conocidas y Trabajo Futuro — BreadControl
 
-**Anexo al SRS (`srs_ieee830_breadcontrol.txt`)**
+**Anexo al SRS (`srs_ieee830_breadcontrol.txt`)** · **Última verificación: 2026-08-06**
 
-Este documento inventaria, con evidencia verificada contra el código y la base de datos reales, las limitaciones conocidas del sistema BreadControl al cierre de esta fase de correcciones. No es un listado de intenciones: cada punto fue confirmado leyendo el archivo citado o ejecutando una consulta contra la base de datos (local, sincronizada con producción salvo donde se indique lo contrario) antes de documentarlo. Donde no fue posible verificar un dato con certeza, se marca `[VERIFICAR]`.
+Este documento inventaria, con evidencia verificada contra el código y la base de datos reales, las limitaciones conocidas del sistema BreadControl. No es un listado de intenciones: cada punto fue confirmado leyendo el archivo citado o ejecutando una consulta contra la base de datos antes de documentarlo.
 
 El propósito de este anexo es dejar registro explícito de qué se sabe que falta, por qué se pospuso, y qué esfuerzo tomaría resolverlo — para que cualquier evaluador, instructor o desarrollador futuro entienda el estado real del sistema sin tener que descubrirlo de nuevo.
 
+**Los puntos resueltos NO se borran de este documento**: se marcan como resueltos con la evidencia de su corrección. Un anexo que solo enumera lo pendiente oculta la mitad de la historia, y quien lo lea dos veces necesita saber qué cambió entre una lectura y otra.
+
 ## Resumen
 
-| # | Limitación | Categoría | Severidad | Esfuerzo est. |
+| # | Limitación | Categoría | Severidad | Estado |
 |---|---|---|---|---|
-| 1 | CSRF ausente en ~13 controladores administrativos | Seguridad | Alto | M (3-5 días) |
-| 2 | Acciones de eliminar/desactivar por GET sin token | Seguridad | Alto | S (1-2 días, junto con #1) |
-| 3 | Sin límite de intentos en login | Seguridad | Medio-Alto | S (1 día) |
-| 4 | `codigo_recuperacion` en texto plano | Seguridad | Medio | S (medio día) |
-| 5 | Política de contraseña inconsistente | Seguridad | Bajo-Medio | S (medio día) |
-| 6 | Credenciales en `docker-compose.yml` obsoleto pero versionado | Seguridad | Medio-Alto | S (rotar credenciales + purgar historial) |
-| 7 | Desincronización `stock_actual` vs. suma de lotes | Integridad de datos | Alto | L (5+ días) |
-| 8 | Lotes semilla `INI-*` con `precio_unitario=0` (agotados) | Integridad de datos | Histórico / sin impacto futuro | S (no se hará, ver decisión) |
-| 9 | Producciones 1 y 4 con `costo_total=0` | Integridad de datos | Histórico / sin impacto futuro | S (no se hará, ver decisión) |
-| 10 | `venta.id_producto=NULL` en POS moderno | Integridad de datos | Alto | L (rediseño de modelo de datos) |
-| 11 | Portal no reconciliado con `venta` | Arquitectura | Alto | XL (decisión de negocio + rediseño) |
-| 12 | `assets/js/ventas.js` huérfano (689 líneas) | Arquitectura | Bajo | S (1 día: conectar o eliminar) |
-| 13 | 796 líneas de JS inline en `views/ventas/index.php` | Arquitectura | Bajo-Medio | M (2-3 días de refactor) |
-| 14 | Código duplicado: carrito nuevo vs. editar pedido | Arquitectura | Medio | M (2-3 días) |
-| 15 | Vistas clásicas de insumo sin estilo ni enlace | Arquitectura | Bajo | S (medio día: eliminar o reconectar) |
-| 16 | `php.ini` con `date.timezone=Europe/Berlin` obsoleto (inerte) | Configuración | Cosmético | S (1 línea, sin urgencia) |
-| 17 | `panaderia_bd.sql` no refleja el esquema real de `cliente` | Configuración | Alto | S (1 día: completar el script) |
-| 18 | Condiciones de carrera (lotes, cupo semanal) | Configuración/Concurrencia | Medio | M (2-3 días: locks/transacciones serializables) |
+| 1 | CSRF ausente en los controladores administrativos | Seguridad | Alto | ✅ **Resuelto** (2026-08-06) |
+| 2 | Acciones de eliminar/desactivar por GET sin token | Seguridad | Alto | ✅ **Resuelto** |
+| 3 | Sin límite de intentos en login | Seguridad | Medio-Alto | ✅ **Resuelto** (2026-08-06) |
+| 4 | `codigo_recuperacion` en texto plano | Seguridad | Medio | ✅ **Resuelto** (2026-08-06) |
+| 5 | Política de contraseña inconsistente | Seguridad | Bajo-Medio | ✅ **Resuelto** (2026-08-06) |
+| 6 | Credenciales en `docker-compose.yml` versionado | Seguridad | Medio-Alto | ✅ **Resuelto en HEAD** (2026-08-06); quedan en el historial |
+| 7 | Desincronización `stock_actual` vs. suma de lotes | Integridad de datos | Alto | ⬜ Abierto — L (5+ días) |
+| 8 | Lotes semilla `INI-*` con `precio_unitario=0` (agotados) | Integridad de datos | Histórico | ⬜ No se corregirá (decisión) |
+| 9 | Producciones 1 y 4 con `costo_total=0` | Integridad de datos | Histórico | ⬜ No se corregirá (decisión) |
+| 10 | `venta.id_producto=NULL` en POS moderno | Integridad de datos | Alto | ⬜ Abierto — L (rediseño de datos) |
+| 11 | Ingresos del portal fuera de los reportes | Arquitectura | Alto | ✅ **Resuelto** (2026-08-06, opción B.2) |
+| 12 | `assets/js/ventas.js` huérfano (689 líneas) | Arquitectura | Bajo | ✅ **Resuelto** (v1.0.0) |
+| 13 | 796 líneas de JS inline en `views/ventas/index.php` | Arquitectura | Bajo-Medio | ✅ **Resuelto** (v1.0.0) |
+| 14 | Código duplicado: carrito nuevo vs. editar pedido | Arquitectura | Medio | ⬜ Abierto — M (2-3 días) |
+| 15 | Vistas clásicas de insumo sin estilo ni enlace | Arquitectura | Bajo | ⬜ Abierto — S (medio día) |
+| 16 | `php.ini` con `date.timezone=Europe/Berlin` (inerte) | Configuración | Cosmético | ⬜ Abierto — S (1 línea) |
+| 17 | El despliegue limpio no reflejaba el esquema real | Configuración | Alto | ✅ **Resuelto** (2026-08-06) |
+| 18 | Condiciones de carrera (lotes, cupo semanal) | Concurrencia | Medio | 🟡 Parcial — falta el número de lote |
+| 19 | Columna huérfana `pedido_cliente.id_tienda_destino` | Arquitectura | Bajo | ✅ **Resuelto** (2026-08-06) |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -35,345 +38,238 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 
 ## SEGURIDAD
 
-### 1. CSRF ausente en ~13 controladores administrativos
+### 1. ✅ CSRF ausente en los controladores administrativos — RESUELTO (2026-08-06)
 
-**Descripción:** La protección CSRF (`generar_token_csrf()`/`validar_token_csrf()` en `includes/sesion.php`) existe y funciona correctamente, pero solo se invoca desde el Portal de Clientes.
+**Era:** la protección CSRF (`generar_token_csrf()`/`validar_token_csrf()` en `includes/sesion.php`) existía y funcionaba, pero solo se invocaba desde el Portal de Clientes. Ningún controlador de `controllers/{Inventario,Compra,Produccion,Receta,Venta,Gasto,Cierre,Configuracion,Auth}Controller.php` la usaba, así que un atacante que consiguiera que el propietario autenticado visitara una página maliciosa podía inducir acciones administrativas sin su consentimiento.
 
-**Evidencia:** Búsqueda de `generar_token_csrf`/`validar_token_csrf` en todo el proyecto: only aparece en `controllers/PortalClienteController.php` y las vistas `views/portal/{nuevo_pedido,dashboard,perfil,pagar_consolidado,completar_perfil}.php`. Ningún controlador de `controllers/{Inventario,Compra,Produccion,Receta,Venta,Gasto,Finanzas,Cierre,Configuracion,PedidoCliente}Controller.php` lo usa.
+**Cómo se resolvió:** en dos tandas.
 
-**Impacto:** Un atacante que consiga que el propietario autenticado visite una página maliciosa podría inducir acciones administrativas (crear compras, modificar precios, registrar gastos, etc.) sin su consentimiento explícito.
+1. Una primera tanda (commits `5ad93cc` y `2986150`) protegió las acciones destructivas y la pantalla de pedidos-clientes.
+2. La tanda del 2026-08-06 cubrió **todos** los formularios restantes: se añadieron dos ayudantes en `includes/sesion.php` —`requerir_csrf($url_error)` y `campo_csrf()`— y se aplicó el guardián **una vez por cada método de controlador que procesa POST**, antes de mirar qué acción se pidió. Ese orden es deliberado: una rama `if (isset($_POST['nueva_accion']))` que se agregue mañana queda protegida sin que nadie tenga que acordarse. Los 30 formularios del back-office incluyen ahora `<?= campo_csrf() ?>`.
 
-**Severidad:** Alto (mitigado parcialmente porque requiere que el propietario tenga sesión activa y visite un enlace/página controlada por el atacante).
+**Evidencia:** `grep -c 'REQUEST_METHOD.*POST'` frente a `grep -c 'requerir_csrf\|validar_token_csrf'` en `controllers/` da cobertura completa. Verificado además en ejecución contra el servidor local: un POST a `login.php` sin token responde con el aviso de token inválido y **no** llega a validar credenciales; el mismo POST con un token válido de la sesión sí las valida.
 
-**Esfuerzo estimado:** M (3-5 días) — agregar generación/validación de token a ~13 controladores y sus formularios.
-
-**Por qué se pospuso:** Se implementó primero, y únicamente, en el Portal de Clientes por ser la superficie pública con más exposición a atacantes externos anónimos. Los controladores administrativos exigen autenticación previa de propietario, lo que reduce la urgencia relativa frente a otros hallazgos ya corregidos en esta fase, pero no elimina el riesgo — se agrava con el hallazgo #2.
-
----
-
-### 2. Acciones de eliminar/desactivar por GET sin token
-
-**Descripción:** Varias acciones destructivas o de baja lógica se ejecutan leyendo directamente de `$_GET`, sin ningún token de confirmación — un enlace o `<img src="...">` malicioso bastaría para dispararlas si el propietario tiene sesión activa.
-
-**Evidencia:** Confirmado por búsqueda de `$_GET['del...']`/`$_GET['desactivar']` sin validación de token asociado:
-- `controllers/CompraController.php:132` (`$_GET['desactivar']`, proveedor).
-- `controllers/VentaController.php:283-284` (`$_GET['del_venta']`) y `:376-377` (`$_GET['del']`, cliente/tienda).
-- `controllers/InventarioController.php:78-79` (`$_GET['del']`, insumo).
-- `controllers/GastoController.php:24-25` (`$_GET['del']`, gasto).
-- `controllers/RecetaController.php:21-23` (`$_GET['del']`, producto) y `:250-252` (`$_GET['del_var']`, variedad de pan).
-
-**Impacto:** Combinado con el hallazgo #1, permite ejecución de acciones destructivas (desactivar insumos, proveedores, clientes, productos, variedades, eliminar gastos/ventas) mediante un solo clic o carga de recurso inducida, sin ninguna confirmación server-side.
-
-**Severidad:** Alto.
-
-**Esfuerzo estimado:** S (1-2 días, una vez resuelto #1, ya que comparte la misma infraestructura de tokens).
-
-**Por qué se pospuso:** Depende de la misma infraestructura de tokens CSRF que aún no se extendió a los controladores administrativos (#1). Además, cada módulo nuevo replicó el patrón `<a href="?del=...">` ya establecido en módulos anteriores, propagando el mismo defecto.
+**Convención resultante:** el fallo de token redirige a la pantalla de origen con `?err=csrf`, que cada controlador traduce a un aviso visible. Se eligió sobre el sistema de mensajes flash de `redirigir()` porque **ninguna vista llama a `mostrarMensaje()`**, de modo que aquellos mensajes nunca se mostraban (ver punto 20).
 
 ---
 
-### 3. Sin límite de intentos en login (fuerza bruta)
+### 2. ✅ Acciones de eliminar/desactivar por GET sin token — RESUELTO
 
-**Descripción:** Ni `AuthController::login()` ni `iniciarSesion()` (`includes/sesion.php:69-84`) implementan conteo de intentos fallidos, bloqueo temporal, retraso progresivo ni CAPTCHA.
+**Era:** varias acciones destructivas se ejecutaban leyendo `$_GET['del']`/`$_GET['desactivar']`, así que un `<img src="...">` malicioso bastaba para dispararlas si el propietario tenía sesión activa.
 
-**Evidencia:** Leí el cuerpo completo de `AuthController::login()` (líneas 56-82) y de `iniciarSesion()` (líneas 69-84): la única validación es `password_verify($contrasena, $usuario['contrasena_hash'])`, sin ningún registro de intentos ni bloqueo asociado al usuario o a la IP.
+**Cómo se resolvió:** las 7 acciones se convirtieron a POST con token, mediante el ayudante compartido `includes/boton_eliminar.php`, que genera el formulario con su `csrf_token` en lugar del antiguo `<a href="?del=...">`.
 
-**Impacto:** Un atacante puede intentar credenciales de forma ilimitada contra el login administrativo. El impacto práctico depende del volumen de intentos que la infraestructura (Nginx/Traefik) tolere antes de frenar por su cuenta, lo cual no se verificó en este documento.
-
-**Severidad:** Medio-Alto.
-
-**Esfuerzo estimado:** S (1 día) — contador de intentos fallidos por usuario con bloqueo temporal (ej. 5 intentos / 15 minutos).
-
-**Por qué se pospuso:** No se ha implementado ningún mecanismo de throttling. La mayoría de instalaciones de este sistema tienen un solo usuario propietario, lo que reduce la superficie práctica de un ataque dirigido, pero no lo elimina como vector real.
+**Evidencia:** `grep -rn "\$_GET\['\(del\|del_venta\|del_var\|desactivar\)'\]" controllers/` → **cero coincidencias** (verificado 2026-08-06).
 
 ---
 
-### 4. `codigo_recuperacion` en texto plano (el PIN sí está hasheado)
+### 3. ✅ Sin límite de intentos en login (fuerza bruta) — RESUELTO (2026-08-06)
 
-**Descripción:** El patrón se repite idéntico en las dos tablas de usuarios del sistema, `cliente` (portal) y `usuario` (administradores): el PIN de recuperación se guarda con `password_hash()` y se valida con `password_verify()`, mientras que el código de recuperación por correo se guarda como texto plano y se compara con `!==`, no con `hash_equals()`.
+**Era:** ni `AuthController::login()` ni el login del portal contaban intentos fallidos: se podían probar credenciales de forma ilimitada.
 
-**Evidencia:**
-- **Portal (`cliente`)**: `models/PortalClienteModel.php:118` (`UPDATE cliente SET codigo_recuperacion = ?, codigo_expira = ?`, sin hash) vs. `models/PortalClienteModel.php:110` (`UPDATE cliente SET pin_recuperacion = ?`, recibiendo un hash ya generado con `password_hash()` en el controlador). Comparación en texto plano en `controllers/PortalClienteController.php:376` (`$cliente['codigo_recuperacion'] !== $codigo`).
-- **Administración (`usuario`)**: mismo patrón, confirmado. `models/AuthModel.php:36-39` (`registrarCodigoRecuperacion()`: `UPDATE usuario SET codigo_recuperacion = ?, codigo_expira = ?`, sin hash) y comparación en texto plano en `controllers/AuthController.php:173` (`$user['codigo_recuperacion'] !== $codigo`). El PIN admin sí se hashea correctamente: `controllers/ConfiguracionController.php:84` y `:187` (`password_hash($pin, PASSWORD_BCRYPT)` antes de `updateUsuarioPIN()`).
+**Cómo se resolvió:** nueva tabla `intento_login` y `models/IntentoLoginModel.php`. Umbrales en `helpers/Seguridad.php`: **5 fallos por cuenta** y **20 por IP**, ambos en una ventana de **15 minutos**. Se aplica al login administrativo y al del portal, con ámbitos separados (`admin`/`portal`) para que agotar los intentos en uno no cierre el otro. Un inicio de sesión correcto borra los intentos previos de esa cuenta.
 
-**Impacto:** Si la base de datos se filtrara, los códigos de recuperación activos (ventana de 5-10 minutos) quedarían expuestos en claro — para **cualquier** cuenta, incluida la del propietario/administrador, no solo clientes del portal. El PIN, en ambos casos, permanecería protegido incluso ante esa filtración.
+**Decisiones no obvias:**
+- Los intentos se persisten en **base de datos, no en sesión**: un atacante controla su propia cookie, así que un contador en `$_SESSION` se esquiva descartándola.
+- El umbral por IP es más alto que el de cuenta a propósito: varias personas legítimas pueden compartir una misma IP de salida, mientras que el umbral por cuenta no depende de la red.
+- El mensaje de bloqueo es el mismo se acierte o no la contraseña; si distinguiera, revelaría qué nombres de usuario existen.
+- La IP se lee de `X-Forwarded-For` (en producción la app corre detrás de Traefik). Esa cabecera es falsificable por quien alcance el contenedor directamente, por lo que el bloqueo por IP es una **salvaguarda secundaria**: la defensa principal es el bloqueo por cuenta.
 
-**Severidad:** Medio (mitigado por la expiración corta y el uso único del código).
-
-**Esfuerzo estimado:** S (medio día) — hashear el código al guardarlo y comparar con `password_verify()`.
-
-**Por qué se pospuso:** Se priorizó hashear el PIN por ser un secreto de más largo plazo y reutilizable; el código de recuperación por correo, al expirar en minutos y usarse una sola vez, quedó con menor severidad relativa y sin resolver.
+**Evidencia:** `tests/Integration/IntentoLoginModelTest.php` (6 pruebas: umbral, ventana, aislamiento de ámbitos, limpieza tras éxito, bloqueo por IP con usuarios rotados). Verificado además en ejecución: el 6.º intento seguido contra el login real responde "Demasiados intentos".
 
 ---
 
-### 5. Política de contraseña inconsistente (y débil) entre pantallas
+### 4. ✅ `codigo_recuperacion` en texto plano — RESUELTO (2026-08-06)
 
-**Descripción:** Existen **tres** longitudes mínimas distintas para contraseñas de cliente dentro del mismo portal, más una cuarta para administradores — ninguna exige complejidad (mayúsculas, números, símbolos).
+**Era:** el PIN de recuperación se guardaba con `password_hash()`, pero el código de 6 dígitos enviado por correo se guardaba **en claro** y se comparaba con `!==`, tanto en `cliente` (portal) como en `usuario` (administradores).
 
-**Evidencia:**
-- `controllers/PortalClienteController.php:259` (registro de cliente nuevo): `strlen($contrasena) < 4` → mínimo **4** caracteres.
-- `controllers/PortalClienteController.php:410` (completar recuperación de contraseña): `strlen($nueva) < 6` → mínimo **6**.
-- `controllers/PortalClienteController.php:988` (cambiar contraseña desde Mi Perfil del portal): `strlen($nueva) >= 4` → mínimo **4**.
-- `controllers/ConfiguracionController.php:57` (cambiar contraseña de propietario/admin): `strlen($nueva) < 6` → mínimo **6**.
+**Cómo se resolvió:** `Seguridad::hashCodigoRecuperacion()` y `Seguridad::verificarCodigoRecuperacion()` (bcrypt + `password_verify`). El código en claro solo viaja al correo; en la base queda el hash.
 
-**Impacto:** Un cliente puede registrarse con una contraseña de 4 caracteres, incumpliendo cualquier estándar razonable de seguridad, y la inconsistencia entre pantallas del mismo módulo indica ausencia de una regla de negocio centralizada.
+**Detalle de migración que costaba descubrir:** la columna era `varchar(10)` y un hash bcrypt ocupa 60 caracteres, así que **había que ensancharla antes** de desplegar el código nuevo o el `UPDATE` habría truncado el hash silenciosamente y ningún código habría validado jamás. La migración `sql/migraciones/2026-08-06_01_seguridad_login_y_codigo.sql` la lleva a `varchar(255)` en ambas tablas y limpia los códigos vigentes (expiraban en 5-10 minutos; quien estuviera a mitad del flujo solo tenía que pedir uno nuevo).
 
-**Severidad:** Bajo-Medio (más un problema de consistencia y buena práctica que una vulnerabilidad explotable por sí sola).
-
-**Esfuerzo estimado:** S (medio día) — centralizar en una función compartida (ej. `helpers/`) con una única regla (mínimo 8, alguna complejidad).
-
-**Por qué se pospuso:** Cada formulario de contraseña se implementó en un momento distinto del desarrollo del portal (registro, recuperación, perfil), sin una función de validación compartida — cada uno quedó con su propio mínimo copiado a mano.
+**Evidencia:** `tests/Unit/SeguridadTest.php` comprueba que el valor guardado no es el código, que dos hashes del mismo código difieren (sal aleatoria) y que una cuenta sin código pendiente nunca verifica.
 
 ---
 
-### 6. Credenciales de base de datos en `docker-compose.yml` obsoleto pero versionado
+### 5. ✅ Política de contraseña inconsistente — RESUELTO (2026-08-06)
 
-**Descripción:** `docker-compose.yml`, confirmado como esquema de despliegue **obsoleto** (ver corrección de la Sección 2.1 del SRS), contiene las credenciales de MySQL en texto plano y sigue commiteado en el repositorio.
+**Era:** cuatro longitudes mínimas distintas copiadas a mano —4 en el registro del portal, 4 en su perfil, 6 en las dos pantallas de recuperación y 6 en el cambio de clave del propietario—, ninguna con requisito de complejidad.
 
-**Evidencia:** `docker-compose.yml` líneas 22-25: `MYSQL_DATABASE: panaderia_bd`, `MYSQL_USER: panaderia_user`, `MYSQL_PASSWORD: panaderia_password`, `MYSQL_ROOT_PASSWORD: panaderia_root_password`.
+**Cómo se resolvió:** `Seguridad::validarContrasena()` es la regla única: **mínimo 8 caracteres, con al menos una letra y un número**. La usan las 5 pantallas que fijan contraseña, y las vistas leen el mínimo de `Seguridad::CONTRASENA_MIN` en su `minlength` y en el texto de ayuda, de modo que cambiar la constante cambia formulario y validación a la vez.
 
-**Impacto:** Cualquiera con acceso de lectura al repositorio (o a su historial de Git, incluso si el archivo se elimina hoy) puede ver estas credenciales. El riesgo práctico actual es menor porque el archivo ya no gobierna el despliegue real (Dokploy/Swarm usa su propia configuración de entorno), pero las credenciales quedan expuestas igual si se reutilizan en algún otro punto.
+**Alcance:** solo afecta a contraseñas nuevas o cambiadas. Las cuentas existentes siguen entrando con la suya; la política se les aplicará la próxima vez que la cambien.
 
-**Severidad:** Medio-Alto (exposición real en el historial de Git; impacto práctico reducido porque el archivo dejó de ser la fuente de verdad del despliegue).
+**Evidencia:** `tests/Unit/SeguridadTest.php` fija la regla, incluidos los casos "los 4 de antes" y "los 6 de antes", que ahora deben rechazarse.
 
-**Esfuerzo estimado:** S — rotar las credenciales si se reutilizan en algún entorno vigente, y decidir si purgar el archivo del historial de Git o simplemente eliminarlo del `HEAD` actual con una nota.
+---
 
-**Por qué se pospuso:** El archivo fue el esquema de despliegue manual usado antes de adoptar Dokploy. Quedó commiteado con las credenciales de esa etapa y no se purgó del repositorio al migrar a la infraestructura actual.
+### 6. ✅ Credenciales de base de datos en `docker-compose.yml` — RESUELTO EN HEAD (2026-08-06)
+
+**Era:** `docker-compose.yml` traía `MYSQL_USER`, `MYSQL_PASSWORD` y `MYSQL_ROOT_PASSWORD` escritos en claro y versionados.
+
+**Cómo se resolvió:** las cuatro variables se leen ahora del `.env` (que Compose carga solo), con la sintaxis `${VAR:?mensaje}`: si no están definidas, Compose **falla con ese mensaje** en lugar de arrancar con una contraseña que cualquiera puede leer en el repositorio. La plantilla quedó documentada en `.env.example`.
+
+**Lo que NO se hizo, y por qué:** las credenciales antiguas **siguen en el historial de Git**. Purgarlas exigiría reescribir la historia de una rama compartida (y de la etiqueta `historia-inicial`), lo que rompería cualquier clon existente. El riesgo práctico es bajo —eran las de un `docker-compose` de desarrollo que nunca gobernó el despliegue real, que usa Dokploy con su propia configuración— pero conviene tenerlo escrito: **si alguna de esas contraseñas se reutiliza en algún entorno vigente, hay que rotarla**, porque eliminarla de `HEAD` no la borra del historial.
 
 ---
 
 ## INTEGRIDAD DE DATOS
 
-### 7. Desincronización entre `insumo.stock_actual` y la suma real de `lote.cantidad_disponible`
+### 7. ⬜ Desincronización entre `insumo.stock_actual` y la suma real de `lote.cantidad_disponible`
 
-**Descripción:** El contador denormalizado `insumo.stock_actual` y la suma real de lotes activos (`SUM(lote.cantidad_disponible) WHERE estado='activo'`) deberían coincidir, pero divergen de forma sistemática.
+**Descripción:** el contador denormalizado `insumo.stock_actual` y la suma real de lotes activos (`SUM(lote.cantidad_disponible) WHERE estado='activo'`) deberían coincidir, pero divergen de forma sistemática.
 
-**Evidencia (verificada hoy contra la base de datos real, vía `ProduccionModel::verificarStockIngredientes()` para la receta 3):**
+**Evidencia (consulta ejecutada el 2026-08-06 contra la base real):** **17 de 22 insumos** activos divergen.
 
-| Insumo | `stock_actual` | Suma real de lotes | Diverge |
-|---|---|---|---|
-| Azúcar | 20.830 | 20.102 | Sí |
-| Esencia Mantequilla | 10.770 | 0 | Sí |
-| Harina de trigo | 167 | 166,5 | Sí |
-| Hojaldre | 5.000 | 6.500 | Sí |
-| Levadura | 1.364 | 1.360 | Sí |
-| Mantequilla | 36.350 | 47.450 | Sí |
-| Sal | 1.720 | 910 | Sí |
+**Impacto:** `stock_actual` no es confiable como fuente de verdad — es la causa raíz de que producciones se registren "con stock suficiente" según el contador y luego no encuentren lotes reales que cubran la receta (bug C17). También hace que las alertas de stock bajo (`RF-06`, comparadas contra `stock_actual`) puedan mostrar información incorrecta.
 
-**7 de 7** ingredientes de esa receta divergen. Este aviso ya es mostrado al usuario (no bloqueante) gracias al fix de C17 en esta misma fase (RF-14b del SRS).
+**Severidad:** Alto. **Esfuerzo:** L (5+ días) — requiere decidir cuál fuente es la autoritativa, auditar todos los puntos de escritura de ambas (compras, ajustes manuales, producción, código de varias generaciones) y posiblemente eliminar `stock_actual` en favor de calcularlo siempre desde `lote`.
 
-**Impacto:** `stock_actual` no es confiable como fuente de verdad — es la causa raíz de que producciones se registren "con stock suficiente" según el contador, y luego no encuentren lotes reales que cubran la receta (bug C17). También hace que las alertas de stock bajo (`RF-06`, comparadas contra `stock_actual`) puedan estar mostrando información incorrecta.
-
-**Severidad:** Alto.
-
-**Esfuerzo estimado:** L (5+ días) — requiere decidir cuál fuente es la autoritativa, auditar todos los puntos de escritura de ambas (compras, ajustes manuales, producción, y código de varias generaciones del proyecto), y posiblemente eliminar `stock_actual` como columna independiente en favor de calcularlo siempre desde `lote`.
-
-**Por qué se pospuso:** Se identificó como causa raíz durante el fix de C17, pero se dejó explícitamente fuera de esa tanda por su alcance (afecta prácticamente todos los insumos, no un caso puntual) — se optó por mitigar el síntoma (el aviso no bloqueante de RF-14b) sin resolver la causa.
+**Por qué sigue abierto:** se identificó como causa raíz durante el fix de C17 y se dejó fuera por su alcance (afecta a casi todos los insumos, no a un caso puntual); se mitigó el síntoma con el aviso no bloqueante de RF-14b. En la revisión del 2026-08-06 se decidió explícitamente no abordarlo en esa tanda para no mezclar un cambio de modelo de datos con una tanda de seguridad.
 
 ---
 
-### 8. Lotes semilla `INI-2026-03-21-*` con `precio_unitario=0` (agotados, sin impacto futuro)
+### 8. ⬜ Lotes semilla `INI-2026-03-21-*` con `precio_unitario=0` — NO SE CORREGIRÁ (decisión)
 
-**Descripción:** Los 10 lotes de apertura de inventario (carga inicial del sistema, uno por insumo original) tienen `precio_unitario=0`, no por error de cálculo sino porque nunca se les asignó un costo real de compra.
+**Evidencia (2026-08-06, sin cambios):** 10 lotes de apertura con `precio_unitario=0`, **todos en `estado='agotado'` con `cantidad_disponible=0`**.
 
-**Evidencia:** `SELECT COUNT(*) FROM lote WHERE numero_lote LIKE 'INI-%' AND precio_unitario = 0` → **10** lotes. Verificado adicionalmente, en **local y en producción**, que los 10 están en `estado='agotado'` con `cantidad_disponible=0.000` — se consumieron por completo, ninguno conserva saldo.
-
-**Implicaciones verificadas:**
-- **No afectan cálculos futuros.** `ProduccionModel::getLotesDisponiblesFIFOParaConsumo()` filtra explícitamente `WHERE estado='activo' AND cantidad_disponible>0`; un lote agotado nunca vuelve a salir en el FIFO de una producción nueva. Cualquier remanente que hoy no alcance a cubrirse con lotes reales pasa por el fix de C17 (lote sintético `EST-*` con el último precio conocido), no por estos lotes semilla.
-- **El impacto ya ocurrió y es retroactivo, no continuo.** Las producciones que alcanzaron a consumir de estos lotes mientras tenían saldo (incluidas `id_produccion` 1 y 4, ver punto 9) quedaron con costo subestimado de forma permanente en el histórico — pero ningún registro nuevo puede verse afectado por esta misma causa.
-
-**Severidad:** Histórico / sin impacto futuro.
-
-**Esfuerzo estimado:** S — si se decidiera corregir el histórico, implicaría reconstruir manualmente qué costo debieron tener esos 10 lotes y propagar el recálculo a cada producción que los consumió (ver decisión explícita de no hacerlo en el punto 9).
-
-**Por qué se pospuso:** Son datos de apertura de inventario, no compras reales — no existe un precio de compra real que asignarles. Al estar ya agotados los 10 lotes, la corrección retroactiva del costo que generaron se evaluó y se descartó explícitamente (ver punto 9): el beneficio de reconstruir ese costo histórico es nulo frente al riesgo de manipular datos ya consolidados.
+**Por qué no se corrige:** son datos de apertura de inventario, no compras reales: no existe un precio de compra real que asignarles. Al estar los 10 agotados, no pueden afectar a ningún cálculo futuro — `getLotesDisponiblesFIFOParaConsumo()` filtra por `estado='activo' AND cantidad_disponible>0`. El impacto ya ocurrió y es retroactivo (ver punto 9).
 
 ---
 
-### 9. Producciones `id_produccion` 1 y 4 con `costo_total=0` (deuda histórica aceptada, sin impacto futuro)
+### 9. ⬜ Producciones `id_produccion` 1 y 4 con `costo_total=0` — NO SE CORREGIRÁ (decisión)
 
-**Descripción:** Dos registros históricos de producción quedaron con costo cero: uno por el bug original de C17 (stock insuficiente forzado), el otro por la misma causa raíz sin la bandera de advertencia. Ambos consumieron exclusivamente de los lotes semilla `INI-*` del punto 8, hoy agotados en local y en producción.
+**Evidencia (2026-08-06, sin cambios):** 2 producciones con `costo_total=0`, ambas consumieron exclusivamente de los lotes semilla del punto 8.
 
-**Evidencia (verificada, sin cambios):**
-```
-id_produccion=1: unidades_producidas=350, costo_total=0.00, observaciones="⚠ Registrado con stock insuficiente"
-id_produccion=4: unidades_producidas=288, costo_total=0.00, observaciones="" (vacío)
-```
-
-**Impacto:** Estos dos registros individuales subestiman el costo de producción histórico en cualquier reporte que agregue por rango de fechas que los incluya (Finanzas, Cierre históricos de esas fechas puntuales). Es un impacto ya materializado y cerrado, no un riesgo abierto: los lotes que lo originaron están agotados (punto 8) y el fix de C17 cubre el escenario general hacia adelante, así que ninguna producción futura puede quedar con costo cero por esta misma causa.
-
-**Severidad:** Histórico / sin impacto futuro.
-
-**Esfuerzo estimado:** S (medio día) — técnicamente factible: recalcular el costo de estas 2 producciones con los precios de insumo vigentes en su fecha. Se documenta el esfuerzo únicamente como referencia; ver la decisión explícita de no hacerlo, a continuación.
-
-**Por qué se pospuso — decisión explícita, no solo falta de tiempo:** Recalcular `consumo_lote`/`costo_total` de producciones históricas es manipulación de datos ya consolidados, con riesgo real (reescribir un registro que pudo haberse reportado ya en un cierre de caja pasado) y beneficio nulo (nadie consulta reportes de esos dos días específicos, y no afecta ninguna operación futura). Se documenta como deuda histórica aceptada en vez de corregirse.
+**Por qué no se corrige — decisión explícita, no falta de tiempo:** recalcular `consumo_lote`/`costo_total` de producciones históricas es manipular datos ya consolidados, con riesgo real (reescribir un registro que pudo reportarse en un cierre de caja pasado) y beneficio nulo (no afecta ninguna operación futura; el fix de C17 cubre el escenario general hacia adelante). Se documenta como deuda histórica aceptada.
 
 ---
 
-### 10. `venta.id_producto=NULL` en el POS moderno: no se sabe qué producto individual se vendió
+### 10. ⬜ `venta.id_producto=NULL` en el POS moderno
 
-**Descripción:** El POS moderno (venta rápida y pedido detallado) registra `venta.id_categoria_precio`, no `venta.id_producto`. Como una misma categoría de precio agrupa varios productos distintos, no hay forma de saber, para la mayoría de las ventas, cuál producto específico se vendió — solo su categoría de precio.
+**Evidencia (2026-08-06, sin cambios):** **102 de 113** ventas (90,3%) tienen `id_producto` NULL, porque el POS moderno registra `id_categoria_precio` y una categoría agrupa varios productos distintos.
 
-**Evidencia (verificada hoy):** `SELECT COUNT(*) FROM venta WHERE id_producto IS NULL` → **102** de **113** ventas totales (90,3%). La categoría de precio `id_categoria=13` (~$500) es alimentada por producción de **5 productos distintos**: Pan de Sal, Croissant, Pan Dulce, Pan Coco y Pan Sal (verificado vía `produccion_precio`/`produccion`/`producto`; una venta con `id_categoria_precio=13` podría corresponder a cualquiera de estos 5).
+**Impacto:** los reportes "por producto" no pueden atribuir con certeza el 90% de las ventas a un producto específico (causa raíz documentada de C6/C17 y de la limitación aceptada en `getSobrantesHoy()`).
 
-**Impacto:** Reportes "por producto" (ej. `CierreModel::getSobrantesHoy()`) no pueden atribuir con certeza el 90% de las ventas a un producto específico — es la causa raíz documentada de C6/C17 y de la limitación aceptada en `getSobrantesHoy()` (nota agregada en esa función explicando por qué no se resolvió por completo).
+**Severidad:** Alto. **Esfuerzo:** L — el POS tendría que capturar también qué producto específico se vendió dentro de la categoría: cambio de modelo de datos **y** de la interfaz de cobro en mostrador.
 
-**Severidad:** Alto.
-
-**Esfuerzo estimado:** L — requiere que el POS moderno capture también qué producto específico se vendió dentro de la categoría (cambio de modelo de datos y de la interfaz de cobro en mostrador), no solo una consulta.
-
-**Por qué se pospuso:** Es una decisión de diseño del POS moderno, que prioriza velocidad de cobro en mostrador (elegir precio, no producto) sobre trazabilidad por producto individual. Cambiarlo afecta la experiencia de venta rápida, no es un ajuste aislado de backend.
+**Por qué sigue abierto:** es una decisión de diseño del POS, que prioriza la velocidad de cobro (elegir precio, no producto) sobre la trazabilidad por producto. Cambiarlo afecta la experiencia de venta rápida, no es un ajuste aislado de backend.
 
 ---
 
 ## ARQUITECTURA
 
-### 11. Los pedidos del Portal (`pedido_cliente`) no se reconcilian con `venta`
+### 11. ✅ Los ingresos del Portal quedaban fuera de los reportes — RESUELTO (2026-08-06, opción B.2)
 
-**Descripción:** `pedido_cliente`/`pedido_cliente_detalle` son tablas completamente independientes de `venta`/`venta_detalle`. Un pedido del portal, incluso pagado y confirmado, nunca genera una fila en `venta`.
+**Era:** `pedido_cliente` y `venta` son tablas independientes y un pedido del portal **nunca** genera una fila en `venta` (verificado de nuevo: cero `INSERT INTO venta` en los modelos del portal). Como los reportes financieros calculan ingresos desde `venta`, el dinero cobrado por el portal no sumaba a la utilidad. Y como el costo de esos panes **sí** se contabiliza (se descuenta al registrar la producción del día), la utilidad reportada tenía un **sesgo sistemático a la baja**.
 
-**Evidencia:** Búsqueda de `INSERT INTO venta`/`INSERT INTO venta_detalle` en `models/PortalClienteModel.php` y `models/PedidoClienteModel.php`: **cero coincidencias** (confirmado hoy nuevamente).
+**Cómo se resolvió:** `FinanzasHelper::ingresosPortalEnRango()` suma `pedido_cliente.total_estimado` de los pedidos con `estado_pago='aprobado'`, y se incorpora a los cinco puntos que calculan ingresos: portada (`AuthModel`), cierre del día (`CierreModel`, hoy y ayer), finanzas por rango (`FinanzasModel`), tablero (`TableroModel`, hoy/ayer/mes) y el resumen diario de `GastoModel`.
 
-**Impacto:** Los reportes financieros (Finanzas, Cierre, Portada) que sí calculan utilidad e ingresos a partir de la tabla `venta` **no incluyen ningún ingreso proveniente de pedidos del portal** — aunque el cliente haya pagado vía Wompi/Nequi consolidado. La utilidad centralizada en `FinanzasHelper` (Fórmula F) hereda esta misma omisión, porque solo consume datos de `venta`.
+**Por qué B.2 y no crear una venta espejo:** se eligió sumar el **estado** del pedido en vez de insertar una fila en `venta`. Es idempotente por diseño —leer un estado no puede contar doble, confirmar un cobro dos veces no duplica el ingreso— y no toca inventario ni el POS, así que no arriesga un doble descuento de stock. La alternativa (crear la venta en diferido) exigía migración, guardián de idempotencia y una decisión sobre el backfill de los pedidos ya confirmados.
 
-**Severidad:** Alto.
+**La fecha del ingreso es `fecha_entrega`**, no la del cobro: así el ingreso cae el mismo día que la producción que lo costeó y el cierre diario cuadra.
 
-**Esfuerzo estimado:** XL — requiere primero una decisión de negocio (¿en qué momento un pedido del portal se convierte en "venta real": al pagar, al aprobar, al entregar?) antes de poder diseñar el cambio técnico.
+**Contrapartidas asumidas, que siguen abiertas:**
+- Quedan **dos fuentes de ingreso** que hay que sumar en cada reporte nuevo. Por eso la consulta vive en `FinanzasHelper` y no copiada en cada modelo: un reporte futuro que olvide llamarla volverá a tener el sesgo.
+- **El POS sigue sin ver el pan comprometido a pedidos del portal**, así que puede sobre-vender el stock del día. Esto lo resolvería la opción B.1 (venta en diferido), descartada por ahora.
 
-**Por qué se pospuso:** `pedido_cliente` y `venta` se diseñaron como sistemas independientes en etapas distintas del proyecto (el portal se agregó después del POS). Unificarlos es una decisión de producto, no un fix técnico aislado — se dejó fuera del alcance de las correcciones puntuales de esta fase.
-
----
-
-### 12. `assets/js/ventas.js` (689 líneas) huérfano
-
-**Descripción:** Existe un archivo externo con la misma lógica de catálogo/carrito/bonificación que usa `views/ventas/index.php`, ya con el fix de escapado XSS aplicado correctamente — pero ningún archivo del proyecto lo carga.
-
-**Evidencia:** Búsqueda de `<script src=...ventas.js` en todo el proyecto: **cero coincidencias**. `wc -l assets/js/ventas.js` → 689 líneas (confirmado hoy, sin cambios).
-
-**Impacto:** Ninguno en tiempo de ejecución (el archivo simplemente no se ejecuta). El impacto es de mantenimiento: alguien podría asumir que editar `ventas.js` corrige el comportamiento de la pantalla de Ventas, cuando en realidad esa pantalla usa el bloque `<script>` inline (ver #13).
-
-**Severidad:** Bajo.
-
-**Esfuerzo estimado:** S (1 día) — decidir si se completa la extracción (reemplazar el inline por `<script src="assets/js/ventas.js">`, verificando que no haya divergido del comportamiento actual) o si se elimina por estar desactualizado.
-
-**Por qué se pospuso:** Parece un intento de extracción/refactor iniciado pero no completado — se escribió la versión corregida en un archivo aparte y nunca se terminó de conectar a la vista, quedando como código muerto.
+**Evidencia:** `tests/Integration/IngresosPortalTest.php` (solo suma los cobrados; el ingreso cae en el día de entrega; leer dos veces no duplica; el cierre del día incluye el portal).
 
 ---
 
-### 13. 796 líneas de JavaScript inline en `views/ventas/index.php`
+### 12. ✅ `assets/js/ventas.js` huérfano — RESUELTO (v1.0.0)
 
-**Descripción:** Contradice `RNF-07` (separación de diseño/lógica del frontend): la lógica completa de catálogo, carrito y bonificaciones vive en un bloque `<script>` embebido en la plantilla PHP, no en un archivo `.js` externo.
-
-**Evidencia:** `views/ventas/index.php`, bloque `<script>` desde la línea 1617 hasta la línea 2412 (confirmado hoy: `796` líneas).
-
-**Impacto:** Dificulta la cacheabilidad del navegador (el bloque se re-descarga con cada carga de la página HTML, a diferencia de un `.js` externo cacheable) y el mantenimiento (mezclar PHP y JS en el mismo archivo de casi 2.400 líneas totales).
-
-**Severidad:** Bajo-Medio (no es un bug funcional, es deuda técnica de mantenibilidad).
-
-**Esfuerzo estimado:** M (2-3 días) — extraer a `assets/js/`, con pruebas manuales exhaustivas del flujo de venta rápida y pedido detallado para no introducir regresiones.
-
-**Por qué se pospuso:** Es la misma causa raíz que el punto 12: la extracción a `assets/js/ventas.js` se empezó pero no se terminó de conectar en la vista original.
+El archivo ya no es código muerto: `views/ventas/index.php:478` lo carga con `<script src="...assets/js/ventas.js">`. La extracción que estaba a medias se completó en la tanda de refactor de la v1.0.0.
 
 ---
 
-### 14. Código duplicado: carrito de "nuevo pedido" vs. "editar pedido"
+### 13. ✅ 796 líneas de JavaScript inline en `views/ventas/index.php` — RESUELTO (v1.0.0)
 
-**Descripción:** La lógica de catálogo, carrito y panel de bonificación está duplicada casi íntegramente dentro de `views/ventas/index.php`: una copia para registrar un pedido nuevo, otra (con prefijo `ep`) para editar uno existente.
-
-**Evidencia:** Confirmado durante el fix de XSS (C7) de esta misma fase: los mismos 3 patrones de renderizado (`pc-name`/`title`, `ci-name` del carrito, `br-name` de bonificación) aparecen duplicados en `views/ventas/index.php` — una vez para el flujo nuevo (~líneas 1732, 1809, 1930) y otra idéntica para el flujo de edición (~líneas 2097, 2165, 2281). Tuve que aplicar el mismo fix dos veces en el mismo archivo.
-
-**Impacto:** Cualquier corrección o funcionalidad nueva debe aplicarse dos veces; si se olvida una copia (como ocurrió con el XSS antes de esta fase), el bug persiste en un flujo mientras parece resuelto en el otro.
-
-**Severidad:** Medio.
-
-**Esfuerzo estimado:** M (2-3 días) — extraer funciones compartidas parametrizadas por prefijo/contexto (nuevo vs. editar).
-
-**Por qué se pospuso:** El flujo de "editar pedido" se agregó copiando el flujo de "nuevo pedido" ya existente y funcional, en vez de invertir tiempo en extraer una función compartida en el momento de agregar la función de edición.
+La vista pasó de 2.424 a **480 líneas** y su JS vive en `assets/js/ventas.js` (cacheable por el navegador), cumpliendo `RNF-07`.
 
 ---
 
-### 15. Vistas clásicas de insumo sin estilo ni enlace (`crear_insumo.php`, `editar_insumo.php`)
+### 14. ⬜ Código duplicado: carrito de "nuevo pedido" vs. "editar pedido"
 
-**Descripción:** Documentado ya en la Sección 2.4 del SRS: son remanentes de una versión anterior del módulo de Inventario, sin ningún enlace desde la UI y sin estilo visual (usan clases de Bootstrap que nunca reciben su hoja de estilos).
+**Descripción:** la lógica de catálogo, carrito y panel de bonificación está duplicada casi íntegramente: una copia para registrar un pedido nuevo y otra (con prefijo `ep`) para editar uno existente. Tras la extracción del punto 13, la duplicación vive en `assets/js/ventas.js` en vez de en la vista, pero **sigue ahí**.
 
-**Evidencia:** `controllers/InventarioController.php` las rotula "clásica" en sus comentarios (líneas 131, 171); ninguna vista del proyecto enlaza hacia `crear_insumo.php`/`editar_insumo.php`; confirmado visualmente que se renderizan sin estilo (inputs planos del navegador, botón gris).
+**Impacto:** cualquier corrección debe aplicarse dos veces; si se olvida una copia (como ocurrió con el XSS antes de su fix), el bug persiste en un flujo mientras parece resuelto en el otro.
 
-**Impacto:** Bajo en la práctica (nadie llega a estas pantallas por la UI normal), pero representan código muerto que podría confundir a un desarrollador nuevo, y si alguien llegara a la URL manualmente, vería una pantalla que parece rota.
+**Severidad:** Medio. **Esfuerzo:** M (2-3 días) — extraer funciones compartidas parametrizadas por prefijo/contexto.
 
-**Severidad:** Bajo.
+---
 
-**Esfuerzo estimado:** S (medio día) — eliminarlas si el modal de `views/inventario/index.php` cubre el 100% de sus casos de uso, o reconectarlas con el sistema de diseño propio si se decide mantenerlas como alternativa.
+### 15. ⬜ Vistas clásicas de insumo sin estilo ni enlace (`crear_insumo.php`, `editar_insumo.php`)
 
-**Por qué se pospuso:** Son remanentes de una versión anterior del módulo, reemplazadas funcionalmente por el modal inline, pero nunca eliminadas ni desconectadas del controlador al completar esa migración interna.
+**Evidencia (2026-08-06):** siguen existiendo y `InventarioController` las rotula "clásica" y las carga (`:181` y `:235`), pero **ninguna vista del proyecto enlaza a ellas**: el modal de `views/inventario/index.php` cubre su función.
+
+**Impacto:** bajo en la práctica; es código muerto que puede confundir. Ambas recibieron su token CSRF en la tanda del 2026-08-06 para no dejar formularios sin protección mientras existan.
+
+**Severidad:** Bajo. **Esfuerzo:** S (medio día) — eliminarlas junto con sus dos métodos de controlador. Se propuso al propietario en la revisión del 2026-08-06 y **decidió no incluirlas** en esa tanda.
 
 ---
 
 ## CONFIGURACIÓN
 
-### 16. `php.ini` con `date.timezone=Europe/Berlin` obsoleto (cosmético, sin impacto funcional)
+### 16. ⬜ `php.ini` con `date.timezone=Europe/Berlin` (cosmético, sin impacto funcional)
 
-**Descripción:** `php.ini` tiene `date.timezone=Europe/Berlin` como valor por defecto obsoleto, pero es inerte porque `config/app.php` lo sobreescribe: `date_default_timezone_set('America/Bogota')` es su primera línea ejecutable. Se verificó que los 51 puntos de entrada reales de la aplicación (`index.php`, `login.php`, los 33 archivos de `modules/`, los 18 de `portal/`) lo cargan antes de generar cualquier timestamp — directamente, o de forma transitiva vía `includes/sesion.php` (que también lo requiere en su línea 7) en los dos únicos casos que no lo requieren de forma directa (`portal/logout.php`, `portal/pagar_instructor.php`, ninguno de los cuales genera timestamps). Los 3 scripts CLI de `sql/migrar_*.php` también lo cargan.
+Es inerte: `config/app.php` ejecuta `date_default_timezone_set('America/Bogota')` como primera línea, y los 51 puntos de entrada lo cargan antes de generar cualquier timestamp. Colombia no observa horario de verano, así que PHP (`America/Bogota`) y MySQL (`SET time_zone='-05:00'`) son equivalentes.
 
-**Evidencia:** Verificación en vivo, con `config/app.php` cargado (como ocurre siempre en la aplicación real):
-```
-PHP date_default_timezone_get() = America/Bogota
-PHP date(now)                   = 2026-07-10 17:04:33
-MySQL NOW() (sesión app)        = 2026-07-10 17:04:33   ← idéntico, sin desfase
-MySQL @@session.time_zone       = -05:00
-```
-Colombia no observa horario de verano — `America/Bogota` es un offset fijo de `-05:00` todo el año — por lo que `date_default_timezone_set()` en PHP y `SET time_zone='-05:00'` en `config/db.php::getConexion()` son, en la práctica, exactamente equivalentes.
-
-**Nota de corrección:** una versión anterior de este mismo punto reportó un desfase real de 7 horas entre PHP y MySQL, con severidad Media. Ese hallazgo fue un **falso positivo**: se midió con un script de diagnóstico que llamaba a `config/db.php` sin cargar `config/app.php` primero, dejando PHP en el `Europe/Berlin` del `php.ini` en ese proceso aislado — algo que nunca ocurre en la aplicación real. Corregido tras verificación exhaustiva de los 51 puntos de entrada.
-
-**Impacto:** Ninguno funcional. Es una configuración de base inerte, sobreescrita antes de que cualquier controlador o modelo genere un timestamp.
-
-**Severidad:** Cosmético / sin impacto funcional.
-
-**Esfuerzo estimado:** S (una línea) — recomendación cosmética: alinear `php.ini` a `America/Bogota` para evitar confusión si en el futuro alguien escribe un script CLI puntual que no cargue `config/app.php` primero (como ocurrió con el script de diagnóstico que originó el hallazgo anterior).
-
-**Por qué se pospuso:** No aplica — no es una limitación real del sistema, solo una inconsistencia cosmética en la configuración base de PHP, sin ningún efecto observable en la aplicación.
+**Nota:** el archivo `php.ini` **no está versionado en el repositorio**; es el del XAMPP local. La recomendación (alinearlo a `America/Bogota`) aplica al entorno de desarrollo, para evitar confundir a quien escriba un script CLI que no cargue `config/app.php` — exactamente el falso positivo que originó una versión anterior de este punto.
 
 ---
 
-### 17. `sql/panaderia_bd.sql` no refleja el esquema real de `cliente`
+### 17. ✅ El despliegue limpio no reflejaba el esquema real — RESUELTO (2026-08-06)
 
-**Descripción:** El script que se ejecuta automáticamente en un despliegue nuevo desde cero (`docker-entrypoint-initdb.d/init.sql`) crea `cliente` con solo 6 columnas; la base de datos real (local y producción, verificadas idénticas) tiene 14.
+**Era:** `docker-compose.yml` inicializaba la base con `sql/panaderia_bd.sql`, que crea `cliente` con solo 6 columnas frente a las 14 reales. Un despliegue nuevo desde cero —justo lo que haría un evaluador— tenía el login del portal, Google OAuth y el flujo instructor-aprendiz rotos.
 
-**Evidencia:** `CREATE TABLE cliente` en `sql/panaderia_bd.sql` solo declara `id_cliente, nombre, tipo, telefono, activo, fecha_creacion`. Faltan `usuario, contrasena_hash, es_aprendiz, cupo_semanal, id_instructor, email, foto_url, google_id` — confirmadas presentes en la base real vía `DESCRIBE cliente`, y explicadas parcialmente por `sql/agregar_login_cliente.sql` y `sql/agregar_google_id.sql` (que sí existen como migraciones sueltas), pero `es_aprendiz`, `cupo_semanal`, `id_instructor`, `email` y `foto_url` no tienen ningún script de creación documentado en `sql/`.
+**Cómo se resolvió:** el `initdb` apunta ahora a `sql/init/01_esquema_base.sql`, el esquema real versionado (generado con `mysqldump --no-data` de producción, y ya usado por el CI), que incluye las 14 columnas de `cliente` y todas las tablas del flujo de pedidos.
 
-**Impacto:** Un despliegue nuevo desde cero (por ejemplo, para un evaluador o instructor que quiera levantar el proyecto de forma independiente) tendría el login del portal, Google OAuth y el flujo instructor-aprendiz completamente rotos hasta ejecutar manualmente las migraciones sueltas y, para las columnas sin script, hasta recrearlas a mano.
-
-**Severidad:** Alto (bloquea un despliegue limpio del sistema, no solo una función puntual).
-
-**Esfuerzo estimado:** S (1 día) — agregar las 8 columnas faltantes al `CREATE TABLE` de `panaderia_bd.sql` con sus tipos y valores por defecto reales (ya confirmados vía `DESCRIBE` en esta misma fase de trabajo).
-
-**Por qué se pospuso:** Se identificó al corregir las columnas de pagos de `configuracion` en esta misma fase, pero se dejó fuera de esa tanda explícitamente para no ampliar el alcance de ese fix puntual — quedó documentado como pendiente en ese momento y no se ha retomado todavía.
+**Trampa que conviene dejar escrita:** **no** se monta también `sql/init/02_extensiones_flujo.sql`. Ese script parte del dump antiguo y añade esas mismas columnas y tablas con `ALTER TABLE ADD COLUMN` y `CREATE TABLE` **sin** `IF NOT EXISTS`, así que sobre el 01 falla por duplicado y el contenedor **aborta la inicialización**. Sigue siendo útil solo para una base creada con el dump viejo.
 
 ---
 
-### 18. Condiciones de carrera en `generarNumeroLote()` y en la validación de cupo semanal
+## CONCURRENCIA
 
-**Descripción:** Dos puntos distintos del sistema siguen el patrón "leer, calcular en PHP, escribir" sin bloqueo pesimista ni aislamiento serializable, lo que permite que dos solicitudes concurrentes lean el mismo estado "antes" y ambas procedan como si fueran la única.
+### 18. 🟡 Condiciones de carrera — PARCIALMENTE RESUELTO
 
-**Evidencia:**
-- `includes/funciones.php::generarNumeroLote()` (líneas 85-102): hace `SELECT numero_lote ... ORDER BY numero_lote DESC LIMIT 1`, calcula `$seq = último + 1` en PHP, y **solo después** (en el código que llama a esta función) se hace el `INSERT`. Dos compras registradas casi simultáneamente pueden leer el mismo "último" número y calcular la misma secuencia — la `UNIQUE KEY` sobre `numero_lote` evitaría datos corruptos, pero una de las dos inserciones fallaría con error de duplicado en vez de reintentar con el siguiente número.
-- `models/PortalClienteModel.php::crearPedido()` (validación de cupo semanal, ~línea 742): hace `SELECT COALESCE(SUM(total_estimado),0) FROM pedido_cliente WHERE ...` y compara contra `cupo_semanal` en PHP, dentro de una transacción con el nivel de aislamiento por defecto de MySQL (`REPEATABLE READ`), que no impide que dos transacciones concurrentes del mismo aprendiz lean el mismo "consumido hasta ahora" y ambas pasen la validación antes de que cualquiera confirme (`commit`).
+**Resuelto:** la validación de **cupo semanal** ya bloquea la fila del creador con `SELECT ... FOR UPDATE` (`models/portal/PedidosPortalTrait.php:352`), de modo que dos pedidos simultáneos del mismo aprendiz no pueden pasar ambos la validación. El canje de código de aprendiz usa el mismo patrón sobre la fila del código.
 
-**Impacto:** Baja probabilidad de ocurrencia en el uso normal (requiere dos solicitudes verdaderamente simultáneas del mismo recurso), pero si ocurre: en lotes, una compra fallaría con un error de base de datos poco claro para el usuario; en cupo semanal, un aprendiz podría lograr que dos pedidos simultáneos excedan su cupo cuando cada uno individualmente no lo hace.
+**Abierto:** `includes/funciones.php::generarNumeroLote()` (líneas 101-118) sigue con el patrón "leer, calcular en PHP, escribir": hace `SELECT ... ORDER BY numero_lote DESC LIMIT 1`, calcula `último + 1` y solo después se inserta. Dos compras casi simultáneas pueden calcular la misma secuencia; la `UNIQUE KEY` evita datos corruptos, pero una de las dos inserciones falla con un error de duplicado poco claro en vez de reintentar con el siguiente número.
 
-**Severidad:** Medio.
+**Severidad:** Medio (requiere concurrencia real para manifestarse). **Esfuerzo:** S-M — reintento ante duplicado, o `SELECT ... FOR UPDATE` sobre una fila de control. Propuesto en la revisión del 2026-08-06 y **no incluido** en esa tanda por decisión del propietario.
 
-**Esfuerzo estimado:** M (2-3 días) — usar `SELECT ... FOR UPDATE` sobre una fila de control para la generación de lote, y/o `SERIALIZABLE`/bloqueo explícito sobre las filas de `pedido_cliente` del aprendiz durante la validación de cupo.
+---
 
-**Por qué se pospuso:** Requieren tráfico concurrente real para manifestarse. Dado el volumen de uso actual del sistema (una panadería con un número acotado de operarios y aprendices), el riesgo práctico es bajo comparado con otros hallazgos que ya se observaron materializados en datos reales (como los puntos 7-10), por lo que no se priorizó sobre esos.
+### 19. ✅ Columna huérfana `pedido_cliente.id_tienda_destino` — RESUELTO (2026-08-06)
+
+**Era:** la columna se creó para la funcionalidad "Tiendas Beneficiarias", pero **ningún punto del código la escribía**: valía NULL siempre. Su único lector era una subconsulta en `ConfiguracionModel::getTiendasBeneficiarias()` que mostraba un contador de pedidos por tienda, y que por tanto marcaba 0 para todas, siempre.
+
+**Cómo se resolvió:** se eliminaron la subconsulta muerta, el contador de la vista y la columna (`sql/migraciones/2026-08-06_02_eliminar_id_tienda_destino.sql`). El destinatario real de un pedido es `id_cliente`; `id_creador` es quien lo armó. Detalle en `docs/id_tienda_destino.md`.
+
+**Orden obligatorio del despliegue:** primero el código, después la migración. Al revés, la pantalla de Tiendas Beneficiarias falla entre el `ALTER` y el despliegue.
+
+---
+
+### 20. ⬜ Los mensajes flash de `redirigir()` nunca se muestran
+
+**Descubierto el 2026-08-06** al elegir cómo avisar de un token CSRF inválido.
+
+**Descripción:** `redirigir($url, $tipo, $mensaje)` (`includes/funciones.php:32`) guarda el mensaje en `$_SESSION['mensaje_texto']`, y `mostrarMensaje()` (`:42`) lo renderiza. Pero **ninguna vista llama a `mostrarMensaje()`** (`grep -rn 'mostrarMensaje' views/` → cero coincidencias), así que todos esos mensajes se escriben en la sesión y nunca se muestran; la siguiente pantalla simplemente aparece sin explicación.
+
+**Impacto:** confirmaciones y errores que el código cree estar comunicando ("Proveedor desactivado", "Insumo creado correctamente") se pierden. No hay pérdida de datos: la acción sí se ejecuta.
+
+**Severidad:** Bajo-Medio (usabilidad). **Esfuerzo:** S — llamar a `mostrarMensaje()` en el layout `views/layouts/header.php`, revisando que el HTML que genera (clases de Bootstrap `alert`) encaje con el sistema de diseño propio, que no usa Bootstrap.
+
+**Por qué no se resolvió en esta tanda:** por eso los avisos de CSRF usan la convención `?err=csrf`, que sí se muestra. Arreglar el sistema flash haría aparecer de golpe decenas de mensajes hoy invisibles en pantallas que no se han revisado, y eso merece su propia tanda con revisión visual.
 
 ---
 
 ## Metodología de verificación
 
 Cada punto de este documento se verificó, antes de escribirlo, mediante al menos uno de estos métodos:
-1. Lectura directa del archivo y línea citados en "Evidencia".
-2. Consulta SQL ejecutada contra la base de datos local (sincronizada y confirmada idéntica a producción para las tablas `cliente` y `pedido_cliente` en una verificación anterior de esta misma fase).
-3. Búsqueda exhaustiva (`grep`) en todo el árbol del proyecto para confirmar ausencia o presencia de un patrón, no solo su existencia en un archivo puntual.
 
-Ningún dato de este documento fue estimado o asumido sin evidencia directa; donde la verificación no fue posible desde este entorno (por ejemplo, configuración de infraestructura externa al repositorio), se marcó explícitamente `[VERIFICAR]` en el punto correspondiente.
+1. Lectura directa del archivo y línea citados en "Evidencia".
+2. Consulta SQL ejecutada contra la base de datos local (sincronizada con producción).
+3. Búsqueda exhaustiva (`grep`) en todo el árbol del proyecto para confirmar ausencia o presencia de un patrón.
+4. Para los puntos resueltos en 2026-08-06: además, ejecución real contra el servidor local (rechazo de POST sin token, bloqueo al sexto intento de login) y la suite de 151 pruebas con PHPStan en nivel 10 limpio.

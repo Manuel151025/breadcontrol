@@ -108,6 +108,28 @@ function esPropietario(): bool {
 }
 
 /**
+ * IP de origen de la petición, para el control de intentos de inicio de sesión.
+ *
+ * En producción la aplicación corre detrás de Traefik, así que REMOTE_ADDR es
+ * siempre la IP del proxy y hay que leer X-Forwarded-For (primer elemento = el
+ * cliente original). Esa cabecera la puede falsificar quien llegue directo al
+ * contenedor, por lo que el bloqueo por IP es solo una salvaguarda secundaria:
+ * la defensa principal es el bloqueo por cuenta, que no depende de la IP.
+ */
+function ip_cliente(): ?string {
+    $reenviada = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
+    if (is_string($reenviada) && $reenviada !== '') {
+        $partes = explode(',', $reenviada);
+        $ip     = trim($partes[0]);
+        if (filter_var($ip, FILTER_VALIDATE_IP)) {
+            return $ip;
+        }
+    }
+    $remota = $_SERVER['REMOTE_ADDR'] ?? '';
+    return is_string($remota) && filter_var($remota, FILTER_VALIDATE_IP) ? $remota : null;
+}
+
+/**
  * Genera un token CSRF criptográficamente seguro si no existe en la sesión.
  */
 function generar_token_csrf(): string {
@@ -118,6 +140,33 @@ function generar_token_csrf(): string {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
     return $_SESSION['csrf_token'];
+}
+
+/**
+ * Guarda CSRF para las pantallas del back-office: si el token del POST no es
+ * válido, corta la petición y devuelve al usuario a la pantalla de origen con
+ * `?err=csrf`, que cada controlador traduce a un aviso visible.
+ *
+ * Se llama UNA vez por cada método de controlador que procese POST, antes de
+ * mirar qué acción se pidió, para que ninguna rama nueva quede sin proteger por
+ * olvido. Los formularios acompañan el token con campo_csrf().
+ */
+function requerir_csrf(string $url_error): void {
+    // is_string: un formulario manipulado puede enviar csrf_token[] (array).
+    $token = $_POST['csrf_token'] ?? '';
+    if (validar_token_csrf(is_string($token) ? $token : '')) {
+        return;
+    }
+    header('Location: ' . $url_error);
+    exit;
+}
+
+/**
+ * Campo oculto con el token CSRF, para no repetir el input en cada formulario.
+ */
+function campo_csrf(): string {
+    return '<input type="hidden" name="csrf_token" value="'
+        . htmlspecialchars(generar_token_csrf(), ENT_QUOTES, 'UTF-8') . '">';
 }
 
 /**

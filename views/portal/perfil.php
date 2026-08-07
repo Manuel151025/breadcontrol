@@ -203,11 +203,11 @@
                     </div>
                     <div class="form-group">
                         <label>Nueva Contraseña</label>
-                        <input type="password" name="pass_nueva" class="form-control" required minlength="4">
+                        <input type="password" name="pass_nueva" class="form-control" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" placeholder="Mínimo <?= Seguridad::CONTRASENA_MIN ?> caracteres, con letras y números">
                     </div>
                     <div class="form-group">
                         <label>Confirmar Nueva Contraseña</label>
-                        <input type="password" name="pass_confirm" class="form-control" required minlength="4">
+                        <input type="password" name="pass_confirm" class="form-control" required minlength="<?= Seguridad::CONTRASENA_MIN ?>">
                     </div>
                     <button type="submit" name="cambiar_pass" class="btn-save" style="background: var(--ink2);">
                         <i class="bi bi-key"></i> Cambiar Contraseña

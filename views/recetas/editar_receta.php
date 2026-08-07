@@ -52,6 +52,7 @@
     <?php endif; ?>
 
     <form method="post" id="form-receta">
+      <?= campo_csrf() ?>
       <div class="tbl-wrap">
         <table class="gt">
           <thead>

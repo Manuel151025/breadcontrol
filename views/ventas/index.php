@@ -63,6 +63,7 @@
         <!-- ══ MODO RÁPIDO ══ -->
         <div id="panel-rapido">
           <form method="POST" id="form-venta">
+            <?= campo_csrf() ?>
             <input type="hidden" name="id_categoria" id="inp-cat" value="">
             <input type="hidden" name="tipo_salida" id="inp-tipo" value="venta">
             <input type="hidden" name="precio_custom" id="inp-precio-custom" value="0">
@@ -145,6 +146,7 @@
         <!-- ══ MODO DETALLE (CARRITO) ══ -->
         <div id="panel-detalle" style="display:none;">
           <form method="POST" id="form-pedido">
+            <?= campo_csrf() ?>
             <input type="hidden" name="carrito_json" id="carrito-json" value="[]">
 
             <div class="sec-sep">Selecciona el precio</div>
@@ -326,6 +328,7 @@
         style="background:none;border:none;font-size:1.2rem;cursor:pointer;">&times;</button>
     </div>
     <form method="POST">
+      <?= campo_csrf() ?>
       <input type="hidden" name="id_venta" id="ev-id">
       <input type="hidden" name="ev_cliente_anterior" id="ev-cli-prev" value="0">
       <input type="hidden" name="ev_unid_anteriores" id="ev-und-prev" value="0">
@@ -395,6 +398,7 @@
         style="background:none;border:none;font-size:1.3rem;cursor:pointer;">&times;</button>
     </div>
     <form method="POST" id="form-edit-pedido">
+      <?= campo_csrf() ?>
       <input type="hidden" name="edit_id_venta" id="ep-id">
       <input type="hidden" name="edit_carrito_json" id="ep-carrito-json" value="[]">
 

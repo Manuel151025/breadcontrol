@@ -49,6 +49,7 @@
       </div>
 
       <form method="POST">
+        <?= campo_csrf() ?>
         <div class="fl">
           <label>Contraseña actual (para confirmar tu identidad)</label>
           <input type="password" name="clave_actual" required placeholder="Tu contraseña actual">

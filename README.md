@@ -413,12 +413,12 @@ BreadControl/
 
 ## 🧪 Pruebas
 
-El proyecto usa **PHPUnit 11** con dos suites (122 pruebas, 248 aserciones):
+El proyecto usa **PHPUnit 11** con dos suites (151 pruebas, 291 aserciones):
 
 | Suite | Qué cubre | Requiere BD |
 |-------|-----------|-------------|
-| **Unitarias** | Reglas de negocio del portal ([ReglasPortal](helpers/ReglasPortal.php)), helpers de pedidos y finanzas, funciones de formato/sanitización, CSRF, sesión y contraseñas | No |
-| **Integración** | AuthModel (login, recuperación), PortalClienteModel (aprobación/rechazo en lote), validación de stock de ventas y generación de lotes | Sí (MySQL) |
+| **Unitarias** | Reglas de negocio del portal ([ReglasPortal](helpers/ReglasPortal.php)), reglas de seguridad ([Seguridad](helpers/Seguridad.php): política de contraseña y hashing del código de recuperación), helpers de pedidos y finanzas, funciones de formato/sanitización, CSRF, sesión y contraseñas | No |
+| **Integración** | AuthModel (login, recuperación), PortalClienteModel (aprobación/rechazo en lote), validación de stock de ventas y generación de lotes, límite de intentos de inicio de sesión e ingresos del portal en los reportes | Sí (MySQL) |
 
 ```bash
 composer install           # una sola vez
@@ -446,7 +446,7 @@ con 5 verificaciones independientes:
    `helpers/`, `includes/` y `models/`. Los niveles 1-8 están corregidos en el
    código; los niveles 9-10 se exigen a todo código nuevo, mientras las
    ocurrencias heredadas quedan inventariadas en `phpstan-baseline.neon`
-   (854 y bajando; ver [CONTRIBUTING.md](CONTRIBUTING.md) para reducirlas).
+   (834 y bajando; ver [CONTRIBUTING.md](CONTRIBUTING.md) para reducirlas).
 3. **Pruebas unitarias** — suite `Unitarias` de PHPUnit.
 4. **Pruebas de integración** — suite `Integracion` contra un servicio MySQL 8.0
    real, creado desde el esquema versionado (`sql/init/01_esquema_base.sql`) más
@@ -460,11 +460,18 @@ con 5 verificaciones independientes:
 
 ## 🔒 Seguridad
 
-- **Contraseñas cifradas** con `password_hash()` (bcrypt).
-- **Recuperación segura por PIN** mediante hash bcrypt temporal en el perfil.
+- **Contraseñas cifradas** con `password_hash()` (bcrypt), bajo una política única
+  ([Seguridad](helpers/Seguridad.php)): mínimo 8 caracteres con letra y número.
+- **Recuperación segura por PIN** mediante hash bcrypt temporal en el perfil. El
+  código de 6 dígitos enviado por correo también se guarda hasheado.
+- **Freno a la fuerza bruta** en el inicio de sesión del back-office y del portal:
+  5 intentos fallidos por cuenta y 20 por IP en 15 minutos (tabla `intento_login`).
 - **Consultas preparadas** (PDO bind parameters) con emulación de prepares desactivada.
 - **Prevención XSS** escapando todas las salidas del DOM mediante `htmlspecialchars()`.
-- **Prevención CSRF** con inyección y verificación de tokens en todas las peticiones POST de mutación de datos.
+- **Prevención CSRF** con inyección y verificación de tokens en todas las peticiones
+  POST de mutación de datos, tanto en el portal como en el back-office. El guardián
+  (`requerir_csrf()`) se aplica una vez por método de controlador, **antes** de mirar
+  qué acción se pidió, de modo que una rama nueva no puede quedar sin proteger.
 - **Auto-cierre de sesión** automático por inactividad tras 6 minutos.
 - **Configuración de sesión** con atributos `HttpOnly`, `SameSite=Lax` y cookies HTTPS seguras.
 - **Soft delete** — los datos críticos se marcan como inactivos en lugar de eliminarse de la BD para conservar referencias.

@@ -97,9 +97,11 @@ class GastoModel {
      * @return array<mixed>
      */
     public function getResumenFinanzasDia(string $fecha): array {
+        // POS + pedidos del portal ya cobrados (ver FinanzasHelper::ingresosPortalEnRango).
         $stmt_ventas = $this->pdo->prepare("SELECT COALESCE(SUM(total_venta), 0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) = ?");
         $stmt_ventas->execute([$fecha]);
-        $ingresos_dia = (float)$stmt_ventas->fetchColumn();
+        $ingresos_dia = (float)$stmt_ventas->fetchColumn()
+                      + FinanzasHelper::ingresosPortalEnRango($this->pdo, $fecha, $fecha);
 
         $stmt_compras = $this->pdo->prepare("SELECT COALESCE(SUM(total_pagado), 0) FROM compra WHERE DATE(fecha_compra) = ?");
         $stmt_compras->execute([$fecha]);

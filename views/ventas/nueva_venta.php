@@ -104,6 +104,7 @@
         <?php if ($msg_ok): ?><div class="msg-ok"><i class="bi bi-check-circle-fill"></i><?= $msg_ok ?></div><?php endif; ?>
         <?php if ($msg_err): ?><div class="msg-err"><i class="bi bi-exclamation-circle-fill"></i><?= $msg_err ?></div><?php endif; ?>
         <form method="post" id="form-venta">
+          <?= campo_csrf() ?>
           <div class="fl">
             <label>Producto</label>
             <select name="id_producto" id="sel-prod" required onchange="setPrecio(this)">

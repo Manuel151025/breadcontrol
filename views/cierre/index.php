@@ -232,6 +232,7 @@
         </div>
         <?php endif; ?>
         <form method="POST" style="display:flex;flex-direction:column;gap:.5rem;width:100%;">
+          <?= campo_csrf() ?>
           <div class="obs-wrap">
             <div class="obs-label">Sugerencia producción mañana</div>
             <textarea name="sugerencia_produccion" class="obs-textarea"

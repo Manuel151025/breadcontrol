@@ -93,6 +93,7 @@
 
       <?php if ($paso == 1): ?>
       <form method="POST">
+        <?= campo_csrf() ?>
         <div class="fl"><label>Nombre de usuario</label><div class="input-wrap"><i class="bi bi-person-fill ico"></i>
           <input type="text" name="usuario" placeholder="Ej: propietario" value="<?= htmlspecialchars($usuario_input ?? '') ?>" required autofocus></div></div>
         <label style="display:block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:var(--fg-muted);margin-bottom:.5rem;">Metodo de verificacion</label>
@@ -112,6 +113,7 @@
       <div class="step-info"><?php if($metodo==='email'): ?>Enviamos un codigo a<br><strong><?= $_SESSION['recover_email_masked']??'' ?></strong>
         <?php else: ?>Ingresa el PIN de 6 digitos para<br><strong><?= htmlspecialchars($_SESSION['recover_usuario']??'') ?></strong><?php endif; ?></div>
       <form method="POST">
+        <?= campo_csrf() ?>
         <div class="pin-wrap"><?php for($i=0;$i<6;$i++): ?><input type="text" class="pin-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="<?=$i?>" autocomplete="off"><?php endfor; ?></div>
         <input type="hidden" name="codigo" id="ch" value="">
         <?php if($metodo==='email'): ?><div class="email-masked">El codigo expira en 5 minutos</div><?php endif; ?>
@@ -124,11 +126,12 @@
       <?php if ($paso == 3): ?>
       <div class="step-info success"><i class="bi bi-check-circle-fill"></i> Verificacion exitosa. Crea tu nueva contrasena.</div>
       <form method="POST">
+        <?= campo_csrf() ?>
         <div class="fl"><label>Nueva contrasena</label><div class="input-wrap"><i class="bi bi-shield-lock ico"></i>
-          <input type="password" name="nueva_clave" id="p1" placeholder="Minimo 6 caracteres" required minlength="6" autofocus>
+          <input type="password" name="nueva_clave" id="p1" placeholder="Minimo <?= Seguridad::CONTRASENA_MIN ?> caracteres, con letras y numeros" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" autofocus>
           <button type="button" class="eye-toggle" onclick="tE('p1',this)"><i class="bi bi-eye"></i></button></div></div>
         <div class="fl"><label>Confirmar contrasena</label><div class="input-wrap"><i class="bi bi-shield-check ico"></i>
-          <input type="password" name="confirmar_clave" id="p2" placeholder="Repite la contrasena" required minlength="6">
+          <input type="password" name="confirmar_clave" id="p2" placeholder="Repite la contrasena" required minlength="<?= Seguridad::CONTRASENA_MIN ?>">
           <button type="button" class="eye-toggle" onclick="tE('p2',this)"><i class="bi bi-eye"></i></button></div></div>
         <button type="submit" name="cambiar_clave" class="btn-primary"><i class="bi bi-key-fill"></i> Restablecer contrasena</button>
       </form>

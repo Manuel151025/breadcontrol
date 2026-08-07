@@ -20,6 +20,13 @@ class CompraController {
         $msg_ok  = '';
         $msg_err = '';
         $last_id = 0;
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            requerir_csrf('index.php?err=csrf');
+        }
 
         // ── 1. Registrar nueva compra (POST) ─────────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_compra'])) {
@@ -94,10 +101,14 @@ class CompraController {
         
         $errores = [];
         $editando = null;
+        if (($_GET['err'] ?? '') === 'csrf') {
+            $errores[] = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
+        }
 
         // ── 1. Guardar/Editar Proveedor (POST) ───────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             requerirPropietario();
+            requerir_csrf('proveedores.php?err=csrf');
             $id_edit   = (int)($_POST['id_proveedor'] ?? 0);
             $nombre    = limpiar($_POST['nombre'] ?? '');
             $telefono  = preg_replace('/\D/', '', $_POST['telefono'] ?? '');
@@ -131,9 +142,6 @@ class CompraController {
         // ── 2. Desactivar Proveedor (POST desactivar) ────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desactivar'])) {
             requerirPropietario();
-            if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
-                redirigir(APP_URL . '/modules/compras/proveedores.php', 'error', 'Token de seguridad inválido o expirado. Intenta de nuevo.');
-            }
             $id_des = (int)$_POST['desactivar'];
             try {
                 $this->model->desactivarProveedor($id_des);
