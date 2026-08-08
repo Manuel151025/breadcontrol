@@ -391,7 +391,16 @@
     body.set('csrf_token', token);
     body.set('del_venta', idVenta);
     fetch('index.php', { method: 'POST', body: body })
-      .then(function (r) { window.location.href = r.url; })
+      .then(function (r) {
+        // No navegamos a la URL que devuelve el servidor, sino a una ruta
+        // LITERAL elegida segun lo que esa URL indique: asi ningun dato remoto
+        // llega a window.location (evita un open redirect si algun dia el
+        // servidor redirigiera fuera del sitio). Se conserva el unico dato que
+        // importa: cuando el token CSRF falla el servidor responde con
+        // ?err=csrf, y esa pantalla es la que explica por que no se elimino.
+        var fallo_csrf = new URL(r.url, window.location.href).searchParams.get('err') === 'csrf';
+        window.location.href = fallo_csrf ? 'index.php?err=csrf' : 'index.php';
+      })
       .catch(function () { alert('Error de red al eliminar. Intenta de nuevo.'); });
   }
 

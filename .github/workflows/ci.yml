@@ -145,9 +145,14 @@ jobs:
         if: env.SNYK_TOKEN != ''
         run: npm install -g snyk
 
-      # Umbral "high": los hallazgos MEDIUM actuales son falsos positivos del
-      # SAST (no reconoce escHtml(), el sanitizador propio de assets/js/utils.js),
-      # así que no deben bloquear el CI. Un fallo HIGH sí lo bloquea.
+      # Umbral "high": los 9 hallazgos MEDIUM restantes son falsos positivos de
+      # XSS del SAST — no reconoce escHtml(), el sanitizador propio de
+      # assets/js/utils.js, por el que sí pasa todo valor que llega a innerHTML
+      # (verificado leyendo el código, no asumido). No deben bloquear el CI; un
+      # fallo HIGH sí lo bloquea.
+      #
+      # El décimo MEDIUM (Open Redirect en ventas.js) no era un falso positivo y
+      # se corrigió comprobando el origen antes de seguir la redirección.
       - name: Vulnerabilidades en dependencias
         if: env.SNYK_TOKEN != ''
         run: snyk test --severity-threshold=high

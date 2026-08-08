@@ -4,6 +4,29 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.7.1] — 2026-08-07
+
+### Seguridad
+
+- **Open Redirect cerrado en el borrado de ventas rápidas.** Tras el POST, el
+  navegador saltaba a `r.url` —la URL que devolvía el servidor— así que un dato
+  remoto llegaba directo a `window.location`. Hoy no era explotable (el
+  controlador solo redirige a rutas relativas), pero la seguridad dependía de esa
+  suposición y no del código. Ahora se lee **solo** si la respuesta trae
+  `?err=csrf` y se navega a una ruta **literal**, de modo que ningún dato remoto
+  alcanza `window.location`. Se conserva el aviso de token inválido, que es la
+  única información que esa URL aportaba.
+
+### Nota sobre el análisis de seguridad
+
+- Snyk pasa de **10 a 9** hallazgos MEDIUM (0 HIGH, el CI sigue en verde). Los 9
+  restantes son falsos positivos de XSS: el SAST no reconoce `escHtml()`, el
+  sanitizador propio de `assets/js/utils.js`, por el que sí pasa todo valor que
+  llega a `innerHTML` — verificado leyendo cada punto marcado, no asumido. El
+  comentario del workflow se corrigió, porque afirmaba que *todos* los MEDIUM
+  eran falsos positivos y el Open Redirect no lo era.
+- Dependencias (`snyk test`): 3 analizadas, cero vulnerabilidades.
+
 ## [1.7.0] — 2026-08-06
 
 Tanda de seguridad y cierre de decisiones pendientes. Cierra 9 de las
