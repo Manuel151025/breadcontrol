@@ -50,7 +50,7 @@ El sistema se denomina **BreadControl**. Su objetivo primordial es centralizar y
 * **SENA**: Servicio Nacional de Aprendizaje (entidad educativa colombiana).
 * **ADSO**: Análisis y Desarrollo de Software (programa de formación tecnológica).
 * **PIN**: Personal Identification Number (Código de 6 dígitos para la recuperación de cuentas).
-* **Wompi**: Pasarela de pagos de Bancolombia utilizada para transacciones y consolidaciones de saldos.
+* **Nequi / Wompi**: Nequi es el medio de pago digital que acepta la panadería; `checkout.wompi.co` es el dominio donde está alojado el link de cobro. BreadControl **no** integra la API de Wompi: solo guarda y muestra ese link, y el cobro se confirma manualmente.
 * **Merma**: Pérdida de material (harina de trigo) durante el proceso de almacenamiento o producción, estimada en un 6% para harina en el sistema.
 * **Ñapa**: Regalo o cantidad adicional de producto entregada tradicionalmente al cliente como incentivo en pedidos detallados.
 * **COP**: Peso Colombiano (moneda local).
@@ -62,7 +62,8 @@ El sistema se denomina **BreadControl**. Su objetivo primordial es centralizar y
 * Estándar IEEE Std 830-1998 para la Especificación de Requisitos de Software.
 * Repositorio del Proyecto en GitHub: [Manuel151025/BreadControl](https://github.com/Manuel151025/BreadControl).
 * Documentación de la API de Open-Meteo para el reporte del clima en tiempo real.
-* Documentación técnica del SDK/Webhook de Wompi de Bancolombia.
+* Documentación de Google Identity (OAuth 2.0) para el login social del portal.
+* `LIMITACIONES_Y_TRABAJO_FUTURO.md` — anexo de limitaciones conocidas, con evidencia verificada y esfuerzo estimado de cada una.
 
 ### 1.5 Perspectiva General
 El resto de este documento está organizado de la siguiente manera:
@@ -87,7 +88,7 @@ BreadControl es un sistema web independiente configurado en una arquitectura MVC
 
 > **Nota**: `docker-compose.yml` en la raíz del repositorio quedó **obsoleto** — correspondía a un esquema de despliegue manual previo (contenedores `panaderia_app`/`panaderia_db` con nombre fijo, puerto `8092` expuesto directamente, sin Traefik ni Swarm) que ya no se usa. Dokploy gestiona sus propias definiciones de servicio y red sobre Swarm de forma independiente a ese archivo. El `Dockerfile` sí sigue vigente: Dokploy lo usa para construir la imagen de la aplicación, y `config/db.php` sigue leyendo `DB_HOST` desde variable de entorno (`get_env('DB_HOST', '127.0.0.1')`), por lo que apuntar al nombre de servicio de Swarm en producción no requiere cambios de código, solo de configuración de entorno.
 
-El sistema se comunica externamente con servicios de correo (API HTTP de SendGrid) y APIs externas (Open-Meteo y Wompi).
+El sistema se comunica externamente con servicios de correo (API HTTP de SendGrid), la API de clima Open-Meteo y Google OAuth (login social del portal). **No consume ninguna API de pasarela de pagos**: el pago digital es un link de checkout estático que el propietario configura y el cliente abre en el navegador (ver 3.3).
 
 ```
 Usuario ── DNS (Hostinger) ──▶ 2.25.154.18
@@ -111,19 +112,21 @@ Usuario ── DNS (Hostinger) ──▶ 2.25.154.18
              │
              ├─ (Clima API — Open-Meteo)
              ├─ (SendGrid API — correo transaccional)
-             └─ (Wompi/Nequi — checkout manual; webhook disponible, no activo en producción)
+             ├─ (Google OAuth — login social del portal)
+             └─ (Link de pago Nequi — el cliente lo abre en su navegador;
+                 el sistema NO llama a ninguna API de pagos)
 ```
 
 ### 2.2 Funciones del Producto
 El sistema BreadControl se divide en los siguientes subsistemas funcionales:
-1. **Seguridad y Accesos**: Autenticación de roles (propietario, cliente/aprendiz, instructor), control de inactividad, recuperación de PIN y cifrado bcrypt.
+1. **Seguridad y Accesos**: Autenticación de roles (propietario, cliente/aprendiz, instructor), control de inactividad, recuperación por PIN o código de correo (ambos hasheados), cifrado bcrypt, política única de contraseña, protección CSRF en todos los formularios y bloqueo temporal por intentos fallidos de inicio de sesión.
 2. **Gestión de Inventario**: Registro de insumos, alertas de stock bajo y control FIFO de lotes.
 3. **Registro de Compras**: Registro de compras asignando número de lote autogenerado, alertas de variación de precio y ajuste por mermas.
 4. **Producción**: Registro de tandas basadas en recetas vigentes, descuento automático de insumos por FIFO, costeo del remanente sin lote y distribución por precio.
 5. **Ventas y Facturación**: Venta directa en mostrador, carrito detallado por variedad de pan, bonificaciones y ñapas para tiendas.
 6. **Gastos Operativos**: Registro y control de egresos diarios.
 7. **Cierre de Caja**: Balance diario financiero de ingresos, gastos, costo de producción y utilidad neta con sugerencias.
-8. **Portal del Cliente / Aprendiz**: Solicitud de pedidos, control de cupo semanal, aprobación por instructores y pago consolidado vía Wompi.
+8. **Portal del Cliente / Aprendiz**: Solicitud de pedidos, control de cupo semanal, aprobación por instructores, vinculación aprendiz-instructor por código de canje y pago consolidado mediante link de Nequi con confirmación manual del propietario.
 
 ### 2.3 Características de los Usuarios
 El sistema cuenta con tres tipos de perfiles de usuario definidos:
@@ -141,7 +144,8 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 ### 2.5 Suposiciones y Dependencias
 * Se asume que el servidor cuenta con conexión constante a internet para realizar la validación del clima (API Open-Meteo) y el envío de correos vía SendGrid.
 * La recuperación de credenciales por email depende de la disponibilidad del servidor de envío configurado (SendGrid), y del remitente utilizado estar verificado ante el proveedor.
-* El pago digital depende de que el propietario mantenga vigente y correctamente configurado el link de checkout de Wompi/Nequi; la confirmación del pago es un paso manual del propietario, no automático. Este flujo depende además de que la tabla `configuracion` y la tabla `pago_pedido` tengan las columnas descritas en RF-26.
+* El pago digital depende de que el propietario mantenga vigente y correctamente configurado el link de checkout de Nequi; la confirmación del pago es un paso **manual** del propietario, no automático, porque el sistema no se comunica con ninguna pasarela. Depende además de que `configuracion` y `pago_pedido` tengan las columnas descritas en RF-26.
+* El login social del portal depende de Google OAuth y de que el URI de redirección del dominio vigente esté autorizado en la consola de Google Cloud.
 
 ---
 
@@ -189,7 +193,11 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 * **RF-23 (Límite de Cupo Semanal para Aprendices)**: Al procesar un pedido de un aprendiz, el sistema debe sumar el total del pedido actual más los pedidos del aprendiz en la semana en curso y bloquear la transacción si supera el `cupo_semanal` definido en su ficha.
 * **RF-24 (Aprobación del Instructor)**: El sistema debe requerir que los pedidos realizados por aprendices sean marcados como aprobados por su instructor asignado antes de quedar en estado de confirmación operativa.
 * **RF-25 (Restricción de Cancelación)**: El sistema debe prohibir la cancelación o modificación de pedidos por parte del cliente si faltan menos de 48 horas para la fecha y hora de entrega pactada.
-* **RF-26 (Pago Consolidado vía Link de Pago)**: El sistema debe permitir consolidar múltiples pedidos de un mismo cliente en una sola referencia de pago, mostrando el link de checkout (Wompi/Nequi) configurado por el propietario junto con el monto total a pagar. La confirmación del pago la realiza manualmente el propietario desde el panel de "Pedidos de clientes" (acción "Confirmar Cobro Tienda"), marcando los pedidos asociados como pagados. El módulo `includes/wompi.php` provee además un endpoint de webhook (`wompiWebhook()`) y funciones para generar links de pago vía API de Wompi, quedando disponible para activarse en producción una vez se configuren las llaves `WOMPI_PUBLIC_KEY`, `WOMPI_PRIVATE_KEY` y `WOMPI_EVENTS_SECRET`; mientras tanto el flujo operativo es 100% manual. **Nota de dependencia de esquema**: este flujo requiere las columnas `configuracion.nequi_link_pago`, `configuracion.nequi_titular`, `configuracion.wompi_habilitado`, `configuracion.wompi_confirmar_auto`, y `pago_pedido.nota`, `pago_pedido.metodo_pago` — columnas que el código asumía existentes desde su implementación original pero que no se habían creado en ningún script hasta la migración `sql/agregar_columnas_faltantes.sql`.
+* **RF-26 (Pago Consolidado vía Link de Pago)**: El sistema debe permitir consolidar múltiples pedidos de un mismo cliente en una sola referencia de pago, mostrando el link de checkout de **Nequi** configurado por el propietario junto con el monto total a pagar. El cliente abre ese link, paga por fuera del sistema, y el propietario confirma el cobro manualmente desde "Pedidos de clientes" (acción "Confirmar Cobro Tienda"), lo que marca los pedidos asociados como pagados.
+  **Regla única de pago**: paga siempre el destinatario del pedido (`pedido_cliente.id_cliente`), nunca quien lo creó (`id_creador`). Un aprendiz que pide para su instructor no paga; paga el instructor.
+  **Corrección respecto a versiones anteriores de este SRS**: la integración con la **API de Wompi fue retirada por completo** del proyecto (se eliminaron `includes/wompi.php`, el endpoint de webhook y `portal/pagar_instructor.php`). Nunca operó en producción: era código muerto que el documento describía como funcionalidad disponible. Se conservaron únicamente las columnas de base de datos `configuracion.wompi_habilitado`/`wompi_confirmar_auto` y `pago_pedido.wompi_link_url`/`wompi_id`, que hoy almacenan el link y el interruptor de Nequi; renombrarlas suponía tocar demasiada superficie para un beneficio cosmético.
+  **Dependencia de esquema**: requiere `configuracion.nequi_link_pago`, `configuracion.nequi_titular`, `configuracion.wompi_habilitado`, `configuracion.wompi_confirmar_auto`, `pago_pedido.nota` y `pago_pedido.metodo_pago`.
+* **RF-30 (Ingresos del Portal en los Reportes)**: Los reportes financieros deben incluir, además de las ventas del POS, el valor de los pedidos del portal ya cobrados (`estado_pago = 'aprobado'`), imputados a su `fecha_entrega` (ver Fórmula G). Sin esta regla la utilidad queda sesgada a la baja, porque el costo de ese pan sí se contabiliza al registrar la producción mientras su ingreso no aparecía en ninguna pantalla.
 
 #### Módulo de Gastos y Cierre de Caja
 * **RF-27 (Registro de Gastos Operativos)**: El propietario debe poder registrar gastos operativos del día detallando concepto y valor.
@@ -214,15 +222,21 @@ El sistema cuenta con tres tipos de perfiles de usuario definidos:
 ### 3.3 Interfaces Externas
 * **SendGrid API**: Envío de correos electrónicos transaccionales (códigos de recuperación, notificaciones) mediante la API HTTP de SendGrid (`api.sendgrid.com/v3/mail/send`) vía cURL, autenticado con `SENDGRID_API_KEY`. El remitente (`SENDGRID_FROM`) debe estar verificado como Sender Identity en SendGrid para que los envíos sean aceptados.
 * **Open-Meteo**: Interfaz REST basada en HTTP GET que retorna las condiciones del clima en formato JSON en base a la geolocalización.
-* **Wompi/Nequi (link de pago manual)**: El propietario configura un link de checkout de Wompi (`checkout.wompi.co` o `checkout.nequi.wompi.co`) desde Configuración → Pagos; el cliente lo utiliza para pagar y el propietario confirma el cobro manualmente. El sistema incluye además (sin activar en producción) un cliente HTTP para la API de Wompi y un endpoint de webhook HTTP POST para automatizar esta confirmación en el futuro.
+* **Google OAuth 2.0**: Login social del Portal de Clientes (`portal/google_callback.php`). El enlace con una cuenta existente se hace **por correo electrónico**, que es único en `cliente`; si el correo pertenece a otra cuenta con distinto `google_id`, el acceso se rechaza en vez de crear un duplicado.
+* **Link de pago Nequi (estático, sin API)**: El propietario configura desde Configuración → Pagos un link de checkout alojado en `checkout.wompi.co`/`checkout.nequi.wompi.co`; el cliente lo abre y paga por fuera del sistema, y el propietario confirma el cobro manualmente. **BreadControl no realiza ninguna llamada a la API de Wompi ni expone webhooks**: ese código existió, nunca operó en producción y fue eliminado (ver RF-26).
 
 ---
 
 ### 3.4 Requisitos de Seguridad
 * **RS-01**: Cifrado de contraseñas mediante hash seguro `bcrypt` (`password_hash`).
-* **RS-02**: Prevención de CSRF mediante tokens inyectados en la sesión y validados de manera estricta usando `hash_equals()` (`generar_token_csrf()`/`validar_token_csrf()` en `includes/sesion.php`). **Limitación confirmada**: esta protección solo está implementada en el Portal de Clientes (`controllers/PortalClienteController.php` y sus vistas: login, registro, recuperación de contraseña, pedidos, perfil, pago consolidado). Ninguno de los aproximadamente 13 controladores administrativos (Inventario, Compras, Producción, Recetas, Ventas, Gastos, Finanzas, Cierre, Configuración, Pedidos de Clientes admin, entre otros) valida token CSRF en sus formularios POST.
+* **RS-02**: Prevención de CSRF mediante tokens inyectados en la sesión y validados con `hash_equals()` (`generar_token_csrf()`/`validar_token_csrf()` en `includes/sesion.php`). **Cobertura completa desde la v1.7.0**: además del Portal de Clientes, los formularios POST de **todos** los controladores administrativos validan el token. El guardián `requerir_csrf($url_error)` se invoca **una vez por método de controlador que procesa POST, antes de resolver qué acción se pidió**, de modo que una rama nueva no puede quedar sin protección por olvido; las vistas insertan el campo con `campo_csrf()`. Un token inválido devuelve a la pantalla de origen con `?err=csrf`, que cada controlador traduce a un aviso visible.
+  *Versiones anteriores de este documento declaraban que ~13 controladores administrativos no validaban token. Esa limitación fue corregida y verificada en producción.*
 * **RS-03**: Prevención de SQL Injection a través del uso de PDO bind parameters nativos y la desactivación de emulación de consultas.
 * **RS-04**: Prevención de XSS mediante sanitización del DOM usando `htmlspecialchars()` en el servidor y una función `escHtml()` centralizada en `assets/js/utils.js` para el escapado en el cliente antes de insertar datos dinámicos en el DOM.
+* **RS-05 (Freno a la fuerza bruta)**: El inicio de sesión —tanto del back-office como del portal— debe bloquearse temporalmente tras **5 intentos fallidos por cuenta** o **20 por dirección IP** dentro de una ventana de **15 minutos** (`helpers/Seguridad.php`, `models/IntentoLoginModel.php`, tabla `intento_login`). Los intentos se persisten en base de datos y no en sesión, porque un atacante controla su propia cookie y un contador en sesión se esquiva descartándola. El mensaje de bloqueo es idéntico se acierte o no la contraseña, para no revelar qué nombres de usuario existen. El umbral por IP es más alto que el de cuenta a propósito: varias personas legítimas pueden compartir una misma IP de salida.
+* **RS-06 (Política única de contraseña)**: Toda contraseña del sistema debe tener **mínimo 8 caracteres, con al menos una letra y un número**, validada en un único punto (`Seguridad::validarContrasena()`) por las cinco pantallas que fijan contraseña. Las vistas leen el mínimo de `Seguridad::CONTRASENA_MIN`, de modo que la regla y el formulario no pueden divergir. *Antes existían cuatro mínimos distintos (4, 4, 6 y 6) copiados a mano.*
+* **RS-07 (Secretos de recuperación hasheados)**: Tanto el PIN de 6 dígitos como el código de recuperación enviado por correo se almacenan con `password_hash()` y se verifican con `password_verify()`. El código en claro solo existe en el correo enviado. *Antes el código de correo se guardaba en texto plano y se comparaba con `!==`.*
+* **RS-08 (Credenciales fuera del repositorio)**: Ningún archivo versionado contiene credenciales. `docker-compose.yml` las toma del `.env` con la sintaxis `${VAR:?mensaje}`, que aborta el arranque con un mensaje claro si faltan, en lugar de recurrir a un valor por defecto conocido.
 
 ---
 
@@ -267,9 +281,16 @@ $$\text{Utilidad Neta} = \text{Utilidad Bruta} - \text{Total Gastos Operativos}$
 
 **Nota de centralización**: esta fórmula se calcula ahora en un único punto (`helpers/FinanzasHelper.php::calcularUtilidad()`) y es consumida por las 5 pantallas que muestran utilidad — Portada (`models/AuthModel.php`), Cierre del día, Finanzas, Tablero y Gastos — eliminando implementaciones divergentes que existían antes en cada pantalla (algunas restaban el dinero gastado en "compras" en vez del costo real de insumos consumidos, o no restaban gastos operativos).
 
-### G. Conversión de Divisa para Pasarela Wompi
-La API de Wompi requiere el cobro expresado en centavos:
-$$\text{Monto Centavos} = \text{Monto Pesos (COP)} \times 100$$
+### G. Ingresos Totales del Día (POS + Portal)
+Los pedidos del Portal de Clientes viven en `pedido_cliente` y **nunca** generan una fila en `venta`, así que los reportes —que leen `venta`— los ignoraban, mientras el costo de ese pan sí se contabilizaba al registrar la producción. El ingreso total corrige ese sesgo sumando ambas fuentes:
+
+$$\text{Ingresos} = \sum \text{venta.total\_venta} \;+\; \sum \text{pedido\_cliente.total\_estimado}\big|_{\text{estado\_pago}='aprobado'}$$
+
+Ambos sumandos se filtran por el mismo rango de fechas, pero con **columnas de fecha distintas**: `venta.fecha_hora` para el POS y `pedido_cliente.fecha_entrega` para el portal — de modo que el ingreso del portal cae el mismo día que la producción que lo costeó y el cierre diario cuadra.
+
+**Nota de centralización**: implementado en `helpers/FinanzasHelper.php::ingresosPortalEnRango()` y consumido por las 5 pantallas que calculan ingresos. Se suma el *estado* del pedido en vez de crear una venta espejo, de modo que el anti-doble-conteo es inherente: leer un estado no puede contar dos veces.
+
+> **Nota histórica**: aquí figuraba una fórmula de conversión a centavos para la API de Wompi. Esa integración fue **retirada por completo** del proyecto (ver 3.3): el pago digital nunca llamó a la API en producción y el código correspondiente era código muerto.
 
 ---
 
@@ -383,14 +404,57 @@ WHERE DATE(pr.fecha_produccion) = ?;
 
 ---
 
-### HU-05: Pago Consolidado de Pedidos vía Wompi/Nequi
+### HU-05: Pago Consolidado de Pedidos mediante Link de Nequi
 **COMO** Cliente o Instructor
-**QUIERO** pagar mis pedidos pendientes a través de PSE, Nequi, Bancolombia o tarjeta
-**PARA** saldar mis cuentas pendientes de forma digital.
+**QUIERO** pagar de una sola vez todos mis pedidos pendientes
+**PARA** saldar mis cuentas sin tener que hacer una transferencia por cada pedido.
 
 * **Criterios de Aceptación:**
-  1. El cliente puede seleccionar uno o varios pedidos pendientes de pago y generar una orden de pago consolidada; el sistema calcula el monto total y lo agrupa bajo una sola referencia.
-  2. El sistema muestra el link de checkout de Wompi/Nequi configurado por el propietario para que el cliente complete el pago externamente, digitando el monto indicado.
-  3. El propietario verifica el pago recibido y lo confirma manualmente desde "Pedidos de clientes" (acción "Confirmar Cobro Tienda"), lo que marca los pedidos asociados como pagados; opcionalmente puede configurarse (`wompi_confirmar_auto`) para que además avancen automáticamente a estado "confirmado".
-  4. El sistema cuenta con un endpoint de webhook (`wompiWebhook()`) y funciones de la API de Wompi (`includes/wompi.php`) capaces de automatizar el paso 3 (generación de link único por transacción, validación de firma, confirmación automática), pendientes de activar en producción con llaves reales de Wompi (`WOMPI_PUBLIC_KEY`, `WOMPI_PRIVATE_KEY`, `WOMPI_EVENTS_SECRET`).
-  5. Este flujo depende de que existan las columnas `configuracion.nequi_link_pago`, `configuracion.nequi_titular`, `configuracion.wompi_habilitado`, `configuracion.wompi_confirmar_auto` y `pago_pedido.nota`, `pago_pedido.metodo_pago`. Sin ellas (esquema previo a `sql/agregar_columnas_faltantes.sql`), generar o registrar un pago consolidado fallaba con error de base de datos ("Unknown column") en los pasos 1 y 3.
+  1. El cliente puede seleccionar uno o varios pedidos pendientes de pago y generar una orden consolidada; el sistema calcula el monto total y lo agrupa bajo una sola referencia.
+  2. El sistema muestra el link de checkout de Nequi configurado por el propietario para que el cliente complete el pago externamente, digitando el monto indicado.
+  3. Paga siempre el **destinatario** del pedido (`id_cliente`), nunca quien lo creó (`id_creador`): un aprendiz que pide para su instructor no ve el botón de pago; lo ve el instructor.
+  4. El propietario verifica el pago recibido y lo confirma manualmente desde "Pedidos de clientes" (acción "Confirmar Cobro Tienda"), lo que marca los pedidos asociados como pagados. Opcionalmente (`wompi_confirmar_auto`) pueden avanzar además a estado "confirmado".
+  5. El pago queda trazado: la acción exige POST con token CSRF y registra quién confirmó y cuándo.
+
+> **Nota de alcance**: este flujo **no** consume ninguna API de pasarela. El código de integración con la API de Wompi y su webhook fue eliminado del proyecto por ser código muerto que nunca operó en producción (ver RF-26).
+
+---
+
+### HU-06: Vinculación de Aprendices por Código del Instructor
+**COMO** Instructor a cargo del taller
+**QUIERO** generar un código que mis aprendices canjeen al registrarse
+**PARA** vincularlos a mi ficha sin tener que aprobar cada cuenta una por una.
+
+* **Criterios de Aceptación:**
+  1. El instructor genera el código desde "Mis aprendices"; el código tiene número máximo de usos y fecha de vencimiento.
+  2. El aprendiz puede canjearlo en cuatro puntos: al registrarse, desde su perfil, en la pantalla de completar perfil (cuando entra con Google y no pasa por el registro) y desde una tarjeta en su tablero.
+  3. El canje se valida en un **único punto** del código, dentro de una transacción con `SELECT ... FOR UPDATE` sobre la fila del código, para que dos canjes simultáneos no puedan agotar el mismo cupo dos veces.
+  4. Tras 5 intentos fallidos con códigos inválidos, el sistema bloquea nuevos intentos durante 10 minutos.
+  5. Solo la cuenta configurada como instructor (`configuracion.id_cliente_adso`) puede emitir códigos; la validación es por identificador, nunca por el nombre de la cuenta.
+
+---
+
+### HU-07: Acceso Protegido contra Ataques Automatizados
+**COMO** Propietario de la panadería
+**QUIERO** que el sistema resista intentos de adivinar contraseñas y peticiones falsificadas
+**PARA** que nadie pueda entrar a mi negocio ni ejecutar acciones en mi nombre.
+
+* **Criterios de Aceptación:**
+  1. Tras 5 intentos fallidos contra una misma cuenta —o 20 desde una misma IP— en 15 minutos, el sistema rechaza nuevos intentos con un mensaje que **no** revela si el usuario existe (RS-05).
+  2. Un inicio de sesión correcto borra los intentos fallidos previos de esa cuenta, para que un error de tecleo no acerque al usuario legítimo al bloqueo.
+  3. Toda acción que modifique datos —en el back-office y en el portal— exige un token CSRF válido; sin él, la acción no se ejecuta y el usuario ve un aviso explicando que debe recargar (RS-02).
+  4. Las contraseñas nuevas exigen 8 caracteres con letra y número, con la misma regla en todas las pantallas (RS-06).
+  5. Los secretos de recuperación (PIN y código de correo) se guardan hasheados: si la base se filtrara, no serían legibles (RS-07).
+
+---
+
+### HU-08: Utilidad que Refleja Todos los Ingresos
+**COMO** Propietario de la panadería
+**QUIERO** que los pedidos cobrados por el portal cuenten como ingreso en mis reportes
+**PARA** no subestimar la utilidad de mi negocio.
+
+* **Criterios de Aceptación:**
+  1. Los reportes de Portada, Cierre del día, Finanzas, Tablero y el resumen de Gastos deben sumar, además de las ventas del POS, los pedidos del portal con `estado_pago = 'aprobado'`.
+  2. El ingreso del portal se imputa a la **fecha de entrega** del pedido, no a la fecha en que el propietario confirmó el cobro, para que cuadre con la producción que lo costeó.
+  3. Consultar el mismo reporte dos veces no puede duplicar el ingreso: se lee el estado del pedido, no se crea un registro de venta espejo.
+  4. **Limitación conocida y aceptada**: el POS sigue sin descontar del stock del día el pan comprometido a pedidos del portal, por lo que puede sobre-vender. Resolverlo exige la alternativa descartada (crear la venta en diferido) y queda documentado en `LIMITACIONES_Y_TRABAJO_FUTURO.md`.

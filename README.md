@@ -116,12 +116,14 @@ flowchart TD
 
     RP["<b>ReglasPortal</b><br/>crédito y ñapa · límite de 48 h<br/>cupo semanal · horario de entrega"]
     PH["<b>PedidoHelper</b><br/>total esperado y deuda"]
-    FH["<b>FinanzasHelper</b><br/>costo real de producción<br/>y utilidad bruta/neta"]
+    FH["<b>FinanzasHelper</b><br/>costo real de producción · utilidad<br/>ingresos del portal en reportes"]
+    SG["<b>Seguridad</b><br/>política de contraseña<br/>hashing del código de recuperación<br/>umbrales de bloqueo"]
 
-    MBO["<b>models/</b> · 12 modelos<br/>Consultas preparadas por entidad"]
+    MBO["<b>models/</b> · 13 modelos<br/>Consultas preparadas por entidad"]
     MPT["<b>PortalClienteModel</b><br/>fachada de 5 traits:<br/>Cuenta · Catálogo · Pedidos<br/>Pagos · Instructor"]
+    MIL["<b>IntentoLoginModel</b><br/>intentos fallidos de acceso"]
 
-    SES["<b>includes/sesion.php</b><br/>sesión · CSRF · autorización"]
+    SES["<b>includes/sesion.php</b><br/>sesión · guardián CSRF<br/>autorización · IP de origen"]
     CFG["<b>config/</b><br/>entorno · conexión PDO · logger"]
 
     VW["<b>views/</b><br/>plantillas HTML sin cálculos"]
@@ -135,13 +137,19 @@ flowchart TD
     CPT --> MPT
     CBO --> RP
     CBO --> FH
+    CBO --> SG
     CPT --> RP
     CPT --> PH
+    CPT --> SG
+    CBO --> MIL
+    CPT --> MIL
+    MIL --> SG
     MBO --> RP
     MBO --> FH
     MPT --> RP
     MBO --> BD
     MPT --> BD
+    MIL --> BD
     CBO --> VW
     CPT --> VW
     VW --> AS
@@ -151,6 +159,8 @@ flowchart TD
     MPT -.-> CFG
 ```
 
+**Cómo se lee este diagrama:** las flechas continuas son dependencias de uso; las punteadas, servicios de infraestructura que atraviesan todas las capas. Los helpers (`ReglasPortal`, `FinanzasHelper`, `Seguridad`) son **funciones puras**: no tocan la base ni la sesión, y por eso se prueban directamente. `IntentoLoginModel` es la excepción deliberada dentro de la seguridad — necesita persistir los intentos, porque un contador en sesión lo esquiva quien borre su cookie.
+
 | Capa | Responsabilidad única | Lo que **no** puede hacer |
 |---|---|---|
 | **Puntos de entrada** (`modules/`, `portal/`) | Recibir la petición e instanciar su controlador | Contener lógica: son 10 líneas cada uno |
@@ -158,9 +168,11 @@ flowchart TD
 | **Reglas de negocio** (`helpers/`) | Decidir según las reglas del negocio. Funciones **puras**: sin base de datos ni sesión | Leer o escribir datos |
 | **Modelos** (`models/`) | Único punto de acceso a la base, siempre con consultas preparadas | Imprimir HTML o redirigir |
 | **Vistas** (`views/`) | Presentar datos ya calculados y escaparlos con `htmlspecialchars` | Calcular reglas de negocio |
-| **Infraestructura** (`config/`, `includes/`) | Sesión, CSRF, conexión, registro de errores y correo | Conocer reglas del dominio |
+| **Infraestructura** (`config/`, `includes/`) | Sesión, guardián CSRF, conexión, registro de errores y correo | Conocer reglas del dominio |
 
-**Por qué las reglas viven aparte:** `ReglasPortal` es la fuente única del crédito/ñapa, el límite de 48 horas, el cupo semanal y el horario de entrega. Antes esas reglas estaban duplicadas hasta en cinco sitios, con copias que se desviaban entre sí. Al ser funciones puras se prueban directamente, sin base de datos: son las que sostienen buena parte de las 122 pruebas.
+**Por qué las reglas viven aparte:** `ReglasPortal` es la fuente única del crédito/ñapa, el límite de 48 horas, el cupo semanal y el horario de entrega; `Seguridad` lo es de la política de contraseña y del tratamiento de los códigos de recuperación. Antes esas reglas estaban duplicadas —hasta en cinco sitios en el caso del portal, y en cuatro mínimos de contraseña distintos— con copias que se desviaban entre sí. Al ser funciones puras se prueban directamente, sin base de datos: son las que sostienen buena parte de las 151 pruebas.
+
+**Dónde vive la protección CSRF:** el guardián `requerir_csrf()` se invoca **una vez por método de controlador que procesa POST, antes de resolver qué acción se pidió**. Es una decisión de diseño, no un detalle: colocarlo dentro de cada rama `if (isset($_POST['accion']))` habría dejado la protección a merced de que quien añada una acción nueva se acuerde de repetirla.
 
 ### Infraestructura y servicios externos
 
@@ -312,6 +324,7 @@ BreadControl/
 ├── models/                  # Modelos de base de datos
 │   ├── AuthModel.php
 │   ├── InventarioModel.php
+│   ├── IntentoLoginModel.php    # Intentos fallidos de acceso (anti fuerza bruta)
 │   ├── PortalClienteModel.php   # Fachada única del portal (usa los traits)
 │   ├── portal/              # Traits del modelo del portal por responsabilidad
 │   │   ├── CuentaClienteTrait.php    # Registro, perfil, contraseña, Google
@@ -324,10 +337,11 @@ BreadControl/
 ├── helpers/                 # Lógica de negocio pura y reutilizable
 │   ├── ReglasPortal.php     # Reglas del portal (crédito, 48h, cupo, horario)
 │   ├── PedidoHelper.php     # Totales y deudas de pedidos
-│   └── FinanzasHelper.php   # Costo de producción y utilidades
+│   ├── FinanzasHelper.php   # Costo de producción, utilidad e ingresos del portal
+│   └── Seguridad.php        # Política de contraseña, hashing del código, umbrales
 │
 ├── includes/
-│   ├── sesion.php           # Control de sesión, CSRF y auto-logout
+│   ├── sesion.php           # Sesión, guardián CSRF, auto-logout, IP de origen
 │   ├── funciones.php        # Helpers (formato, lote FIFO, stock dinámico)
 │   └── mailer.php           # Enlace SMTP con PHPMailer
 │
