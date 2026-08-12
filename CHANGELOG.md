@@ -4,6 +4,44 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.7.2] — 2026-08-12
+
+Dos fallos encontrados probando el sistema en vivo con usuarios reales.
+
+### Corregido
+
+- **El detalle de un pedido de tienda respondía «Ocurrió un error inesperado».**
+  La consulta del reporte por aprendiz seleccionaba `p.id_pedido` y
+  `p.total_estimado` sin incluirlas en el `GROUP BY`. **MySQL 8 —el motor de
+  producción— rechaza la consulta entera** por `only_full_group_by`, mientras que
+  MariaDB —el motor de desarrollo— la aceptaba devolviendo un valor arbitrario en
+  silencio. Ninguna de las dos columnas se usaba: ni la vista del detalle ni la
+  exportación las leen, y en un reporte agrupado por aprendiz su valor no
+  significaba nada cuando ese aprendiz tenía varios pedidos para la misma fecha.
+  Se eliminaron del `SELECT`; el reporte devuelve exactamente lo mismo que antes.
+- **El portal rechazaba pedidos válidos con «la fecha y hora de entrega no pueden
+  ser en el pasado».** El campo de hora venía con `08:00` fijo, así que cualquier
+  cliente que entrara después de las ocho de la mañana y enviara el pedido sin
+  tocar ese campo era rechazado sin haber hecho nada mal. Ahora el formulario
+  propone la próxima hora en punto dentro del horario de atención y, si ya no
+  queda margen hoy, la apertura del día siguiente.
+
+### Pruebas
+
+- Nueva `ReportePortalTest` (3 pruebas, 154 en total): ejecuta la consulta del
+  reporte de verdad. El CI corre contra **MySQL 8**, el mismo motor de producción,
+  así que una reaparición del patrón vuelve a fallar ahí y no en la pantalla del
+  usuario. La consulta corregida se verificó además contra la base real.
+
+### Nota sobre el entorno
+
+- Desarrollo usa **MariaDB** y producción **MySQL 8**, y no aplican
+  `only_full_group_by` de la misma forma: MySQL 8 deduce dependencias funcionales
+  a través del `JOIN` (acepta `c.nombre` agrupando por una columna unida a su
+  clave primaria) y MariaDB no. Auditadas las 12 consultas agrupadas del sistema
+  contra el motor real: la del reporte del portal era **la única** realmente
+  inválida; las demás funcionan y no se tocaron.
+
 ## [1.7.1] — 2026-08-07
 
 ### Seguridad

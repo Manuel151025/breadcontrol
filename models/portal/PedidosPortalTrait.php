@@ -203,15 +203,20 @@ trait PedidosPortalTrait {
      * @return array<string, list<array<string, mixed>>>
      */
     public function getReporteAgrupadoTienda(int $id_cliente, string $fecha_entrega): array {
+        // El SELECT solo puede traer las columnas del GROUP BY y agregados. Antes
+        // arrastraba p.id_pedido y p.total_estimado, que ni el detalle del pedido ni
+        // la exportación usan: son de un pedido concreto y el reporte agrupa por
+        // aprendiz y producto, así que con varios pedidos del mismo aprendiz para la
+        // misma fecha su valor era arbitrario. MySQL 8 rechaza la consulta entera por
+        // eso (only_full_group_by); MariaDB, que corre en desarrollo, la aceptaba y
+        // devolvía uno cualquiera en silencio. Ver tests/Integration/ReportePortalTest.php.
         $stmt = $this->pdo->prepare("
             SELECT
                 COALESCE(c2.nombre, 'Tienda') AS aprendiz,
                 vp.nombre AS producto,
                 SUM(d.cantidad)    AS cantidad,
                 SUM(d.napa)        AS napa,
-                SUM(d.bonificacion) AS bonificacion,
-                p.id_pedido,
-                p.total_estimado
+                SUM(d.bonificacion) AS bonificacion
             FROM pedido_cliente p
             JOIN pedido_cliente_detalle d ON p.id_pedido = d.id_pedido
             JOIN variedad_pan vp ON d.id_variedad = vp.id_variedad

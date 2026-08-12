@@ -288,9 +288,24 @@ class PortalPedidoController extends PortalControllerBase {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
 
-        $min_fecha = date('Y-m-d');
-        if ((int)date('H') >= 20) {
+        // Fecha y hora que el formulario propone por defecto. La hora NO puede ser
+        // una constante: con '08:00' fijo, cualquier cliente que entrara después de
+        // las 8 de la mañana y enviara el pedido sin tocar el campo recibía "la fecha
+        // y hora no pueden ser en el pasado" sin haber hecho nada mal. Se propone la
+        // próxima hora en punto dentro del horario de atención, y si ya no queda
+        // margen hoy, mañana a la hora de apertura.
+        $min_fecha     = date('Y-m-d');
+        $hora_sugerida = ReglasPortal::HORA_APERTURA;
+        $hora_actual   = (int) date('H');
+
+        if ($hora_actual >= (int) substr(ReglasPortal::HORA_CIERRE, 0, 2)) {
             $min_fecha = date('Y-m-d', strtotime('+1 day'));
+        } elseif ($hora_actual >= (int) substr(ReglasPortal::HORA_APERTURA, 0, 2)) {
+            $hora_sugerida = date('H:00', (int) strtotime('+1 hour'));
+            if ($hora_sugerida > ReglasPortal::HORA_CIERRE) {
+                $min_fecha     = date('Y-m-d', strtotime('+1 day'));
+                $hora_sugerida = ReglasPortal::HORA_APERTURA;
+            }
         }
 
         // Obtener info del cliente (saber si es tienda, mostrador o aprendiz)

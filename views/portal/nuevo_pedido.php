@@ -114,7 +114,7 @@
                         </div>
                         <div>
                             <label style="font-size: .75rem; font-weight: 700; color: var(--ink3); text-transform: uppercase; display:block; margin-bottom:.3rem;">Hora de entrega</label>
-                            <input type="time" name="hora_entrega" id="inp_hora_entrega" min="07:00" max="20:00" value="<?= $ped_edit ? $edit_hora : '08:00' ?>" <?= ($es_aprendiz && $pedido_para_actual === 'adso') ? '' : 'required' ?> style="width: 100%; padding: .6rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size:.9rem; color: var(--ink);">
+                            <input type="time" name="hora_entrega" id="inp_hora_entrega" min="07:00" max="20:00" value="<?= $ped_edit ? $edit_hora : $hora_sugerida ?>" <?= ($es_aprendiz && $pedido_para_actual === 'adso') ? '' : 'required' ?> style="width: 100%; padding: .6rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size:.9rem; color: var(--ink);">
                         </div>
                     </div>
 
