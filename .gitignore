@@ -12,8 +12,14 @@ instalar_phpmailer.php
 assets/img/variedades/*
 !assets/img/variedades/.gitkeep
 
-# Documentos generados
-assets/docs/*.pdf
+# Manuales de usuario: SÍ se versionan.
+#
+# Estaban excluidos como "documentos generados", pero no los genera ningún
+# script: son documentos escritos a mano, y la interfaz los enlaza desde cuatro
+# sitios (login, portada, portal y back-office). Al no viajar en el repositorio,
+# esos cuatro botones devolvían 404 en producción y en cualquier clon nuevo.
+# Si algún día se generan automáticamente, se vuelven a ignorar y se publican
+# desde el proceso que los genere.
 
 # Sistema operativo
 .DS_Store
