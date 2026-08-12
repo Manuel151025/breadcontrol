@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/produccion.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/produccion.css?v=<?= APP_VERSION ?>">
 
 
 <div class="page">
@@ -204,7 +204,7 @@
 </div>
 
 <script>var appUrl = '<?= APP_URL ?>';</script>
-<script src="<?= APP_URL ?>/assets/js/utils.js"></script>
-<script src="<?= APP_URL ?>/assets/js/produccion.js"></script>
+<script src="<?= APP_URL ?>/assets/js/utils.js?v=<?= APP_VERSION ?>"></script>
+<script src="<?= APP_URL ?>/assets/js/produccion.js?v=<?= APP_VERSION ?>"></script>
 
 </body></html>

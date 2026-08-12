@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/ventas.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/ventas.css?v=<?= APP_VERSION ?>">
 
 <div class="page">
   <div class="wc-banner">
@@ -473,8 +473,8 @@
   </div>
 </div>
 
-<script src="<?= APP_URL ?>/assets/js/utils.js"></script>
+<script src="<?= APP_URL ?>/assets/js/utils.js?v=<?= APP_VERSION ?>"></script>
 <script>var appUrl = '<?= APP_URL ?>';</script>
-<script src="<?= APP_URL ?>/assets/js/ventas.js"></script>
+<script src="<?= APP_URL ?>/assets/js/ventas.js?v=<?= APP_VERSION ?>"></script>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

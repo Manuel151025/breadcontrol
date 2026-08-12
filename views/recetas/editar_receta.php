@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/recetas_editar.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/recetas_editar.css?v=<?= APP_VERSION ?>">
 
 <div class="page">
 
@@ -170,5 +170,5 @@ const insumosData = <?= json_encode(array_map(fn($i) => [
 ], $todos_insumos)) ?>;
 let contadorFilas = <?= count($ingredientes) ?>;
 </script>
-<script src="<?= APP_URL ?>/assets/js/recetas_editar.js"></script>
+<script src="<?= APP_URL ?>/assets/js/recetas_editar.js?v=<?= APP_VERSION ?>"></script>
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

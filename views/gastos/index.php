@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/gastos.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/gastos.css?v=<?= APP_VERSION ?>">
 
 <div class="page">
 

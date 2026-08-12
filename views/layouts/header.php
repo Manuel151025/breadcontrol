@@ -19,8 +19,8 @@ function navActive($path) {
   <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link href="<?= APP_URL ?>/assets/css/responsive.css" rel="stylesheet">
-  <link href="<?= APP_URL ?>/assets/css/main.css" rel="stylesheet">
+  <link href="<?= APP_URL ?>/assets/css/responsive.css?v=<?= APP_VERSION ?>" rel="stylesheet">
+  <link href="<?= APP_URL ?>/assets/css/main.css?v=<?= APP_VERSION ?>" rel="stylesheet">
 </head>
 <body>
 
@@ -122,4 +122,4 @@ function navActive($path) {
       logoutUrl: '<?= APP_URL ?>/logout.php'
     };
   </script>
-  <script src="<?= APP_URL ?>/assets/js/main.js" defer></script>
+  <script src="<?= APP_URL ?>/assets/js/main.js?v=<?= APP_VERSION ?>" defer></script>

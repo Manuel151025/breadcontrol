@@ -1,5 +1,5 @@
 <!-- VISTA: TABLERO -->
-<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/tablero.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/tablero.css?v=<?= APP_VERSION ?>">
 
 <!-- PÁGINA -->
 <div class="page">
@@ -266,4 +266,4 @@
     // Variables dinámicas para el JS externo
     const API_WEATHER_URL = "<?= get_env('API_OPEN_METEO_URL', 'https://api.open-meteo.com/v1/forecast') ?>";
 </script>
-<script src="<?= APP_URL ?>/assets/js/tablero.js"></script>
+<script src="<?= APP_URL ?>/assets/js/tablero.js?v=<?= APP_VERSION ?>"></script>

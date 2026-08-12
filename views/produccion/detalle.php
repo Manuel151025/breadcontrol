@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/produccion.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/produccion.css?v=<?= APP_VERSION ?>">
 
 
 <div class="page">

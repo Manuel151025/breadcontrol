@@ -1,13 +1,22 @@
-#Dockerfile for PHP 8.2 with Apache and MySQL support
+# Imagen de la aplicación: PHP 8.2 con Apache y soporte MySQL.
 FROM php:8.2-apache
 
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
-    && docker-php-ext-install pdo pdo_mysql zip
+    && docker-php-ext-install pdo pdo_mysql zip \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN a2enmod rewrite
+# rewrite  → reescritura de URL
+# deflate  → compresión gzip de HTML, CSS y JS
+# expires  → cabeceras de caducidad de los recursos estáticos
+# headers  → Cache-Control explícito
+#
+# Sin deflate, expires y headers, las reglas de rendimiento del .htaccess
+# quedan dentro de <IfModule> que nunca se cumplen: no fallan, simplemente
+# no se aplican, que es lo que ocurría hasta ahora.
+RUN a2enmod rewrite deflate expires headers
 
 WORKDIR /var/www/html
 
@@ -15,4 +24,19 @@ COPY . /var/www/html/
 
 RUN chown -R www-data:www-data /var/www/html
 
-RUN echo "opcache.enable=0" > /usr/local/etc/php/conf.d/disable-opcache.ini
+# OPcache guarda el bytecode compilado de PHP en memoria. Estaba DESACTIVADO,
+# de modo que el servidor volvía a leer y compilar cada archivo del proyecto en
+# cada petición — con el coste repetido en todas las páginas.
+#
+# `validate_timestamps=1` con `revalidate_freq=60` mantiene una red de
+# seguridad: si alguien edita un archivo dentro del contenedor, el cambio se
+# recoge en un minuto. El código normalmente no cambia en caliente (cada
+# despliegue construye una imagen nueva), así que el coste de esa comprobación
+# es despreciable frente a recompilarlo todo.
+RUN { \
+        echo "opcache.enable=1"; \
+        echo "opcache.memory_consumption=128"; \
+        echo "opcache.max_accelerated_files=10000"; \
+        echo "opcache.validate_timestamps=1"; \
+        echo "opcache.revalidate_freq=60"; \
+    } > /usr/local/etc/php/conf.d/opcache.ini

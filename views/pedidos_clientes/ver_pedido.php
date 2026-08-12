@@ -1,5 +1,5 @@
 <?php require_once __DIR__ . '/../../helpers/PedidoHelper.php'; ?>
-<link href="<?= APP_URL ?>/assets/css/pedidos.css" rel="stylesheet">
+<link href="<?= APP_URL ?>/assets/css/pedidos.css?v=<?= APP_VERSION ?>" rel="stylesheet">
 
 <div class="page">
     <div class="topbar">
@@ -343,5 +343,5 @@
         <?php endif; ?>
     </div>
 </div>
-<script src="<?= APP_URL ?>/assets/js/pedidos.js" defer></script>
+<script src="<?= APP_URL ?>/assets/js/pedidos.js?v=<?= APP_VERSION ?>" defer></script>
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

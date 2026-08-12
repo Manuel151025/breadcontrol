@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/cierre.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/cierre.css?v=<?= APP_VERSION ?>">
 
 <div class="page">
 

@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/compras.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/compras.css?v=<?= APP_VERSION ?>">
 
 <div class="page">
 
@@ -391,6 +391,6 @@
 </div>
 
 
-<script src="<?= APP_URL ?>/assets/js/compras.js"></script>
+<script src="<?= APP_URL ?>/assets/js/compras.js?v=<?= APP_VERSION ?>"></script>
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

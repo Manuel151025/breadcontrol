@@ -6,3 +6,68 @@
 
 # Bloquear acceso a archivos ocultos (que inician con punto)
 RedirectMatch 403 /\..*$
+
+# ============================================================
+#  Rendimiento de recursos estáticos
+#
+#  Antes el servidor no enviaba NI compresión NI cabeceras de caché: cada
+#  navegación volvía a pedir todas las hojas de estilo, los scripts y las
+#  imágenes, y aunque el servidor respondiera "no ha cambiado", cada archivo
+#  costaba una ida y vuelta. Por eso el logo y los fondos aparecían con
+#  retraso al entrar.
+#
+#  Las hojas de estilo y los scripts se enlazan con ?v=APP_VERSION, así que se
+#  pueden cachear un año sin miedo: al publicar una versión nueva cambia la
+#  URL y el navegador descarga la nueva de inmediato. Las imágenes no llevan
+#  versión en la URL, así que se cachean un mes: cambian rara vez y un mes es
+#  un plazo razonable para que una imagen reemplazada llegue a todos.
+#
+#  Los <IfModule> hacen que esto no rompa nada si el módulo no está activo:
+#  simplemente no se aplica la mejora.
+# ============================================================
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+    AddOutputFilterByType DEFLATE application/json application/xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+    # Los JPG, PNG y PDF ya vienen comprimidos: volver a comprimirlos gasta
+    # CPU y no baja el peso.
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # Con ?v= en la URL, un año es seguro.
+    ExpiresByType text/css                 "access plus 1 year"
+    ExpiresByType application/javascript   "access plus 1 year"
+    ExpiresByType application/x-javascript "access plus 1 year"
+
+    # Sin versión en la URL: un mes.
+    ExpiresByType image/png                "access plus 1 month"
+    ExpiresByType image/jpeg               "access plus 1 month"
+    ExpiresByType image/webp               "access plus 1 month"
+    ExpiresByType image/svg+xml            "access plus 1 month"
+    ExpiresByType image/x-icon             "access plus 1 month"
+    ExpiresByType font/woff2               "access plus 1 year"
+
+    # Los manuales pueden reemplazarse sin cambiar de nombre.
+    ExpiresByType application/pdf          "access plus 1 week"
+
+    # El HTML lo genera PHP en cada petición: nunca se cachea.
+    ExpiresByType text/html                "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # "immutable" evita incluso la petición de revalidación en los navegadores
+    # que lo soportan. Solo para lo que lleva versión en la URL.
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    <FilesMatch "\.(png|jpe?g|webp|svg|ico)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+    <FilesMatch "\.php$">
+        Header set Cache-Control "no-store, must-revalidate"
+    </FilesMatch>
+</IfModule>

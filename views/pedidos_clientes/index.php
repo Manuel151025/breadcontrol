@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/pedidos_clientes.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/pedidos_clientes.css?v=<?= APP_VERSION ?>">
 
 <div class="page">
     <div class="wc-banner">
@@ -309,5 +309,5 @@
     </div>
 </div>
 
-<script src="<?= APP_URL ?>/assets/js/pedidos_clientes.js"></script>
+<script src="<?= APP_URL ?>/assets/js/pedidos_clientes.js?v=<?= APP_VERSION ?>"></script>
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

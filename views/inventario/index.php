@@ -1,4 +1,4 @@
-<link href="<?= APP_URL ?>/assets/css/inventario.css" rel="stylesheet">
+<link href="<?= APP_URL ?>/assets/css/inventario.css?v=<?= APP_VERSION ?>" rel="stylesheet">
 
 <div class="page">
   <!-- BANNER -->

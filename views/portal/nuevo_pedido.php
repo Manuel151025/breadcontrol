@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/portal_nuevo_pedido.css">
+    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/portal_nuevo_pedido.css?v=<?= APP_VERSION ?>">
 </head>
 <body>
     <nav>
@@ -153,7 +153,7 @@
         </div>
     </div>
     
-    <script src="<?= APP_URL ?>/assets/js/utils.js"></script>
+    <script src="<?= APP_URL ?>/assets/js/utils.js?v=<?= APP_VERSION ?>"></script>
     <script>
     // Configuración generada por PHP para portal_nuevo_pedido.js
     var appUrl = '<?= APP_URL ?>';
@@ -168,6 +168,6 @@
     var bonifLoaded = false;
     var allVarieties = [];
     </script>
-    <script src="<?= APP_URL ?>/assets/js/portal_nuevo_pedido.js"></script>
+    <script src="<?= APP_URL ?>/assets/js/portal_nuevo_pedido.js?v=<?= APP_VERSION ?>"></script>
 </body>
 </html>

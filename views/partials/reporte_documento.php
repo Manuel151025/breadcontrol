@@ -35,7 +35,7 @@ if (!function_exists('reporte_documento_inicio')) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= htmlspecialchars($titulo) ?> — BreadControl</title>
 <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
-<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/reporte.css">
+<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/reporte.css?v=<?= APP_VERSION ?>">
 <?php if ($horizontal): ?>
 <style>@page { size: A4 landscape; } body { max-width: 297mm; }</style>
 <?php endif; ?>
