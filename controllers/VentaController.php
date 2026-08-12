@@ -507,15 +507,9 @@ class VentaController {
             $detalles_por_venta = [];
         }
 
-        // Cabeceras HTTP para descarga directa del archivo de Excel
-        header("Content-Type: application/vnd.ms-excel; charset=UTF-8");
-        header("Content-Disposition: attachment; filename=ventas_" . date('Ymd_His') . ".xls");
-        header("Pragma: no-cache");
-        header("Expires: 0");
-
-        echo "\xEF\xBB\xBF"; // UTF-8 BOM
-
-        // Carga la plantilla de Excel
+        // Las cabeceras de descarga las emite ExportadorCsv desde la plantilla:
+        // antes se enviaba HTML con extensión .xls, que Excel abría con una
+        // advertencia y con los números convertidos en texto.
         require_once __DIR__ . '/../views/ventas/exportar_excel.php';
     }
 }

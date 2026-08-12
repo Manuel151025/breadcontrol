@@ -1,0 +1,345 @@
+/* ============================================================
+   assets/css/reporte.css
+   Hoja de estilos ÚNICA de todos los reportes imprimibles (PDF).
+
+   Antes cada exportación traía su propio CSS incrustado, con paletas
+   distintas entre sí —índigo en el reporte del portal, verde en ventas— y
+   ninguna era la del producto. El resultado parecía una captura de pantalla
+   impresa, no un documento.
+
+   Las decisiones que hacen que esto se lea como documento y no como pantalla:
+
+   - `thead { display: table-header-group }`: la cabecera de la tabla se
+     repite en cada página. Sin esto, la segunda página de un reporte largo
+     son números sin título de columna.
+   - `break-inside: avoid` en bloques y filas: nadie parte un renglón ni deja
+     el nombre de un aprendiz al final de una página con su tabla en la
+     siguiente.
+   - Cabecera y pie con `position: fixed`: el navegador los repite en todas
+     las páginas al imprimir, que es la única forma de tener encabezado
+     corrido sin una librería de PDF.
+   - Cifras a la derecha y `tabular-nums`: en un reporte los números se
+     comparan en columna, y para eso tienen que alinearse por unidades.
+   - Fondos claros y filetes finos: una tabla con cabeceras de color sólido
+     se ve bien en pantalla y desperdicia tinta en papel.
+   ============================================================ */
+
+:root {
+  --r-tinta:      #221A12;
+  --r-tinta-2:    #5B4B3C;
+  --r-tinta-3:    #8A7767;
+  --r-linea:      #D8CEC2;
+  --r-linea-2:    #EFE8DF;
+  --r-acento:     #8A4B14;
+  --r-suave:      #F7F2EB;
+  --r-ok:         #2C6E3A;
+  --r-alerta:     #9A5B0E;
+
+  --r-serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --r-sans:  "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+}
+
+@page {
+  size: A4 portrait;
+  /* Margen superior e inferior amplios: ahí se posan la cabecera y el pie fijos. */
+  margin: 26mm 14mm 20mm;
+}
+@page landscape { size: A4 landscape; }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { background: #E7E2DB; }
+
+body {
+  font-family: var(--r-sans);
+  font-size: 10pt;
+  line-height: 1.45;
+  color: var(--r-tinta);
+  background: #fff;
+  /* En pantalla imita una hoja; al imprimir, el @page manda. */
+  max-width: 210mm;
+  min-height: 297mm;
+  margin: 1.5rem auto;
+  padding: 26mm 14mm 20mm;
+  box-shadow: 0 2px 18px rgba(34, 26, 18, .18);
+}
+
+/* ─── Cabecera corrida ─────────────────────────────────────── */
+.rp-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+  padding-bottom: .5rem;
+  border-bottom: 1.5pt solid var(--r-acento);
+  margin-bottom: 1.2rem;
+}
+.rp-marca { display: flex; align-items: center; gap: .6rem; }
+.rp-marca img { width: 34px; height: 34px; object-fit: contain; }
+.rp-marca-texto { line-height: 1.15; }
+.rp-marca-nombre {
+  font-family: var(--r-serif);
+  font-size: 13pt;
+  font-weight: 700;
+  color: var(--r-acento);
+  letter-spacing: -.01em;
+}
+.rp-marca-sub {
+  font-size: 6.5pt;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  color: var(--r-tinta-3);
+}
+.rp-titulo {
+  font-family: var(--r-serif);
+  font-size: 16pt;
+  font-weight: 700;
+  color: var(--r-tinta);
+  letter-spacing: -.015em;
+  line-height: 1.1;
+}
+.rp-subtitulo { font-size: 9pt; color: var(--r-tinta-2); margin-top: .15rem; }
+
+/* Bloque de metadatos: fecha, periodo, referencia */
+.rp-meta {
+  text-align: right;
+  font-size: 8pt;
+  color: var(--r-tinta-2);
+  line-height: 1.7;
+  white-space: nowrap;
+}
+.rp-meta b {
+  display: inline-block;
+  min-width: 0;
+  color: var(--r-tinta-3);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 6.8pt;
+  letter-spacing: .09em;
+  margin-right: .35rem;
+}
+.rp-meta span { font-variant-numeric: tabular-nums; }
+
+/* ─── Pie corrido ──────────────────────────────────────────── */
+.rp-pie {
+  margin-top: 1.6rem;
+  padding-top: .5rem;
+  border-top: .5pt solid var(--r-linea);
+  display: flex;
+  justify-content: space-between;
+  font-size: 7.5pt;
+  color: var(--r-tinta-3);
+}
+
+/* ─── Secciones ────────────────────────────────────────────── */
+.rp-seccion { margin-bottom: 1.3rem; break-inside: avoid; }
+.rp-seccion-titulo {
+  font-family: var(--r-serif);
+  font-size: 11pt;
+  font-weight: 700;
+  color: var(--r-acento);
+  padding-bottom: .25rem;
+  margin-bottom: .5rem;
+  border-bottom: .5pt solid var(--r-linea);
+}
+.rp-seccion-nota { font-size: 8pt; color: var(--r-tinta-3); margin-bottom: .5rem; }
+
+/* ─── Tablas ───────────────────────────────────────────────── */
+.rp-tabla { width: 100%; border-collapse: collapse; margin-bottom: .4rem; }
+.rp-tabla thead { display: table-header-group; }
+.rp-tabla tfoot { display: table-footer-group; }
+.rp-tabla tr { break-inside: avoid; }
+
+.rp-tabla th {
+  font-size: 6.8pt;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-weight: 700;
+  color: var(--r-tinta-3);
+  text-align: left;
+  padding: .3rem .5rem;
+  border-bottom: .75pt solid var(--r-tinta-3);
+  white-space: nowrap;
+}
+.rp-tabla td {
+  font-size: 9pt;
+  padding: .32rem .5rem;
+  border-bottom: .4pt solid var(--r-linea-2);
+  vertical-align: top;
+}
+.rp-tabla tbody tr:nth-child(even) td { background: #FBF8F4; }
+
+/* Columnas numéricas: a la derecha y con cifras de ancho fijo. */
+.rp-tabla .num,
+.rp-tabla th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rp-tabla .centro { text-align: center; }
+
+/* Fila de totales */
+.rp-tabla tfoot td,
+.rp-tabla tr.rp-total td {
+  font-weight: 700;
+  font-size: 9pt;
+  border-top: .75pt solid var(--r-tinta-3);
+  border-bottom: none;
+  background: transparent !important;
+  padding-top: .4rem;
+}
+
+/* ─── Distintivos discretos (ñapa, bonificación) ───────────── */
+.rp-chip {
+  font-size: 7pt;
+  font-weight: 700;
+  padding: 0 .3rem;
+  border-radius: 2px;
+  border: .4pt solid currentColor;
+  white-space: nowrap;
+}
+.rp-chip-napa  { color: var(--r-alerta); }
+.rp-chip-bonif { color: var(--r-ok); }
+.rp-vacio { color: var(--r-tinta-3); }
+
+/* ─── Panel de cifras clave ────────────────────────────────── */
+.rp-cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  gap: .5rem;
+  margin-bottom: 1.2rem;
+  break-inside: avoid;
+}
+.rp-cifra { border: .5pt solid var(--r-linea); border-radius: 3px; padding: .45rem .6rem; }
+.rp-cifra .k {
+  font-size: 6.5pt; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--r-tinta-3); display: block; margin-bottom: .15rem;
+}
+.rp-cifra .v {
+  font-size: 12pt; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--r-tinta); display: block; line-height: 1.1;
+}
+.rp-cifra.destacada { background: var(--r-suave); border-color: var(--r-acento); }
+.rp-cifra.destacada .v { color: var(--r-acento); }
+
+/* ─── Cierre del documento ─────────────────────────────────── */
+.rp-total-general {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-top: 1.5pt solid var(--r-acento);
+  padding-top: .5rem; margin-top: .8rem;
+  break-inside: avoid;
+}
+.rp-total-general .lbl {
+  font-size: 8pt; text-transform: uppercase; letter-spacing: .12em;
+  font-weight: 700; color: var(--r-tinta-2);
+}
+.rp-total-general .val {
+  font-family: var(--r-serif); font-size: 16pt; font-weight: 700;
+  color: var(--r-acento); font-variant-numeric: tabular-nums;
+}
+
+.rp-sin-datos {
+  border: .5pt dashed var(--r-linea);
+  padding: 1.2rem; text-align: center;
+  color: var(--r-tinta-3); font-size: 9pt;
+}
+
+/* ─── Gráfico de barras por día ────────────────────────────── */
+.rp-grafico { break-inside: avoid; margin-bottom: 1.2rem; }
+.rp-grafico-barras {
+  display: flex; align-items: flex-end; gap: 2px;
+  height: 34mm; padding-top: .3rem;
+  border-bottom: .75pt solid var(--r-tinta-3);
+}
+.rp-gb { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+.rp-gb-barra {
+  width: 100%; background: var(--r-acento); opacity: .85;
+  border-radius: 1px 1px 0 0; min-height: 1px;
+}
+.rp-gb-barra.hoy { background: var(--r-tinta); opacity: 1; }
+.rp-gb-lbl {
+  font-size: 5.5pt; color: var(--r-tinta-3); margin-top: .2rem;
+  white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.rp-grafico-pie {
+  display: flex; justify-content: space-between;
+  font-size: 7pt; color: var(--r-tinta-3); margin-top: .3rem;
+}
+
+/* ─── Ranking con barra proporcional ───────────────────────── */
+.rp-ranking { display: flex; flex-direction: column; gap: .3rem; }
+.rp-rk {
+  display: grid; grid-template-columns: 14px 1fr 60px 62px;
+  align-items: center; gap: .5rem; font-size: 8.5pt;
+  break-inside: avoid;
+}
+.rp-rk-num {
+  font-size: 7pt; font-weight: 700; color: var(--r-tinta-3);
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+.rp-rk-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rp-rk-barra { grid-column: 2 / 3; height: 2.5px; background: var(--r-linea-2); border-radius: 2px; }
+.rp-rk-barra > i { display: block; height: 100%; background: var(--r-acento); border-radius: 2px; }
+.rp-rk-und, .rp-rk-val {
+  text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.rp-rk-und { color: var(--r-tinta-3); font-size: 7.5pt; }
+.rp-rk-val { font-weight: 700; }
+
+/* ─── Dos columnas ─────────────────────────────────────────── */
+.rp-dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; align-items: start; }
+@media (max-width: 700px) { .rp-dos-col { grid-template-columns: 1fr; } }
+
+/* ─── Signo de las cifras ──────────────────────────────────── */
+.rp-pos { color: var(--r-ok); }
+.rp-neg { color: #A93226; }
+
+/* ─── Barra de acciones (nunca se imprime) ─────────────────── */
+.rp-acciones {
+  position: fixed; top: 1rem; right: 1rem; z-index: 99;
+  display: flex; gap: .5rem; align-items: center;
+}
+.rp-btn {
+  font-family: var(--r-sans); font-size: .8rem; font-weight: 600;
+  padding: .55rem 1rem; border-radius: 6px; border: 1px solid transparent;
+  cursor: pointer; display: inline-flex; align-items: center; gap: .35rem;
+  text-decoration: none;
+}
+.rp-btn-primario { background: var(--r-acento); color: #fff; }
+.rp-btn-primario:hover { background: #6F3B0F; }
+.rp-btn-secundario { background: #fff; color: var(--r-tinta-2); border-color: var(--r-linea); }
+.rp-btn-secundario:hover { background: var(--r-suave); }
+.rp-aviso {
+  background: #fff; border: 1px solid var(--r-linea); border-radius: 6px;
+  padding: .5rem .7rem; font-size: .7rem; color: var(--r-tinta-2);
+  max-width: 230px; line-height: 1.45;
+}
+.rp-aviso b { color: var(--r-tinta); }
+
+/* ─── Impresión ────────────────────────────────────────────── */
+@media print {
+  html { background: #fff; }
+  body {
+    margin: 0; padding: 0; box-shadow: none; max-width: none; min-height: 0;
+  }
+  .rp-acciones, .no-print { display: none !important; }
+
+  /* Chrome repite los elementos fijos en cada página: así la cabecera y el
+     pie corren por todo el documento sin necesidad de una librería de PDF. */
+  .rp-cabecera {
+    position: fixed; top: -20mm; left: 0; right: 0;
+    background: #fff; margin-bottom: 0;
+  }
+  .rp-pie {
+    position: fixed; bottom: -14mm; left: 0; right: 0;
+    background: #fff; margin-top: 0;
+  }
+  .rp-contenido { margin-top: .4rem; }
+
+  /* Los fondos suaves se conservan solo si el usuario activa "gráficos de
+     fondo"; el diseño no depende de ellos para ser legible. */
+  .rp-tabla tbody tr:nth-child(even) td { background: #FAF7F3; }
+  a { color: inherit; text-decoration: none; }
+}
+
+@media (max-width: 700px) {
+  body { padding: 14mm 8mm; margin: 0; }
+  .rp-cabecera { flex-direction: column; align-items: flex-start; gap: .6rem; }
+  .rp-meta { text-align: left; }
+}
