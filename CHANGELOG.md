@@ -4,6 +4,54 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.7.3] — 2026-08-12
+
+Las imágenes de fondo y el logo tardaban en aparecer al entrar. Se midió cada
+causa antes de tocar nada, y la mayor no era el peso de las imágenes.
+
+### Rendimiento
+
+- **Tipografías e iconos autohospedados.** La causa principal: cada pantalla
+  pedía su hoja de estilos a `fonts.googleapis.com` y a `cdn.jsdelivr.net`, y
+  ambas **bloquean el primer pintado** — el navegador no dibuja nada, ni el
+  fondo ni el logo, hasta recibirlas. Medido contra producción: **1,42 s** para
+  traer 1,6 KB de Google Fonts (casi todo resolución DNS y apretón de manos
+  TLS) y **1,19 s** para los iconos, frente a 0,55 s que tarda el servidor
+  propio en responder la página entera. Ahora se sirven desde el mismo dominio,
+  ya conectado, y con caché de un año.
+- **Bootstrap JS eliminado**: 80 KB desde un tercer dominio, en todas las
+  páginas del back-office, **sin usarse** — no hay un solo atributo `data-bs-*`
+  ni una llamada a su API en el proyecto.
+- **El logo pesaba 1.161 KB** (1024×1024) y se muestra a 56 px como máximo.
+  Redimensionado a 192 px: **50 KB**, con el mismo nombre de archivo para no
+  tocar los quince sitios que lo enlazan.
+- **Caché y compresión**: el servidor no enviaba ninguna de las dos, así que
+  cada navegación volvía a pedir cada archivo. Las hojas de estilo viajan ahora
+  gzipeadas (12,6 KB → 3,5 KB) y se cachean un año; para que eso sea seguro,
+  los 31 enlaces a CSS/JS propios llevan `?v=APP_VERSION` y una versión nueva
+  invalida la caché sola.
+- **OPcache activado.** Estaba desactivado explícitamente, de modo que PHP
+  releía y recompilaba cada archivo del proyecto en cada petición.
+- **Módulos de Apache habilitados** (`deflate`, `expires`, `headers`): sin
+  ellos, las reglas de rendimiento del `.htaccess` quedaban dentro de bloques
+  `<IfModule>` que no se cumplían nunca.
+- Fondos recomprimidos a 1600 px: 241 → 172 KB y 219 → 158 KB, sin pérdida
+  visible.
+
+### Corregido
+
+- **Los manuales de usuario daban 404.** La interfaz los enlaza desde cuatro
+  sitios, pero `.gitignore` excluía `assets/docs/*.pdf` como «documentos
+  generados» — no los genera ningún script, están escritos a mano. La auditoría
+  del 2026-07-08 ya lo había registrado y seguía sin corregirse.
+
+### Nota
+
+- El sitio se sirve por **HTTP/1.1**, que limita al navegador a seis conexiones
+  en paralelo y obliga a un apretón de manos TLS por cada una (~0,3 s). Activar
+  HTTP/2 en Nginx es un cambio de una línea del lado del servidor, fuera de
+  este repositorio; queda anotado en `LIMITACIONES_Y_TRABAJO_FUTURO.md`.
+
 ## [1.7.2] — 2026-08-12
 
 Dos fallos encontrados probando el sistema en vivo con usuarios reales.

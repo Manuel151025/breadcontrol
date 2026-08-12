@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Etiquetas de Lote &mdash; BreadControl</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{--c1:#945b35;--c3:#c67124;--c4:#e4a565;--c5:#ecc198;--cbg:#faf3ea;--ink:#281508;--ink2:#6b3d1e;--ink3:#b87a4a;--border:rgba(148,91,53,.15)}

@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Recuperar Contraseña — BreadControl</title>
   <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <style>
+  <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
+  <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
+<style>
     *{margin:0;padding:0;box-sizing:border-box;}
     :root{--bg:hsl(24,60%,6%);--fg:hsl(30,30%,90%);--card:hsla(24,40%,10%,.6);--orange:hsl(27,72%,47%);--honey:hsl(30,67%,65%);--muted:hsl(30,20%,45%);--border:rgba(255,255,255,.1);--input-bg:hsla(24,40%,8%,.6);}
     body{font-family:'DM Sans',sans-serif;color:var(--fg);background:var(--bg);min-height:100vh;overflow-x:hidden;}

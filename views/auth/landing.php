@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BreadControl · Gestión de Panadería</title>
   <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
+  <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
+<link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
+<style>
     :root{
       --bg:hsl(24,60%,6%);--fg:hsl(30,30%,90%);
       --card:hsl(24,40%,10%);--card-fg:hsl(30,30%,90%);

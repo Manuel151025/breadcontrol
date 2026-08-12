@@ -17,9 +17,9 @@ function navActive($path) {
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title><?= $page_title ?? 'BreadControl' ?> — BreadControl</title>
   <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link href="<?= APP_URL ?>/assets/css/responsive.css?v=<?= APP_VERSION ?>" rel="stylesheet">
+  <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
+  <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
+<link href="<?= APP_URL ?>/assets/css/responsive.css?v=<?= APP_VERSION ?>" rel="stylesheet">
   <link href="<?= APP_URL ?>/assets/css/main.css?v=<?= APP_VERSION ?>" rel="stylesheet">
 </head>
 <body>

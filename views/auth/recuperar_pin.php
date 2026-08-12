@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Recuperar contrasena — BreadControl</title>
   <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <style>
+  <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
+  <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
+<style>
     *{margin:0;padding:0;box-sizing:border-box;}
     :root{--bg-dark:hsl(25,60%,5%);--card-bg:hsl(25,30%,12%);--muted-bg:hsl(25,20%,15%);--border:hsl(25,25%,20%);--fg:hsl(30,40%,90%);--fg-muted:hsl(30,20%,60%);--naranja:hsl(27,72%,47%);--miel:hsl(30,65%,65%);--crema:hsl(28,60%,76%);--gradient-warm:linear-gradient(135deg,hsl(27,72%,47%),hsl(30,65%,65%));--shadow-warm:0 8px 32px -8px hsla(27,72%,47%,.3);--shadow-glow:0 0 40px -10px hsla(30,65%,65%,.4);}
     body{font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:var(--bg-dark);}
