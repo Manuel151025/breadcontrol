@@ -4,6 +4,67 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.8.0] — 2026-08-12
+
+Implementación del informe técnico externo del 2026-08-12 (recomendaciones
+R-01 a R-11). Los once hallazgos se verificaron uno por uno contra el sistema
+real antes de tocar nada: todos eran ciertos. Nueve quedan resueltos; dos
+dependen del servidor web y están documentados en el anexo de limitaciones.
+
+### Seguridad
+
+- **La cookie de sesión ya viaja con `Secure`.** El código sí calculaba el
+  atributo leyendo `X-Forwarded-Proto`, pero la cadena Nginx→Traefik no reenvía
+  esa cabecera, así que PHP se creía sirviendo por HTTP. Ahora decide el
+  entorno (`APP_ENV`), que no depende del proxy.
+- **Sesión endurecida**: `use_strict_mode` contra la fijación de sesión,
+  identificador nuevo al autenticar —back-office, portal y acceso con Google— y
+  borrado de la cookie al cerrar sesión, que antes sobrevivía a la destrucción
+  de la sesión en el servidor.
+- **Política de seguridad de contenido (CSP) activa**: ningún script, hoja,
+  tipografía o conexión puede venir de un origen no declarado.
+- **Cabeceras defensivas**: `X-Content-Type-Options`, `Referrer-Policy`,
+  `Permissions-Policy` y `X-Frame-Options`.
+- **La versión de PHP deja de anunciarse** (`expose_php=Off` y `X-Powered-By`
+  retirada).
+
+### Accesibilidad
+
+- **121 etiquetas asociadas a su campo** mediante `for`/`id`; otras 10 ya eran
+  correctas porque envuelven al control. En la pantalla de variedades los
+  identificadores incluyen la categoría: ese formulario se repite por cada
+  precio y un `id` duplicado hace que pulsar cualquier etiqueta enfoque siempre
+  el primer campo de la página.
+- **Se retira `maximum-scale=1`** de 6 vistas: impedía ampliar con los gestos
+  del navegador, justo lo que necesita una persona con baja visión.
+- **25 botones de solo icono** reciben nombre accesible.
+
+### Navegación y difusión
+
+- Las secciones de la portada reservan espacio para la barra fija y el ancla se
+  recoloca tras la carga: abrir `/#modulos` ya deja el título a la vista.
+- `description`, `canonical`, Open Graph, Twitter Card y `favicon.ico` en su
+  ruta convencional. El icono de pestaña pasa de un PNG de 50 KB a uno de 32 px.
+- **El sitio se declara público**: se indexa la portada y se bloquea la
+  operación interna, con `sitemap.xml`. El propio archivo deja escrito que
+  `robots.txt` no es un control de acceso.
+
+### Cambiado
+
+- La portada decía «Software 100% local · Sin internet». El núcleo operativo sí
+  puede instalarse en local, pero el clima y el acceso con Google requieren
+  conexión: ahora lo dice con precisión. Un dato exacto vale más que un eslogan.
+
+### Nota
+
+- El informe no podía ver, por ser una revisión externa sin credenciales, que su
+  punto C05 —límite de intentos y mensaje que no revela si un usuario existe— ya
+  estaba resuelto desde la v1.7.0.
+- Quedan abiertos, por vivir en el servidor web y no en el repositorio: HSTS,
+  ocultar la versión de Nginx y el reenvío de `X-Forwarded-*` (punto 21 del
+  anexo). Y `unsafe-inline` sigue en la CSP porque el proyecto tiene 157
+  manejadores en línea y 31 bloques de script incrustados (punto 22).
+
 ## [1.7.3] — 2026-08-12
 
 Las imágenes de fondo y el logo tardaban en aparecer al entrar. Se midió cada

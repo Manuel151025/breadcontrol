@@ -31,6 +31,9 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 17 | El despliegue limpio no reflejaba el esquema real | Configuración | Alto | ✅ **Resuelto** (2026-08-06) |
 | 18 | Condiciones de carrera (lotes, cupo semanal) | Concurrencia | Medio | 🟡 Parcial — falta el número de lote |
 | 19 | Columna huérfana `pedido_cliente.id_tienda_destino` | Arquitectura | Bajo | ✅ **Resuelto** (2026-08-06) |
+| 20 | Los mensajes de confirmación nunca se muestran | Usabilidad | Bajo-Medio | ⬜ Abierto — S |
+| 21 | HSTS y versión de Nginx: dependen del servidor web | Seguridad | Medio | ⬜ Abierto — S (fuera del repositorio) |
+| 22 | `unsafe-inline` en la CSP: 157 manejadores en línea | Seguridad | Medio | ⬜ Abierto — L |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -262,6 +265,49 @@ Es inerte: `config/app.php` ejecuta `date_default_timezone_set('America/Bogota')
 **Severidad:** Bajo-Medio (usabilidad). **Esfuerzo:** S — llamar a `mostrarMensaje()` en el layout `views/layouts/header.php`, revisando que el HTML que genera (clases de Bootstrap `alert`) encaje con el sistema de diseño propio, que no usa Bootstrap.
 
 **Por qué no se resolvió en esta tanda:** por eso los avisos de CSRF usan la convención `?err=csrf`, que sí se muestra. Arreglar el sistema flash haría aparecer de golpe decenas de mensajes hoy invisibles en pantallas que no se han revisado, y eso merece su propia tanda con revisión visual.
+
+---
+
+### 21. ⬜ Controles de seguridad que dependen del servidor web (R-02 y R-05 del informe externo)
+
+**Origen:** informe técnico externo del 2026-08-12. De sus once recomendaciones, nueve se resolvieron en la v1.8.0 dentro del repositorio. Estas dos no pueden: viven en el Nginx del VPS, que está delante de la aplicación y es compartido con otros proyectos.
+
+**Lo que falta:**
+
+1. **HSTS (R-02).** El servidor redirige HTTP a HTTPS, pero esa redirección ocurre *después* de la primera petición. `Strict-Transport-Security` le dice al navegador que use HTTPS desde el principio. Se añade en el bloque `server` de Nginx:
+   ```nginx
+   add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+   ```
+   Conviene empezar con un `max-age` corto y subirlo: mientras esté activo, el navegador **se niega** a usar HTTP en ese dominio, así que un error de configuración de certificado deja el sitio inaccesible hasta que expire.
+
+2. **Versión de Nginx (R-05).** Las respuestas publican `Server: nginx/1.24.0 (Ubuntu)`. Se oculta con `server_tokens off;`. La versión de PHP ya no se expone: se resolvió con `expose_php=Off` en el Dockerfile.
+
+3. **Reenvío de `X-Forwarded-*`.** Descubierto al corregir R-01: la cookie salía sin `Secure` porque PHP no recibía `X-Forwarded-Proto`. Se resolvió sin depender del proxy (el entorno decide), pero la causa sigue ahí y **afecta a otra cosa**: `ip_cliente()` lee `X-Forwarded-For` para el bloqueo por IP del punto RS-05. Si el proxy no la reenvía, todos los intentos parecen venir de la misma dirección —la del propio proxy— y el umbral por IP podría bloquear a usuarios legítimos. El bloqueo por cuenta no se ve afectado y sigue siendo la defensa principal.
+   ```nginx
+   proxy_set_header X-Forwarded-Proto $scheme;
+   proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+   proxy_set_header Host              $host;
+   ```
+
+**Severidad:** Media. **Esfuerzo:** S (una sesión en el VPS, con `nginx -t` antes de recargar).
+
+**Por qué sigue abierto:** requiere editar la configuración de un servidor compartido con proyectos de otras personas, lo que excede lo que se puede desplegar desde este repositorio.
+
+---
+
+### 22. ⬜ `unsafe-inline` en la política de seguridad de contenido
+
+**Descubierto al implementar R-03 (v1.8.0).**
+
+**Descripción:** la CSP está activa y bloquea cualquier script, hoja de estilo, tipografía o conexión de un origen no declarado. Pero conserva `'unsafe-inline'` en `script-src` y `style-src`, lo que deja abierta la vía más común de XSS: un script inyectado *dentro* del propio HTML.
+
+**Evidencia (medida sobre `views/`):** 157 manejadores en línea (`onclick`, `oninput`, …), 31 bloques `<script>` sin `src` y 779 atributos `style`.
+
+**Impacto:** la CSP protege contra la carga de recursos externos maliciosos, pero no contra la ejecución de código inyectado en la página. Es media protección, y conviene no confundirla con protección completa.
+
+**Severidad:** Media. **Esfuerzo:** L — extraer 157 manejadores a archivos `.js` con `addEventListener`, mover los 31 bloques a archivos externos y sustituir los `style` en línea por clases. Alternativamente, firmar cada bloque con un `nonce` por petición, que es menos trabajo pero obliga a tocar todas las vistas igual.
+
+**Por qué se pospuso:** quitarlo sin hacer ese trabajo rompería la interfaz por completo. Se prefirió una CSP activa e imperfecta —que ya bloquea el origen externo— sobre no tener ninguna.
 
 ---
 
