@@ -32,7 +32,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 18 | Condiciones de carrera (lotes, cupo semanal) | Concurrencia | Medio | 🟡 Parcial — falta el número de lote |
 | 19 | Columna huérfana `pedido_cliente.id_tienda_destino` | Arquitectura | Bajo | ✅ **Resuelto** (2026-08-06) |
 | 20 | Los mensajes de confirmación nunca se muestran | Usabilidad | Bajo-Medio | ⬜ Abierto — S |
-| 21 | HSTS y versión de Nginx: dependen del servidor web | Seguridad | Medio | ⬜ Abierto — S (fuera del repositorio) |
+| 21 | HSTS y versión de Nginx (servidor web) | Seguridad | Medio | ✅ **Resueltos** (2026-08-14) · queda `X-Forwarded-*` |
 | 22 | `unsafe-inline` en la CSP: 157 manejadores en línea | Seguridad | Medio | ⬜ Abierto — L |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
@@ -268,30 +268,27 @@ Es inerte: `config/app.php` ejecuta `date_default_timezone_set('America/Bogota')
 
 ---
 
-### 21. ⬜ Controles de seguridad que dependen del servidor web (R-02 y R-05 del informe externo)
+### 21. 🟡 Controles del servidor web (R-02 y R-05) — RESUELTOS el 2026-08-14; queda un matiz
 
-**Origen:** informe técnico externo del 2026-08-12. De sus once recomendaciones, nueve se resolvieron en la v1.8.0 dentro del repositorio. Estas dos no pueden: viven en el Nginx del VPS, que está delante de la aplicación y es compartido con otros proyectos.
+**Origen:** informe técnico externo del 2026-08-12. Nueve de sus once recomendaciones se resolvieron en la v1.8.0 dentro del repositorio; estas dos vivían en el Nginx del VPS y se aplicaron directamente allí, **dentro del bloque `server` de BreadControl** y nunca en `nginx.conf`: el servidor aloja 24 sitios, varios de otras personas, y un cambio global los habría afectado a todos.
 
-**Lo que falta:**
+**✅ HSTS (R-02).** `add_header Strict-Transport-Security "max-age=31536000" always;`. Se desplegó primero con `max-age=300` y se subió a un año solo después de comprobar la renovación del certificado con `certbot renew --dry-run`. El orden importa: mientras HSTS está activo el navegador **se niega** a usar HTTP en el dominio, así que un certificado que no renueve deja el sitio inaccesible sin opción de continuar, y ese plazo corto era la red de seguridad mientras se verificaba.
 
-1. **HSTS (R-02).** El servidor redirige HTTP a HTTPS, pero esa redirección ocurre *después* de la primera petición. `Strict-Transport-Security` le dice al navegador que use HTTPS desde el principio. Se añade en el bloque `server` de Nginx:
-   ```nginx
-   add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-   ```
-   Conviene empezar con un `max-age` corto y subirlo: mientras esté activo, el navegador **se niega** a usar HTTP en ese dominio, así que un error de configuración de certificado deja el sitio inaccesible hasta que expire.
+**✅ Versión de Nginx (R-05).** `server_tokens off;`. Las respuestas ahora publican `Server: nginx`, sin versión. La de PHP ya se había ocultado con `expose_php=Off` en el Dockerfile.
 
-2. **Versión de Nginx (R-05).** Las respuestas publican `Server: nginx/1.24.0 (Ubuntu)`. Se oculta con `server_tokens off;`. La versión de PHP ya no se expone: se resolvió con `expose_php=Off` en el Dockerfile.
+**➕ HTTP/2**, que no estaba en el informe. El `listen 443 ssl` no lo tenía, así que el navegador abría hasta seis conexiones separadas y pagaba un apretón TLS (~0,3 s) en cada una. Con `listen 443 ssl http2` todo viaja multiplexado por una sola conexión.
 
-3. **Reenvío de `X-Forwarded-*`.** Descubierto al corregir R-01: la cookie salía sin `Secure` porque PHP no recibía `X-Forwarded-Proto`. Se resolvió sin depender del proxy (el entorno decide), pero la causa sigue ahí y **afecta a otra cosa**: `ip_cliente()` lee `X-Forwarded-For` para el bloqueo por IP del punto RS-05. Si el proxy no la reenvía, todos los intentos parecen venir de la misma dirección —la del propio proxy— y el umbral por IP podría bloquear a usuarios legítimos. El bloqueo por cuenta no se ve afectado y sigue siendo la defensa principal.
-   ```nginx
-   proxy_set_header X-Forwarded-Proto $scheme;
-   proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-   proxy_set_header Host              $host;
-   ```
+**⬜ Lo que queda: el reenvío de `X-Forwarded-*`.** Al corregir R-01 se supuso que Nginx no reenviaba `X-Forwarded-Proto`. **Era falso**: el bloque sí lo envía. Lo que ocurre es un salto más adelante — Nginx entrega a **Traefik** por HTTP en el puerto 9080, y Traefik reescribe esas cabeceras con su propia visión de la conexión porque no está configurado para confiar en el proxy que tiene delante.
 
-**Severidad:** Media. **Esfuerzo:** S (una sesión en el VPS, con `nginx -t` antes de recargar).
+Esto ya no afecta a la cookie `Secure` (ahora decide `APP_ENV`, no el proxy), pero **sí afecta al bloqueo por IP** de RS-05: `ip_cliente()` lee `X-Forwarded-For`, y si llega reescrita, todos los intentos parecen venir de la misma dirección. El umbral por cuenta —la defensa principal— no se ve afectado.
 
-**Por qué sigue abierto:** requiere editar la configuración de un servidor compartido con proyectos de otras personas, lo que excede lo que se puede desplegar desde este repositorio.
+**Cómo verificarlo:** provocar un intento de acceso fallido y mirar qué quedó guardado:
+```sql
+SELECT identificador, ip, fecha FROM intento_login ORDER BY fecha DESC LIMIT 5;
+```
+Si la columna `ip` muestra una dirección interna (`127.0.0.1` o la del proxy) en vez de la pública del cliente, está confirmado. La corrección es de la configuración de Traefik en Dokploy, no del repositorio.
+
+**Severidad:** Baja-Media. **Esfuerzo:** S.
 
 ---
 

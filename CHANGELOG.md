@@ -60,10 +60,18 @@ dependen del servidor web y están documentados en el anexo de limitaciones.
 - El informe no podía ver, por ser una revisión externa sin credenciales, que su
   punto C05 —límite de intentos y mensaje que no revela si un usuario existe— ya
   estaba resuelto desde la v1.7.0.
-- Quedan abiertos, por vivir en el servidor web y no en el repositorio: HSTS,
-  ocultar la versión de Nginx y el reenvío de `X-Forwarded-*` (punto 21 del
-  anexo). Y `unsafe-inline` sigue en la CSP porque el proyecto tiene 157
-  manejadores en línea y 31 bloques de script incrustados (punto 22).
+- **HSTS (R-02) y ocultar la versión de Nginx (R-05) se aplicaron el 2026-08-14**
+  en el propio servidor, dentro del bloque `server` de BreadControl y nunca en
+  `nginx.conf` —el VPS aloja 24 sitios, varios de otras personas—. HSTS se
+  desplegó primero con `max-age=300` y se subió a un año solo tras comprobar la
+  renovación del certificado con `certbot renew --dry-run`. De paso se activó
+  **HTTP/2**, que no estaba en el informe: el `listen 443 ssl` no lo tenía y el
+  navegador abría hasta seis conexiones con su apretón TLS cada una.
+- Queda abierto el reenvío de `X-Forwarded-*` (punto 21 del anexo). La suposición
+  inicial era falsa: Nginx **sí** las envía; es Traefik quien las reescribe. Ya
+  no afecta a la cookie, pero sí al bloqueo por IP. Y `unsafe-inline` sigue en la
+  CSP porque el proyecto tiene 157 manejadores en línea y 31 bloques de script
+  incrustados (punto 22).
 
 ## [1.7.3] — 2026-08-12
 
