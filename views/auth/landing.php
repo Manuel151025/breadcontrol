@@ -4,7 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BreadControl · Gestión de Panadería</title>
-  <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
+
+  <?php // Metadatos públicos (R-10 del informe técnico). Sin ellos, compartir el
+        // enlace por WhatsApp, correo o redes muestra solo la URL desnuda, y los
+        // buscadores no tienen de dónde sacar una descripción. ?>
+  <meta name="description" content="BreadControl: sistema de gestión para panaderías. Inventario FIFO con costeo real por lote, producción por recetas, ventas, cierre de caja y portal de pedidos para clientes y aprendices.">
+  <link rel="canonical" href="<?= APP_URL ?>/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="BreadControl">
+  <meta property="og:title" content="BreadControl · Gestión de Panadería">
+  <meta property="og:description" content="Inventario FIFO con costeo real, producción por recetas, ventas y cierre de caja para panaderías.">
+  <meta property="og:url" content="<?= APP_URL ?>/">
+  <meta property="og:image" content="<?= APP_URL ?>/assets/img/bakery-bg.jpg">
+  <meta property="og:locale" content="es_CO">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BreadControl · Gestión de Panadería">
+  <meta name="twitter:description" content="Inventario FIFO con costeo real, producción por recetas, ventas y cierre de caja para panaderías.">
+  <meta name="twitter:image" content="<?= APP_URL ?>/assets/img/bakery-bg.jpg">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="<?= APP_URL ?>/assets/img/favicon-32.png">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
 <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
 <style>
@@ -40,6 +60,11 @@
 
     /* ═══ NAV ═══ */
     .nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.25rem 0;transition:all .35s ease;}
+
+    /* La barra de navegación es fija y tapa el inicio de cada sección al saltar
+       a un ancla. scroll-margin-top reserva ese espacio, de modo que al abrir
+       /#modulos el título quede justo debajo de la barra y no detrás. */
+    section[id]{scroll-margin-top:96px;}
     .nav.scrolled{background:var(--glass-bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-border);padding:.75rem 0;}
     .nav-inner{display:flex;align-items:center;justify-content:space-between;}
     .nav-brand{display:flex;align-items:center;gap:.75rem;text-decoration:none;}
@@ -195,7 +220,7 @@
       <a href="#tecnologia">Tecnología</a>
       <a href="<?= APP_URL ?>/login.php" class="btn-cta"><i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión</a>
     </div>
-    <button class="nav-ham" id="navHam"><i class="bi bi-list" id="hamIco"></i></button>
+    <button class="nav-ham" id="navHam" aria-label="Abrir el menú"><i class="bi bi-list" id="hamIco"></i></button>
     <div class="nav-mobile glass-card" id="navMobile">
       <a href="#acerca" style="color:hsla(30,30%,90%,.7);text-decoration:none;font-size:.9rem;font-weight:500">Acerca de</a>
       <a href="#modulos" style="color:hsla(30,30%,90%,.7);text-decoration:none;font-size:.9rem;font-weight:500">Módulos</a>
@@ -211,7 +236,7 @@
   <div class="hero-overlay"></div>
   <div class="container hero-content">
     <div class="reveal">
-      <div class="hero-badge">Software 100% local · Sin costos mensuales</div>
+      <div class="hero-badge">Instalable en tu propio equipo · Sin costos mensuales</div>
       <h1 class="hero-h1">Control total de<br><span class="text-gradient-warm">tu panadería</span></h1>
       <p class="hero-p">BreadControl digitaliza el ciclo operativo completo: desde la compra de insumos hasta el cierre financiero del día. Conoce tus costos reales, controla el inventario y toma decisiones con datos.</p>
       <div class="hero-btns">
@@ -257,7 +282,7 @@
     <div class="section-header reveal">
       <h2 class="section-h2">Acerca del <span class="text-gradient-warm">Sistema</span></h2>
       <p class="section-p">Nace de una necesidad real: la panadería familiar llevaba todos sus registros en cuadernos. No se conocía el costo real de producción, los insumos se agotaban sin aviso y la utilidad era un misterio.</p>
-      <p class="section-p" style="margin-top:.8rem;font-size:.85rem">Desarrollado por <span class="dev">Manuel Cardenas Suarez</span>, aprendiz SENA en Florencia, Caquetá. Funciona 100% sin internet, sin costos mensuales.</p>
+      <p class="section-p" style="margin-top:.8rem;font-size:.85rem">Desarrollado por <span class="dev">Manuel Cardenas Suarez</span>, aprendiz SENA en Florencia, Caquetá. El núcleo operativo —inventario, producción, ventas y cierre— puede instalarse en el equipo de la panadería y funcionar sin costos mensuales. Algunas funciones opcionales, como el clima y el acceso con Google, sí requieren conexión a internet.</p>
     </div>
     <div class="about-grid">
       <div class="glass-card about-card reveal stagger">
@@ -387,8 +412,22 @@ setTimeout(() => {
 }, 150);
 </script>
 
+<script>
+// Al abrir un enlace con ancla (/#modulos), el navegador salta ANTES de que las
+// imágenes y las animaciones terminen de asentar la página, así que el destino
+// acaba fuera de la vista. Se recoloca una vez que todo cargó.
+window.addEventListener('load', function () {
+  if (!location.hash) return;
+  var destino = document.querySelector(location.hash);
+  if (!destino) return;
+  setTimeout(function () {
+    destino.scrollIntoView({ block: 'start', behavior: 'auto' });
+  }, 150);
+});
+</script>
+
 <!-- Manual de Usuario -->
-<a href="<?= APP_URL ?>/assets/docs/Manual_BreadControl.pdf" target="_blank" class="btn-manual" title="Manual de Usuario">
+<a href="<?= APP_URL ?>/assets/docs/Manual_BreadControl.pdf" target="_blank" rel="noopener noreferrer" class="btn-manual" title="Manual de Usuario" aria-label="Abrir el manual de usuario en una pestaña nueva">
   <i class="bi bi-book-half"></i>
   <span class="manual-tooltip">Manual de Usuario</span>
 </a>

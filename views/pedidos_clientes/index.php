@@ -154,20 +154,20 @@
     <div class="filter-card">
         <form method="GET" class="filter-grid">
             <div class="filter-group">
-                <label>Cliente</label>
-                <input type="text" name="cliente" class="filter-input" placeholder="Nombre..." value="<?= htmlspecialchars($f_cliente ?? '') ?>">
+                <label for="cliente">Cliente</label>
+                <input id="cliente" type="text" name="cliente" class="filter-input" placeholder="Nombre..." value="<?= htmlspecialchars($f_cliente ?? '') ?>">
             </div>
             <div class="filter-group">
-                <label>Tipo Cliente</label>
-                <select name="tipo" class="filter-input">
+                <label for="tipo">Tipo Cliente</label>
+                <select id="tipo" name="tipo" class="filter-input">
                     <option value="">Todos</option>
                     <option value="tienda" <?= $f_tipo==='tienda'?'selected':'' ?>>Tienda</option>
                     <option value="mostrador" <?= $f_tipo==='mostrador'?'selected':'' ?>>Mostrador</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label>Estado pedido</label>
-                <select name="estado" class="filter-input">
+                <label for="estado">Estado pedido</label>
+                <select id="estado" name="estado" class="filter-input">
                     <option value="">Todos</option>
                     <option value="pendiente"  <?= $f_estado==='pendiente' ?'selected':'' ?>>Pendiente</option>
                     <option value="confirmado" <?= $f_estado==='confirmado'?'selected':'' ?>>Confirmado</option>
@@ -175,8 +175,8 @@
                 </select>
             </div>
             <div class="filter-group">
-                <label>Estado pago</label>
-                <select name="pago" class="filter-input">
+                <label for="pago">Estado pago</label>
+                <select id="pago" name="pago" class="filter-input">
                     <option value="">Todos</option>
                     <option value="pendiente"  <?= $f_pago==='pendiente' ?'selected':'' ?>>Sin pagar</option>
                     <option value="aprobado"   <?= $f_pago==='aprobado'  ?'selected':'' ?>>Pagado</option>
@@ -186,16 +186,16 @@
                 </select>
             </div>
             <div class="filter-group">
-                <label>F. Entrega</label>
-                <input type="date" name="entrega" class="filter-input" value="<?= htmlspecialchars($f_entrega ?? '') ?>">
+                <label for="entrega">F. Entrega</label>
+                <input id="entrega" type="date" name="entrega" class="filter-input" value="<?= htmlspecialchars($f_entrega ?? '') ?>">
             </div>
             <div class="filter-group">
-                <label>Solicitado Desde</label>
-                <input type="date" name="desde" class="filter-input" value="<?= htmlspecialchars($f_desde ?? '') ?>">
+                <label for="desde">Solicitado Desde</label>
+                <input id="desde" type="date" name="desde" class="filter-input" value="<?= htmlspecialchars($f_desde ?? '') ?>">
             </div>
             <div class="filter-group">
-                <label>Hasta</label>
-                <input type="date" name="hasta" class="filter-input" value="<?= htmlspecialchars($f_hasta ?? '') ?>">
+                <label for="hasta">Hasta</label>
+                <input id="hasta" type="date" name="hasta" class="filter-input" value="<?= htmlspecialchars($f_hasta ?? '') ?>">
             </div>
             <div class="filter-actions">
                 <button type="submit" class="btn-filter"><i class="bi bi-filter"></i> Filtrar</button>

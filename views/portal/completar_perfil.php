@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Completa tu perfil — BreadControl</title>
-  <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="<?= APP_URL ?>/assets/img/favicon-32.png">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
 <style>
@@ -104,13 +104,13 @@
     <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
 
     <div class="field">
-      <label>Nombre de Tienda o Persona</label>
-      <input type="text" name="nombre" value="<?= htmlspecialchars($nombre_actual ?? '') ?>" placeholder="Ej: Tienda El Buen Sabor" required maxlength="100">
+      <label for="nombre">Nombre de Tienda o Persona</label>
+      <input id="nombre" type="text" name="nombre" value="<?= htmlspecialchars($nombre_actual ?? '') ?>" placeholder="Ej: Tienda El Buen Sabor" required maxlength="100">
     </div>
 
     <div class="field" style="background: rgba(57,169,0,.1); padding: 0.85rem; border-radius: 10px; border: 1px solid rgba(57,169,0,.3);">
-      <label style="color:#8fd66a;"><i class="bi bi-mortarboard-fill"></i> Código de aprendiz SENA <span style="color:rgba(255,255,255,.4); font-weight:400;">(opcional)</span></label>
-      <input type="text" name="codigo_aprendiz" placeholder="Si tu instructor te dio un código, ingrésalo" maxlength="16" style="text-transform:uppercase; letter-spacing:.12em;">
+      <label for="codigo_aprendiz" style="color:#8fd66a;"><i class="bi bi-mortarboard-fill"></i> Código de aprendiz SENA <span style="color:rgba(255,255,255,.4); font-weight:400;">(opcional)</span></label>
+      <input id="codigo_aprendiz" type="text" name="codigo_aprendiz" placeholder="Si tu instructor te dio un código, ingrésalo" maxlength="16" style="text-transform:uppercase; letter-spacing:.12em;">
     </div>
 
     <button type="submit" class="btn-submit">Entrar al portal</button>

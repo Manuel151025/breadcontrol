@@ -147,12 +147,12 @@
                 <p class="pf-subtitle">Agrega una tienda nueva al sistema y márcala como beneficiaria automáticamente.</p>
 
                 <div class="pf-form-group">
-                    <label>Nombre de la tienda</label>
-                    <input type="text" name="nombre" required placeholder="Ej: Tienda ADSO Florencia" maxlength="100">
+                    <label for="nombre">Nombre de la tienda</label>
+                    <input id="nombre" type="text" name="nombre" required placeholder="Ej: Tienda ADSO Florencia" maxlength="100">
                 </div>
                 <div class="pf-form-group">
-                    <label>Teléfono (opcional)</label>
-                    <input type="text" name="telefono" placeholder="3001234567" maxlength="20">
+                    <label for="telefono">Teléfono (opcional)</label>
+                    <input id="telefono" type="text" name="telefono" placeholder="3001234567" maxlength="20">
                 </div>
 
                 <button type="submit" name="crear_tienda" class="pf-btn">

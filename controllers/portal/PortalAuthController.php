@@ -69,6 +69,9 @@ class PortalAuthController extends PortalControllerBase {
 
                     if ($cliente && password_verify($contrasena, $cliente['contrasena_hash'])) {
                         $intentos->limpiar(IntentoLoginModel::AMBITO_PORTAL, $usuario);
+                        // Identificador nuevo al autenticar (ver iniciarSesion en
+                        // includes/sesion.php): cierra la fijación de sesión.
+                        session_regenerate_id(true);
                         $_SESSION['cliente_id'] = $cliente['id_cliente'];
                         $_SESSION['cliente_nombre'] = $cliente['nombre'];
                         // Cuentas de portal antiguas sin correo: pedirlo antes de continuar,
@@ -201,6 +204,10 @@ class PortalAuthController extends PortalControllerBase {
             header('Location: index.php?error=google_registro');
             exit;
         }
+
+        // Igual que en el acceso con usuario y contraseña: identificador nuevo
+        // al autenticar, también cuando la identidad la aporta Google.
+        session_regenerate_id(true);
 
         $_SESSION['cliente_id']     = $cliente['id_cliente'];
         $_SESSION['cliente_nombre'] = $cliente['nombre'];

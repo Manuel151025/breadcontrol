@@ -51,21 +51,21 @@
       <form method="POST">
         <?= campo_csrf() ?>
         <div class="fl">
-          <label>Contraseña actual (para confirmar tu identidad)</label>
-          <input type="password" name="clave_actual" required placeholder="Tu contraseña actual">
+          <label for="clave_actual">Contraseña actual (para confirmar tu identidad)</label>
+          <input id="clave_actual" type="password" name="clave_actual" required placeholder="Tu contraseña actual">
         </div>
 
         <div class="fl">
-          <label>Nuevo PIN de 6 dígitos</label>
-          <input type="text" name="pin" required maxlength="6" pattern="\d{6}"
+          <label for="pin">Nuevo PIN de 6 dígitos</label>
+          <input id="pin" type="text" name="pin" required maxlength="6" pattern="\d{6}"
                  inputmode="numeric" placeholder="Ej: 123456"
                  style="font-family:'Fraunces',serif;font-size:1.2rem;letter-spacing:.5rem;text-align:center;">
           <div class="hint">Solo números. Memorízalo o guárdalo en un lugar seguro.</div>
         </div>
 
         <div class="fl">
-          <label>Confirmar PIN</label>
-          <input type="text" name="pin_confirmar" required maxlength="6" pattern="\d{6}"
+          <label for="pin_confirmar">Confirmar PIN</label>
+          <input id="pin_confirmar" type="text" name="pin_confirmar" required maxlength="6" pattern="\d{6}"
                  inputmode="numeric" placeholder="Repite el PIN"
                  style="font-family:'Fraunces',serif;font-size:1.2rem;letter-spacing:.5rem;text-align:center;">
         </div>

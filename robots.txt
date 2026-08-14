@@ -1,2 +1,31 @@
+# BreadControl — política de rastreo
+#
+# La portada es pública a propósito: presenta el proyecto. Todo lo demás es
+# operación interna y no debe aparecer en buscadores.
+#
+# Esto NO es un control de acceso: robots.txt es una petición que los rastreadores
+# honestos respetan y cualquiera puede ignorar. Las rutas privadas están protegidas
+# por autenticación y autorización en el servidor, que es lo que de verdad las cierra.
+
 User-agent: *
-Disallow: /
+
+# Portada
+Allow: /$
+
+# Acceso y operación interna
+Disallow: /login.php
+Disallow: /portal/
+Disallow: /modules/
+Disallow: /controllers/
+Disallow: /models/
+Disallow: /views/
+Disallow: /includes/
+Disallow: /config/
+Disallow: /helpers/
+Disallow: /sql/
+Disallow: /tests/
+Disallow: /vendor/
+Disallow: /logs/
+Disallow: /recuperar_pin.php
+
+Sitemap: https://breadcontrol.manuelcardenas.online/sitemap.xml

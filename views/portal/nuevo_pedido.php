@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nuevo Pedido — BreadControl</title>
-    <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= APP_URL ?>/assets/img/favicon-32.png">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
 <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/portal_nuevo_pedido.css?v=<?= APP_VERSION ?>">
@@ -109,11 +109,11 @@
 
                     <div id="delivery-datetime-section" style="display: <?= ($es_aprendiz && $pedido_para_actual === 'adso') ? 'none' : 'grid' ?>; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                         <div>
-                            <label style="font-size: .75rem; font-weight: 700; color: var(--ink3); text-transform: uppercase; display:block; margin-bottom:.3rem;">Fecha de entrega</label>
+                            <label for="inp_fecha_entrega" style="font-size: .75rem; font-weight: 700; color: var(--ink3); text-transform: uppercase; display:block; margin-bottom:.3rem;">Fecha de entrega</label>
                             <input type="date" name="fecha_entrega" id="inp_fecha_entrega" min="<?= $min_fecha ?>" max="<?= date('Y-m-d', strtotime('+3 months')) ?>" value="<?= $ped_edit ? $edit_fecha : $min_fecha ?>" <?= ($es_aprendiz && $pedido_para_actual === 'adso') ? '' : 'required' ?> style="width: 100%; padding: .6rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size:.9rem; color: var(--ink);">
                         </div>
                         <div>
-                            <label style="font-size: .75rem; font-weight: 700; color: var(--ink3); text-transform: uppercase; display:block; margin-bottom:.3rem;">Hora de entrega</label>
+                            <label for="inp_hora_entrega" style="font-size: .75rem; font-weight: 700; color: var(--ink3); text-transform: uppercase; display:block; margin-bottom:.3rem;">Hora de entrega</label>
                             <input type="time" name="hora_entrega" id="inp_hora_entrega" min="07:00" max="20:00" value="<?= $ped_edit ? $edit_hora : $hora_sugerida ?>" <?= ($es_aprendiz && $pedido_para_actual === 'adso') ? '' : 'required' ?> style="width: 100%; padding: .6rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size:.9rem; color: var(--ink);">
                         </div>
                     </div>

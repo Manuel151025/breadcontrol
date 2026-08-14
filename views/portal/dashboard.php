@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Tablero — BreadControl</title>
-    <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= APP_URL ?>/assets/img/favicon-32.png">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
 <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/portal_dashboard.css?v=<?= APP_VERSION ?>">
@@ -377,7 +377,7 @@
                                     <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                                     <input type="hidden" name="actualizar_cupo_aprendiz_id" value="<?= $a['id_cliente'] ?>">
                                     <input type="number" name="cupo_semanal" value="<?= (int)$cupo ?>" min="0" max="100000" step="500" oninput="if(this.value !== '' && parseFloat(this.value) > 100000) this.value = 100000; if(this.value !== '' && parseFloat(this.value) < 0) this.value = 0;" style="width:75px; height:1.6rem; padding: 0 0.4rem; font-size: 0.72rem; border-radius: 6px; border:1px solid var(--border); background:var(--input-bg); color:var(--fg); text-align:right; outline:none;">
-                                    <button type="submit" title="Actualizar cupo" style="background:none; border:none; color:var(--c3); cursor:pointer; font-size:0.95rem; padding:0; display:inline-flex; align-items:center;">
+                                    <button type="submit" title="Actualizar cupo" style="background:none; border:none; color:var(--c3); cursor:pointer; font-size:0.95rem; padding:0; display:inline-flex; align-items:center;" aria-label="Actualizar cupo">
                                         <i class="bi bi-check-circle-fill"></i>
                                     </button>
                                 </form>
@@ -443,8 +443,8 @@
                 <input type="hidden" name="variedad_id" id="hdn-variedad" value="">
             <?php endif; ?>
             <div class="filter-group">
-                <label>Estado</label>
-                <select name="estado" class="filter-input">
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado" class="filter-input">
                     <option value="">Todos</option>
                     <option value="pendiente"  <?= $f_estado==='pendiente' ?'selected':'' ?>>Pendiente</option>
                     <option value="confirmado" <?= $f_estado==='confirmado'?'selected':'' ?>>Confirmado</option>
@@ -452,8 +452,8 @@
                 </select>
             </div>
             <div class="filter-group">
-                <label>Ordenar por</label>
-                <select name="orden" class="filter-input">
+                <label for="orden">Ordenar por</label>
+                <select id="orden" name="orden" class="filter-input">
                     <option value="recientes" <?= $f_orden==='recientes'?'selected':'' ?>>Más recientes</option>
                     <option value="antiguos"  <?= $f_orden==='antiguos' ?'selected':'' ?>>Más antiguos</option>
                     <option value="entrega"   <?= $f_orden==='entrega'  ?'selected':'' ?>>Entrega más próxima</option>
@@ -565,7 +565,7 @@
         <!-- Cabecera -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;border-bottom:1px solid var(--border);background:var(--clight);border-radius:16px 16px 0 0;">
             <div style="font-family:'Fraunces',serif;font-size:1.05rem;font-weight:800;color:var(--ink);">Datos para pagar instructor</div>
-            <button class="modal-close" onclick="cerrarModalPagoInstructor()"><i class="bi bi-x-lg"></i></button>
+            <button class="modal-close" onclick="cerrarModalPagoInstructor()" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
         </div>
 
         <!-- Barra seleccionar todos + total -->
@@ -637,7 +637,7 @@
     <div class="modal-box">
         <div class="modal-head">
             <h2><i class="bi bi-basket2-fill"></i> Buscar por tipo de pan</h2>
-            <button class="modal-close" onclick="cerrarModalPan()"><i class="bi bi-x-lg"></i></button>
+            <button class="modal-close" onclick="cerrarModalPan()" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="modal-search">
             <div class="modal-search-wrap">

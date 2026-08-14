@@ -9,13 +9,27 @@ require_once __DIR__ . '/../config/db.php';
 
 // Configuración de cookie de sesión segura
 if (session_status() === PHP_SESSION_NONE) {
-    $secure = false;
-    if (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1)) {
-        $secure = true;
-    } elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
-        $secure = true;
+    // El atributo Secure NO puede depender de detectar HTTPS en la petición.
+    // En producción la aplicación corre detrás de Nginx y Traefik, y si la
+    // cadena de proxies no reenvía X-Forwarded-Proto —que es justo lo que
+    // ocurría— PHP cree estar sirviendo por HTTP y emite la cookie de sesión
+    // sin Secure. El entorno es la fuente de verdad: fuera de local, la
+    // aplicación SIEMPRE se sirve por HTTPS.
+    $entorno  = defined('APP_ENV') ? constant('APP_ENV') : 'production';
+    $es_local = is_string($entorno)
+        && in_array($entorno, ['local', 'dev', 'development'], true);
+    $secure   = !$es_local;
+    if (!$secure) {
+        // En local se respeta HTTPS si el servidor de desarrollo lo usa.
+        $proto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
+        $secure = (($_SERVER['HTTPS'] ?? '') === 'on')
+            || (is_string($proto) && $proto === 'https');
     }
-    
+
+    // Rechaza identificadores de sesión que el propio PHP no haya generado,
+    // cerrando la fijación de sesión (un atacante que fuerce un ID conocido).
+    ini_set('session.use_strict_mode', '1');
+
     session_set_cookie_params([
         'lifetime' => SESSION_DURACION,
         'path' => '/',
@@ -73,6 +87,11 @@ function iniciarSesion(string $nombre_usuario, string $contrasena): bool {
     $usuario = $model->getUsuarioPorNombre($nombre_usuario);
 
     if ($usuario && password_verify($contrasena, $usuario['contrasena_hash'])) {
+        // Identificador nuevo al autenticar: si alguien logró fijar el ID
+        // antes del inicio de sesión, el que queda autenticado es otro y su
+        // copia deja de servir. Se descarta la sesión anterior (true).
+        session_regenerate_id(true);
+
         $_SESSION['id_usuario']       = $usuario['id_usuario'];
         $_SESSION['nombre_completo']  = $usuario['nombre_completo'];
         $_SESSION['rol']              = $usuario['rol'];
@@ -88,6 +107,22 @@ function iniciarSesion(string $nombre_usuario, string $contrasena): bool {
 function cerrarSesion(): never {
     session_unset();
     session_destroy();
+
+    // Destruir la sesión en el servidor no borra la cookie del navegador: sin
+    // esto el usuario sigue paseando un identificador ya inválido, que además
+    // queda en su historial y en cualquier registro intermedio.
+    if (ini_get('session.use_cookies')) {
+        $p = session_get_cookie_params();
+        setcookie((string) session_name(), '', [
+            'expires'  => time() - 42000,
+            'path'     => $p['path'],
+            'domain'   => $p['domain'],
+            'secure'   => $p['secure'],
+            'httponly' => $p['httponly'],
+            'samesite' => $p['samesite'],
+        ]);
+    }
+
     header('Location: ' . APP_URL . '/login.php');
     exit;
 }

@@ -135,21 +135,21 @@
           <?php endif; ?>
 
           <div class="fl">
-            <label>Nombre del proveedor</label>
-            <input type="text" name="nombre" required autofocus
+            <label for="nombre">Nombre del proveedor</label>
+            <input id="nombre" type="text" name="nombre" required autofocus
                    value="<?= htmlspecialchars($editando['nombre'] ?? $_POST['nombre'] ?? '') ?>"
                    placeholder="Ej: Harinera del Valle">
           </div>
 
           <div class="fl">
-            <label>Teléfono</label>
-            <input type="text" name="telefono"
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" type="text" name="telefono"
                    value="<?= htmlspecialchars($editando['telefono'] ?? $_POST['telefono'] ?? '') ?>"
                    placeholder="Ej: 3001234567">
           </div>
 
           <div class="fl">
-            <label>Tipo de entrega</label>
+            <label for="tipo_entrega">Tipo de entrega</label>
             <select name="tipo_entrega" id="tipo_entrega">
               <option value="domicilio" <?= (($editando['tipo_entrega'] ?? 'domicilio') === 'domicilio') ? 'selected' : '' ?>>A domicilio</option>
               <option value="recogida"  <?= (($editando['tipo_entrega'] ?? '') === 'recogida')           ? 'selected' : '' ?>>Recogida</option>
@@ -159,7 +159,7 @@
 
           <!-- Días de entrega — solo para domicilio -->
           <div class="fl" id="campo-dias">
-            <label>Tiempo de entrega promedio</label>
+            <label for="inp-dias">Tiempo de entrega promedio</label>
             <div style="display:flex;align-items:center;gap:.5rem;">
               <input type="number" name="dias_entrega_promedio" id="inp-dias"
                      value="<?= $editando['dias_entrega_promedio'] ?? 1 ?>"
@@ -171,7 +171,7 @@
 
           <!-- Días de visita — solo para visita programada -->
           <div class="fl" id="campo-visita" style="display:none">
-            <label>Días de visita</label>
+            <label for="dias_visita">Días de visita</label>
             <?php
             $diasSemana  = ['lunes','martes','miercoles','jueves','viernes','sabado'];
             $diasLabels  = ['Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -180,7 +180,7 @@
             <div class="dias-grid">
               <?php foreach ($diasSemana as $i => $dia): ?>
               <label class="dia-chip">
-                <input type="checkbox" name="dias_visita[]" value="<?= $dia ?>"
+                <input id="dias_visita" type="checkbox" name="dias_visita[]" value="<?= $dia ?>"
                        <?= in_array($dia, $diasGuardados) ? 'checked' : '' ?>>
                 <?= $diasLabels[$i] ?>
               </label>
@@ -267,7 +267,7 @@
                 <form method="POST" style="display:contents;" onsubmit="return confirm('¿Desactivar a <?= htmlspecialchars($p['nombre'] ?? '') ?>?')">
                   <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                   <input type="hidden" name="desactivar" value="<?= $p['id_proveedor'] ?>">
-                  <button type="submit" class="btn-act btn-del" title="Desactivar">
+                  <button type="submit" class="btn-act btn-del" title="Desactivar" aria-label="Desactivar">
                     <i class="bi bi-trash3"></i>
                   </button>
                 </form>

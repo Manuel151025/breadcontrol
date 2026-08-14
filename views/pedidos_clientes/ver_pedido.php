@@ -79,16 +79,16 @@
             <form method="post">
                 <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                 <div class="form-group">
-                    <label>Estado del pedido</label>
-                    <select name="estado">
+                    <label for="estado">Estado del pedido</label>
+                    <select id="estado" name="estado">
                         <option value="pendiente" <?= $pedido['estado'] == 'pendiente' ? 'selected' : '' ?>>Pendiente</option>
                         <option value="confirmado" <?= $pedido['estado'] == 'confirmado' ? 'selected' : '' ?>>Confirmado</option>
                         <option value="rechazado" <?= $pedido['estado'] == 'rechazado' ? 'selected' : '' ?>>Rechazado</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Mensaje para el cliente (Opcional)</label>
-                    <textarea name="mensaje_propietario" rows="4" placeholder="Ej: Pedido confirmado, pasas el viernes."><?= htmlspecialchars($pedido['mensaje_propietario'] ?? '') ?></textarea>
+                    <label for="mensaje_propietario">Mensaje para el cliente (Opcional)</label>
+                    <textarea id="mensaje_propietario" name="mensaje_propietario" rows="4" placeholder="Ej: Pedido confirmado, pasas el viernes."><?= htmlspecialchars($pedido['mensaje_propietario'] ?? '') ?></textarea>
                 </div>
                 <button type="submit" name="actualizar" class="btn-save"><i class="bi bi-save"></i> Guardar Cambios</button>
             </form>
@@ -221,7 +221,7 @@
                 </h4>
 
                 <div class="form-group">
-                    <label>Monto del abono</label>
+                    <label for="inp-monto-recibido">Monto del abono</label>
                     <input type="number" id="inp-monto-recibido" name="monto_recibido" step="1" min="1"
                            value="<?= (int) $deuda_restante ?>"
                            data-esperado="<?= (int) $deuda_restante ?>"
@@ -237,7 +237,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>¿Cómo recibiste el pago?</label>
+                    <label for="inp-metodo">¿Cómo recibiste el pago?</label>
                     <select id="inp-metodo" name="metodo_pago">
                         <option value="NEQUI">Nequi</option>
                         <option value="BANCOLOMBIA">Bancolombia</option>
@@ -248,7 +248,7 @@
                 </div>
 
                 <div class="form-group" id="grupo-nota">
-                    <label id="lbl-nota">Nota</label>
+                    <label for="inp-nota" id="lbl-nota">Nota</label>
                     <textarea id="inp-nota" name="nota_pago" rows="2" placeholder="Ej: ID de transacción Nequi M12345"></textarea>
                 </div>
 

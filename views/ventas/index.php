@@ -94,9 +94,9 @@
             </div>
             <div class="sec-sep">¿Cuánto?</div>
             <div class="fl-row">
-              <div class="fl"><label>Cantidad</label><input type="number" id="inp-cantidad" name="cantidad" min="1" max="999"
+              <div class="fl"><label for="inp-cantidad">Cantidad</label><input type="number" id="inp-cantidad" name="cantidad" min="1" max="999"
                   step="1" placeholder="Ej: 40" oninput="if(this.value>999)this.value=999;calcTotal()"></div>
-              <div class="fl"><label>O monto total ($)</label><input type="number" id="inp-monto" min="1" step="1" maxlength="5"
+              <div class="fl"><label for="inp-monto">O monto total ($)</label><input type="number" id="inp-monto" min="1" step="1" maxlength="5"
                   placeholder="Ej: 20000" oninput="if(this.value.length>5)this.value=this.value.slice(0,5);calcFromMonto()"></div>
             </div>
             <div class="total-display" id="total-box" style="display:none;">
@@ -114,7 +114,7 @@
               </div>
             </div>
             <div id="wrap-cliente">
-              <div class="fl"><label>Cliente</label>
+              <div class="fl"><label for="sel-cliente">Cliente</label>
                 <select name="id_cliente" id="sel-cliente" onchange="calcTotal()">
                   <option value="0">Mostrador</option>
                   <?php foreach ($clientes as $cl): ?>
@@ -332,7 +332,7 @@
       <input type="hidden" name="id_venta" id="ev-id">
       <input type="hidden" name="ev_cliente_anterior" id="ev-cli-prev" value="0">
       <input type="hidden" name="ev_unid_anteriores" id="ev-und-prev" value="0">
-      <div style="margin-bottom:.6rem;"><label style="font-size:.7rem;font-weight:700;">Categoría</label>
+      <div style="margin-bottom:.6rem;"><label for="ev-cat" style="font-size:.7rem;font-weight:700;">Categoría</label>
         <select name="ev_categoria" id="ev-cat" onchange="evRecalc()"
           style="width:100%;padding:.4rem;border:1px solid var(--border);border-radius:8px;">
           <?php foreach ($categorias as $c): ?>
@@ -340,11 +340,11 @@
               $<?= number_format($c['precio_unitario'], 0, ',', '.') ?></option><?php endforeach; ?>
         </select>
       </div>
-      <div style="margin-bottom:.6rem;"><label style="font-size:.7rem;font-weight:700;">Cantidad cobrada</label>
+      <div style="margin-bottom:.6rem;"><label for="ev-cant" style="font-size:.7rem;font-weight:700;">Cantidad cobrada</label>
         <input type="number" name="ev_cantidad" id="ev-cant" min="1" max="999" required oninput="if(this.value>999)this.value=999;evRecalc()"
           style="width:100%;padding:.4rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box;">
       </div>
-      <div style="margin-bottom:.6rem;"><label style="font-size:.7rem;font-weight:700;">Tipo</label>
+      <div style="margin-bottom:.6rem;"><label for="ev-tipo" style="font-size:.7rem;font-weight:700;">Tipo</label>
         <select name="ev_tipo" id="ev-tipo" onchange="evRecalc()"
           style="width:100%;padding:.4rem;border:1px solid var(--border);border-radius:8px;">
           <option value="venta">Venta</option>
@@ -352,7 +352,7 @@
           <option value="consumo_interno">Consumo</option>
         </select>
       </div>
-      <div style="margin-bottom:.6rem;"><label style="font-size:.7rem;font-weight:700;">Cliente</label>
+      <div style="margin-bottom:.6rem;"><label for="ev-cli" style="font-size:.7rem;font-weight:700;">Cliente</label>
         <select name="ev_cliente" id="ev-cli" onchange="evRecalc()"
           style="width:100%;padding:.4rem;border:1px solid var(--border);border-radius:8px;">
           <option value="0" data-tipo="mostrador">Mostrador</option>
@@ -370,7 +370,7 @@
       <!-- Ajuste extra (cuando faltan unidades al cambiar cliente) -->
       <div id="ev-extra-wrap"
         style="display:none;margin-bottom:.7rem;padding:.55rem .7rem;border:1px dashed rgba(21,101,192,.35);background:rgba(21,101,192,.05);border-radius:9px;">
-        <label
+        <label for="ev-extra"
           style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#1565c0;display:block;margin-bottom:.25rem;">Agregar
           unidades extra (bonificación)</label>
         <div style="font-size:.7rem;color:#1565c0;margin-bottom:.3rem;" id="ev-extra-hint">Antes era mostrador. Si

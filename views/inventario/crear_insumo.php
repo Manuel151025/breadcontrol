@@ -22,15 +22,15 @@
           <?= campo_csrf() ?>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">Nombre del insumo <span class="text-danger">*</span></label>
-            <input type="text" name="nombre" class="form-control"
+            <label for="nombre" class="form-label fw-semibold">Nombre del insumo <span class="text-danger">*</span></label>
+            <input id="nombre" type="text" name="nombre" class="form-control"
                    value="<?= htmlspecialchars($_POST['nombre'] ?? '') ?>"
                    placeholder="Ej: Harina de trigo" required autofocus>
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">Unidad de medida <span class="text-danger">*</span></label>
-            <select name="unidad_medida" class="form-select" required>
+            <label for="unidad_medida" class="form-label fw-semibold">Unidad de medida <span class="text-danger">*</span></label>
+            <select id="unidad_medida" name="unidad_medida" class="form-select" required>
               <option value="">Seleccionar...</option>
               <?php foreach (['kg','g','L','ml','unidad'] as $u): ?>
               <option value="<?= $u ?>" <?= (($_POST['unidad_medida'] ?? '') === $u) ? 'selected' : '' ?>>
@@ -41,9 +41,9 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">Punto de reposición</label>
+            <label for="punto_reposicion" class="form-label fw-semibold">Punto de reposición</label>
             <div class="input-group">
-              <input type="number" name="punto_reposicion" class="form-control input-cantidad"
+              <input id="punto_reposicion" type="number" name="punto_reposicion" class="form-control input-cantidad"
                      value="<?= htmlspecialchars($_POST['punto_reposicion'] ?? '0', ENT_QUOTES) ?? 0 ?>"
                      min="0" step="0.001">
               <span class="input-group-text text-muted">unidades</span>

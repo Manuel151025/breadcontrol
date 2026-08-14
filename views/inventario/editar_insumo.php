@@ -18,14 +18,14 @@
           <?= campo_csrf() ?>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
-            <input type="text" name="nombre" class="form-control"
+            <label for="nombre" class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+            <input id="nombre" type="text" name="nombre" class="form-control"
                    value="<?= htmlspecialchars($insumo['nombre'] ?? '') ?>" required>
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">Unidad de medida <span class="text-danger">*</span></label>
-            <select name="unidad_medida" class="form-select" required>
+            <label for="unidad_medida" class="form-label fw-semibold">Unidad de medida <span class="text-danger">*</span></label>
+            <select id="unidad_medida" name="unidad_medida" class="form-select" required>
               <?php foreach (['kg','g','L','ml','unidad'] as $u): ?>
               <option value="<?= $u ?>" <?= $insumo['unidad_medida'] === $u ? 'selected' : '' ?>><?= $u ?></option>
               <?php endforeach; ?>
@@ -33,8 +33,8 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">Punto de reposición</label>
-            <input type="number" name="punto_reposicion" class="form-control input-cantidad"
+            <label for="punto_reposicion" class="form-label fw-semibold">Punto de reposición</label>
+            <input id="punto_reposicion" type="number" name="punto_reposicion" class="form-control input-cantidad"
                    value="<?= $insumo['punto_reposicion'] ?>" min="0" step="0.001">
           </div>
 

@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Recuperar Contraseña — BreadControl</title>
-  <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="<?= APP_URL ?>/assets/img/favicon-32.png">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
 <style>
@@ -96,17 +96,17 @@
       <form method="POST">
         <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
         <div class="field" style="margin-bottom:1rem;">
-          <label>Nombre de Usuario</label>
+          <label for="usuario">Nombre de Usuario</label>
           <div class="inp-wrap">
             <i class="bi bi-person-fill ico"></i>
-            <input type="text" name="usuario" placeholder="Tu usuario de acceso" value="<?= htmlspecialchars($usuario_input ?? '') ?>" required autofocus>
+            <input id="usuario" type="text" name="usuario" placeholder="Tu usuario de acceso" value="<?= htmlspecialchars($usuario_input ?? '') ?>" required autofocus>
           </div>
         </div>
 
-        <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);margin-bottom:.5rem;">Método de verificación</label>
+        <label for="metodo" style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);margin-bottom:.5rem;">Método de verificación</label>
         <div class="method-grid" style="margin-bottom:1.1rem;">
           <label class="method-btn active" id="m-email" onclick="selM('email')">
-            <input type="radio" name="metodo" value="email" checked>
+            <input id="metodo" type="radio" name="metodo" value="email" checked>
             <i class="bi bi-envelope-fill"></i>
             <div class="m-label">Correo</div>
             <div class="m-sub">Código al email</div>
@@ -171,19 +171,19 @@
       <form method="POST">
         <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
         <div class="field" style="margin-bottom:.9rem;">
-          <label>Nueva contraseña</label>
+          <label for="p1">Nueva contraseña</label>
           <div class="inp-wrap">
             <i class="bi bi-shield-lock ico"></i>
             <input type="password" name="nueva" id="p1" placeholder="Mínimo <?= Seguridad::CONTRASENA_MIN ?> caracteres, con letras y números" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" autofocus>
-            <button type="button" class="eye-btn" onclick="tg('p1',this)"><i class="bi bi-eye"></i></button>
+            <button type="button" class="eye-btn" onclick="tg('p1',this)" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button>
           </div>
         </div>
         <div class="field" style="margin-bottom:1.1rem;">
-          <label>Confirmar contraseña</label>
+          <label for="p2">Confirmar contraseña</label>
           <div class="inp-wrap">
             <i class="bi bi-shield-check ico"></i>
             <input type="password" name="confirm" id="p2" placeholder="Repite la contraseña" required minlength="<?= Seguridad::CONTRASENA_MIN ?>">
-            <button type="button" class="eye-btn" onclick="tg('p2',this)"><i class="bi bi-eye"></i></button>
+            <button type="button" class="eye-btn" onclick="tg('p2',this)" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button>
           </div>
         </div>
         <button type="submit" name="cambiar_pass" class="btn-primary"><i class="bi bi-key-fill"></i> Restablecer contraseña</button>

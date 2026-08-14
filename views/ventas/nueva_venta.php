@@ -106,7 +106,7 @@
         <form method="post" id="form-venta">
           <?= campo_csrf() ?>
           <div class="fl">
-            <label>Producto</label>
+            <label for="sel-prod">Producto</label>
             <select name="id_producto" id="sel-prod" required onchange="setPrecio(this)">
               <option value="">— Seleccionar —</option>
               <?php foreach ($productos_list as $p):
@@ -125,7 +125,7 @@
             <div id="stock-badge" style="margin-top:.35rem;font-size:.76rem;font-weight:600;display:none;"></div>
           </div>
           <div class="fl">
-            <label>Unidades vendidas</label>
+            <label for="inp-und">Unidades vendidas</label>
             <div class="und-ctrl">
               <button type="button" class="und-btn" onclick="changeUnd(-1)">−</button>
               <input type="number" name="unidades_vendidas" id="inp-und" class="und-inp" min="1" max="999" value="1" required oninput="if(this.value>999)this.value=999;calcTotal()">
@@ -133,7 +133,7 @@
             </div>
           </div>
           <div class="fl">
-            <label>Precio unitario</label>
+            <label for="inp-precio">Precio unitario</label>
             <div class="precio-wrap">
               <span class="precio-prefix">$</span>
               <input type="number" name="precio_unitario" id="inp-precio" class="precio-inp" min="0" step="50" value="0" required oninput="calcTotal()">
@@ -144,7 +144,7 @@
             <span class="total-val" id="lbl-total">$0</span>
           </div>
           <div class="fl">
-            <label>Cliente <span style="font-weight:400;text-transform:none;font-size:.7rem;">(opcional)</span></label>
+            <label for="sel-cliente">Cliente <span style="font-weight:400;text-transform:none;font-size:.7rem;">(opcional)</span></label>
             <select name="id_cliente" id="sel-cliente" onchange="actualizarBonif()">
               <option value="" data-tipo="mostrador">Mostrador</option>
               <?php foreach ($clientes_list as $c): ?>
@@ -153,8 +153,8 @@
             </select>
           </div>
           <div class="fl">
-            <label>Sobrantes <span style="font-weight:400;text-transform:none;font-size:.7rem;">(panes sin vender al cierre)</span></label>
-            <input type="number" name="unidades_sobrantes" min="0" value="0">
+            <label for="unidades_sobrantes">Sobrantes <span style="font-weight:400;text-transform:none;font-size:.7rem;">(panes sin vender al cierre)</span></label>
+            <input id="unidades_sobrantes" type="number" name="unidades_sobrantes" min="0" value="0">
           </div>
           <!-- Aviso bonificación tienda -->
           <div id="bonif-box" style="display:none;background:rgba(13,71,161,.07);border:1px solid rgba(13,71,161,.2);border-radius:10px;padding:.6rem .9rem;font-size:.82rem;color:#0d47a1;margin-bottom:.65rem;">

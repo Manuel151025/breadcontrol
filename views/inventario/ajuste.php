@@ -48,7 +48,7 @@
         <form method="POST">
           <?= campo_csrf() ?>
           <div class="fl">
-            <label>Cantidad real contada (<?= $insumo['unidad_medida'] ?>) <span style="color:#c62828;">*</span></label>
+            <label for="cantidad_real">Cantidad real contada (<?= $insumo['unidad_medida'] ?>) <span style="color:#c62828;">*</span></label>
             <input type="number" name="cantidad_real" id="cantidad_real"
                    value="<?= htmlspecialchars($_POST['cantidad_real'] ?? '', ENT_QUOTES) ?>"
                    min="0" step="0.001" placeholder="Ej: 5.200" required autofocus
@@ -62,8 +62,8 @@
           </div>
 
           <div class="fl">
-            <label>Motivo del ajuste <span style="color:#c62828;">*</span></label>
-            <select name="motivo" required>
+            <label for="motivo">Motivo del ajuste <span style="color:#c62828;">*</span></label>
+            <select id="motivo" name="motivo" required>
               <option value="">Seleccionar...</option>
               <option value="Conteo físico — sobrante"  <?= (($_POST['motivo'] ?? '') === 'Conteo físico — sobrante')  ? 'selected' : '' ?>>Conteo físico — sobrante</option>
               <option value="Conteo físico — faltante"  <?= (($_POST['motivo'] ?? '') === 'Conteo físico — faltante')  ? 'selected' : '' ?>>Conteo físico — faltante</option>

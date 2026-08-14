@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Perfil — BreadControl</title>
-    <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= APP_URL ?>/assets/img/favicon-32.png">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
 <style>
@@ -167,23 +167,23 @@
                 <form method="post">
                     <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                     <div class="form-group">
-                        <label><?= $es_google ? 'Acceso' : 'Usuario' ?></label>
+                        <label for="campo"><?= $es_google ? 'Acceso' : 'Usuario' ?></label>
                         <?php if ($es_google): ?>
                             <div class="form-control" style="display:flex;align-items:center;gap:.5rem;">
                                 <i class="bi bi-google" style="color:#ea4335;"></i>
                                 <span>Accedes con Google<?= !empty($cliente['email']) ? ' · ' . htmlspecialchars($cliente['email']) : '' ?></span>
                             </div>
                         <?php else: ?>
-                            <input type="text" class="form-control" value="<?= htmlspecialchars($cliente['usuario'] ?? '') ?>" readonly>
+                            <input id="campo" type="text" class="form-control" value="<?= htmlspecialchars($cliente['usuario'] ?? '') ?>" readonly>
                         <?php endif; ?>
                     </div>
                     <div class="form-group">
-                        <label>Nombre Completo / Tienda</label>
-                        <input type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($cliente['nombre'] ?? '') ?>" maxlength="40" required>
+                        <label for="nombre">Nombre Completo / Tienda</label>
+                        <input id="nombre" type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($cliente['nombre'] ?? '') ?>" maxlength="40" required>
                     </div>
                     <div class="form-group">
-                        <label>Teléfono de Contacto</label>
-                        <input type="text" name="telefono" class="form-control" value="<?= htmlspecialchars($cliente['telefono'] ?? '') ?>" maxlength="15" oninput="this.value=this.value.replace(/\D/g,'')">
+                        <label for="telefono">Teléfono de Contacto</label>
+                        <input id="telefono" type="text" name="telefono" class="form-control" value="<?= htmlspecialchars($cliente['telefono'] ?? '') ?>" maxlength="15" oninput="this.value=this.value.replace(/\D/g,'')">
                     </div>
                     <button type="submit" name="actualizar_datos" class="btn-save">
                         <i class="bi bi-check2-circle"></i> Guardar Cambios
@@ -198,16 +198,16 @@
                 <form method="post">
                     <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                     <div class="form-group">
-                        <label>Contraseña Actual</label>
-                        <input type="password" name="pass_actual" class="form-control" required>
+                        <label for="pass_actual">Contraseña Actual</label>
+                        <input id="pass_actual" type="password" name="pass_actual" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label>Nueva Contraseña</label>
-                        <input type="password" name="pass_nueva" class="form-control" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" placeholder="Mínimo <?= Seguridad::CONTRASENA_MIN ?> caracteres, con letras y números">
+                        <label for="pass_nueva">Nueva Contraseña</label>
+                        <input id="pass_nueva" type="password" name="pass_nueva" class="form-control" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" placeholder="Mínimo <?= Seguridad::CONTRASENA_MIN ?> caracteres, con letras y números">
                     </div>
                     <div class="form-group">
-                        <label>Confirmar Nueva Contraseña</label>
-                        <input type="password" name="pass_confirm" class="form-control" required minlength="<?= Seguridad::CONTRASENA_MIN ?>">
+                        <label for="pass_confirm">Confirmar Nueva Contraseña</label>
+                        <input id="pass_confirm" type="password" name="pass_confirm" class="form-control" required minlength="<?= Seguridad::CONTRASENA_MIN ?>">
                     </div>
                     <button type="submit" name="cambiar_pass" class="btn-save" style="background: var(--ink2);">
                         <i class="bi bi-key"></i> Cambiar Contraseña
@@ -225,12 +225,12 @@
                 <form method="post">
                     <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                     <div class="form-group">
-                        <label>Confirmar Contraseña</label>
-                        <input type="password" name="pass_pin" class="form-control" placeholder="Para validar el cambio" required>
+                        <label for="pass_pin">Confirmar Contraseña</label>
+                        <input id="pass_pin" type="password" name="pass_pin" class="form-control" placeholder="Para validar el cambio" required>
                     </div>
                     <div class="form-group">
-                        <label>Nuevo PIN (6 dígitos)</label>
-                        <input type="text" name="pin" class="form-control pin-input" maxlength="6" inputmode="numeric" pattern="\d{6}" placeholder="••••••" oninput="this.value=this.value.replace(/\D/g,'')" required>
+                        <label for="pin">Nuevo PIN (6 dígitos)</label>
+                        <input id="pin" type="text" name="pin" class="form-control pin-input" maxlength="6" inputmode="numeric" pattern="\d{6}" placeholder="••••••" oninput="this.value=this.value.replace(/\D/g,'')" required>
                     </div>
                     <button type="submit" name="guardar_pin" class="btn-save" style="background: var(--c3);">
                         <i class="bi bi-shield-check"></i> <?= empty($cliente['pin_recuperacion']) ? 'Configurar PIN' : 'Actualizar PIN' ?>
@@ -265,8 +265,8 @@
             <form method="post" class="sena-code-row">
                 <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                 <div class="form-group">
-                    <label>Código de aprendiz</label>
-                    <input type="text" name="codigo_aprendiz" class="form-control sena-code-input" maxlength="16" placeholder="Ej: K7M4P2QR" required>
+                    <label for="codigo_aprendiz">Código de aprendiz</label>
+                    <input id="codigo_aprendiz" type="text" name="codigo_aprendiz" class="form-control sena-code-input" maxlength="16" placeholder="Ej: K7M4P2QR" required>
                 </div>
                 <button type="submit" name="canjear_codigo" class="btn-sena"><i class="bi bi-check2-circle"></i> Canjear código</button>
             </form>

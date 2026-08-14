@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Recuperar contrasena — BreadControl</title>
-  <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="<?= APP_URL ?>/assets/img/favicon-32.png">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
 <style>
@@ -94,11 +94,11 @@
       <?php if ($paso == 1): ?>
       <form method="POST">
         <?= campo_csrf() ?>
-        <div class="fl"><label>Nombre de usuario</label><div class="input-wrap"><i class="bi bi-person-fill ico"></i>
-          <input type="text" name="usuario" placeholder="Ej: propietario" value="<?= htmlspecialchars($usuario_input ?? '') ?>" required autofocus></div></div>
-        <label style="display:block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:var(--fg-muted);margin-bottom:.5rem;">Metodo de verificacion</label>
+        <div class="fl"><label for="usuario">Nombre de usuario</label><div class="input-wrap"><i class="bi bi-person-fill ico"></i>
+          <input id="usuario" type="text" name="usuario" placeholder="Ej: propietario" value="<?= htmlspecialchars($usuario_input ?? '') ?>" required autofocus></div></div>
+        <label for="metodo" style="display:block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:var(--fg-muted);margin-bottom:.5rem;">Metodo de verificacion</label>
         <div class="method-grid">
-          <label class="method-btn active" id="m-email" onclick="selM('email')"><input type="radio" name="metodo" value="email" checked>
+          <label class="method-btn active" id="m-email" onclick="selM('email')"><input id="metodo" type="radio" name="metodo" value="email" checked>
             <i class="bi bi-envelope-fill"></i><div class="m-label">Correo</div><div class="m-sub">Codigo al email</div></label>
           <label class="method-btn" id="m-pin" onclick="selM('pin')"><input type="radio" name="metodo" value="pin">
             <i class="bi bi-123"></i><div class="m-label">PIN</div><div class="m-sub">6 digitos</div></label>
@@ -127,12 +127,12 @@
       <div class="step-info success"><i class="bi bi-check-circle-fill"></i> Verificacion exitosa. Crea tu nueva contrasena.</div>
       <form method="POST">
         <?= campo_csrf() ?>
-        <div class="fl"><label>Nueva contrasena</label><div class="input-wrap"><i class="bi bi-shield-lock ico"></i>
+        <div class="fl"><label for="p1">Nueva contrasena</label><div class="input-wrap"><i class="bi bi-shield-lock ico"></i>
           <input type="password" name="nueva_clave" id="p1" placeholder="Minimo <?= Seguridad::CONTRASENA_MIN ?> caracteres, con letras y numeros" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" autofocus>
-          <button type="button" class="eye-toggle" onclick="tE('p1',this)"><i class="bi bi-eye"></i></button></div></div>
-        <div class="fl"><label>Confirmar contrasena</label><div class="input-wrap"><i class="bi bi-shield-check ico"></i>
+          <button type="button" class="eye-toggle" onclick="tE('p1',this)" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button></div></div>
+        <div class="fl"><label for="p2">Confirmar contrasena</label><div class="input-wrap"><i class="bi bi-shield-check ico"></i>
           <input type="password" name="confirmar_clave" id="p2" placeholder="Repite la contrasena" required minlength="<?= Seguridad::CONTRASENA_MIN ?>">
-          <button type="button" class="eye-toggle" onclick="tE('p2',this)"><i class="bi bi-eye"></i></button></div></div>
+          <button type="button" class="eye-toggle" onclick="tE('p2',this)" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button></div></div>
         <button type="submit" name="cambiar_clave" class="btn-primary"><i class="bi bi-key-fill"></i> Restablecer contrasena</button>
       </form>
       <script>function tE(id,b){const i=document.getElementById(id),c=b.querySelector('i');if(i.type==='password'){i.type='text';c.className='bi bi-eye-off';}else{i.type='password';c.className='bi bi-eye';}}</script>

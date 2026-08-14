@@ -38,7 +38,7 @@
       <form method="get" style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;">
         <input type="text" name="q" class="inp-search" placeholder="Buscar insumo o proveedor…" value="<?= htmlspecialchars($busca ?? '') ?>">
         <input type="month" name="mes" class="inp-search" style="width:145px;" value="<?= htmlspecialchars($mes_filtro ?? '') ?>" onchange="this.form.submit()">
-        <button type="submit" class="btn-sec" style="padding:.42rem .7rem;"><i class="bi bi-search"></i></button>
+        <button type="submit" class="btn-sec" style="padding:.42rem .7rem;" aria-label="Buscar"><i class="bi bi-search"></i></button>
         <?php
           $alerta_params = [];
           if (!$filtro_alerta) $alerta_params[] = 'alerta=1';
@@ -117,7 +117,7 @@
 
           <div class="fl-row">
             <div class="fl">
-              <label>N° de bolsas / empaques</label>
+              <label for="vis-bultos">N° de bolsas / empaques</label>
               <input type="number" id="vis-bultos"
                      value="<?= htmlspecialchars($_POST['num_bultos'] ?? '1', ENT_QUOTES) ?? '1' ?>"
                      min="1" step="1" placeholder="1"
@@ -125,7 +125,7 @@
                      <?= esHoyDomingo() ? 'disabled' : '' ?>>
             </div>
             <div class="fl">
-              <label>Cantidad por bolsa</label>
+              <label for="vis-cant-bolsa">Cantidad por bolsa</label>
               <div class="inp-unidad-wrap">
                 <input type="number" id="vis-cant-bolsa"
                        value="<?= htmlspecialchars($_POST['vis_cant_bolsa'] ?? '', ENT_QUOTES) ?? '' ?>"
@@ -153,7 +153,7 @@
           <div class="sec-sep">¿Cuánto pagaste?</div>
 
           <div class="fl">
-            <label>Precio por bolsa / empaque ($)</label>
+            <label for="inp-precio">Precio por bolsa / empaque ($)</label>
             <input type="number" name="precio_bulto" id="inp-precio"
                    value="<?= htmlspecialchars($_POST['precio_bulto'] ?? '', ENT_QUOTES) ?? '' ?>"
                    min="1" placeholder="Ej: 9.800"
@@ -180,8 +180,8 @@
 
           <!-- ── Fecha (secundaria) ── -->
           <div class="fl" style="margin-top:.3rem">
-            <label style="color:var(--ink3)">Fecha de compra</label>
-            <input type="date" name="fecha_compra"
+            <label for="fecha_compra" style="color:var(--ink3)">Fecha de compra</label>
+            <input id="fecha_compra" type="date" name="fecha_compra"
                    value="<?= htmlspecialchars($_POST['fecha_compra'] ?? date('Y-m-d'), ENT_QUOTES) ?? date('Y-m-d') ?>"
                    max="<?= date('Y-m-d') ?>"
                    <?= esHoyDomingo() ? 'disabled' : '' ?>>
@@ -293,7 +293,7 @@
         <div class="modal-head-title">Seleccionar insumo</div>
         <div class="modal-head-sub">Elige el insumo que vas a comprar</div>
       </div>
-      <button class="modal-close" onclick="cerrarModal('modal-insumos')"><i class="bi bi-x-lg"></i></button>
+      <button class="modal-close" onclick="cerrarModal('modal-insumos')" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
     </div>
     <div class="modal-search">
       <input type="text" id="busca-insumo" placeholder="Buscar insumo…" oninput="filtrarInsumos()" autocomplete="off">
@@ -349,7 +349,7 @@
         <div class="modal-head-title">Seleccionar proveedor</div>
         <div class="modal-head-sub">Elige quién suministra este insumo</div>
       </div>
-      <button class="modal-close" onclick="cerrarModal('modal-proveedores')"><i class="bi bi-x-lg"></i></button>
+      <button class="modal-close" onclick="cerrarModal('modal-proveedores')" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
     </div>
     <div class="modal-search">
       <input type="text" id="busca-prov" placeholder="Buscar proveedor…" oninput="filtrarProveedores()" autocomplete="off">

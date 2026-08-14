@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Registro — BreadControl</title>
-  <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="<?= APP_URL ?>/assets/img/favicon-32.png">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
 <style>
@@ -184,34 +184,34 @@
     <form method="POST" style="width:100%; display:flex; flex-direction:column; gap:1.3rem;">
         <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
         <div class="field">
-            <label>Nombre de Tienda o Persona</label>
-            <input type="text" name="nombre" placeholder="Ej: Panadería El Buen Sabor" required maxlength="100">
+            <label for="nombre">Nombre de Tienda o Persona</label>
+            <input id="nombre" type="text" name="nombre" placeholder="Ej: Panadería El Buen Sabor" required maxlength="100">
         </div>
         
         <div class="field">
-            <label>Teléfono</label>
-            <input type="text" name="telefono" placeholder="Opcional" maxlength="15">
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" type="text" name="telefono" placeholder="Opcional" maxlength="15">
         </div>
 
         <div class="field">
-            <label>Correo electrónico</label>
-            <input type="email" name="email" placeholder="tucorreo@ejemplo.com" required maxlength="150">
+            <label for="email">Correo electrónico</label>
+            <input id="email" type="email" name="email" placeholder="tucorreo@ejemplo.com" required maxlength="150">
         </div>
 
         <div class="grid-2">
             <div class="field">
-                <label>Usuario</label>
-                <input type="text" name="usuario" placeholder="Para iniciar sesión" required maxlength="50">
+                <label for="usuario">Usuario</label>
+                <input id="usuario" type="text" name="usuario" placeholder="Para iniciar sesión" required maxlength="50">
             </div>
             <div class="field">
-                <label>Contraseña</label>
-                <input type="password" name="contrasena" placeholder="Mínimo <?= Seguridad::CONTRASENA_MIN ?> caracteres, con letras y números" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" maxlength="255">
+                <label for="contrasena">Contraseña</label>
+                <input id="contrasena" type="password" name="contrasena" placeholder="Mínimo <?= Seguridad::CONTRASENA_MIN ?> caracteres, con letras y números" required minlength="<?= Seguridad::CONTRASENA_MIN ?>" maxlength="255">
             </div>
         </div>
 
         <div class="field" style="background: rgba(57,169,0,.1); padding: 0.85rem; border-radius: 10px; border: 1px solid rgba(57,169,0,.3);">
-            <label style="color:#8fd66a;"><i class="bi bi-mortarboard-fill"></i> Código de aprendiz SENA <span style="color:rgba(255,255,255,.4); font-weight:400;">(opcional)</span></label>
-            <input type="text" name="codigo_aprendiz" placeholder="Si tu instructor te dio un código, ingrésalo" maxlength="16" style="text-transform:uppercase; letter-spacing:.12em;">
+            <label for="codigo_aprendiz" style="color:#8fd66a;"><i class="bi bi-mortarboard-fill"></i> Código de aprendiz SENA <span style="color:rgba(255,255,255,.4); font-weight:400;">(opcional)</span></label>
+            <input id="codigo_aprendiz" type="text" name="codigo_aprendiz" placeholder="Si tu instructor te dio un código, ingrésalo" maxlength="16" style="text-transform:uppercase; letter-spacing:.12em;">
         </div>
 
         <button type="submit" class="btn-login">Registrarme</button>

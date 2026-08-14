@@ -78,12 +78,12 @@
             <input type="hidden" name="categoria" id="inp-cat" value="">
           </div>
           <div class="fl">
-            <label>Descripción</label>
-            <input type="text" name="descripcion" placeholder="Ej: Pago energía, Arriendo…" required>
+            <label for="descripcion">Descripción</label>
+            <input id="descripcion" type="text" name="descripcion" placeholder="Ej: Pago energía, Arriendo…" required>
           </div>
           <div class="fl">
-            <label>Valor ($)</label>
-            <input type="number" name="valor" placeholder="Ej: 85000" min="1" step="1" required>
+            <label for="valor">Valor ($)</label>
+            <input id="valor" type="number" name="valor" placeholder="Ej: 85000" min="1" step="1" required>
           </div>
           <button type="submit" name="guardar_gasto" class="btn-guardar">
             <i class="bi bi-floppy-fill"></i> Guardar gasto
@@ -202,7 +202,7 @@
                   <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                   <input type="hidden" name="del" value="<?= $g['id_gasto'] ?>">
                   <input type="hidden" name="fecha" value="<?= $fecha_fil ?>">
-                  <button type="submit" class="btn-act btn-del" title="Eliminar">
+                  <button type="submit" class="btn-act btn-del" title="Eliminar" aria-label="Eliminar">
                     <i class="bi bi-trash3"></i>
                   </button>
                 </form>
@@ -266,7 +266,7 @@ function selCat(k) {
       <?= campo_csrf() ?>
       <input type="hidden" name="id_gasto" id="eg-id">
       <div style="margin-bottom:.7rem;">
-        <label style="font-size:.75rem;font-weight:700;color:var(--ink2);display:block;margin-bottom:.3rem;">Categoría</label>
+        <label for="eg-cat" style="font-size:.75rem;font-weight:700;color:var(--ink2);display:block;margin-bottom:.3rem;">Categoría</label>
         <select name="cat_edit" id="eg-cat" style="width:100%;padding:.45rem;border:1px solid var(--border);border-radius:8px;font-size:.82rem;">
           <option value="compra">🛒 Compras</option>
           <option value="servicio">💡 Servicios</option>
@@ -274,11 +274,11 @@ function selCat(k) {
         </select>
       </div>
       <div style="margin-bottom:.7rem;">
-        <label style="font-size:.75rem;font-weight:700;color:var(--ink2);display:block;margin-bottom:.3rem;">Descripción</label>
+        <label for="eg-desc" style="font-size:.75rem;font-weight:700;color:var(--ink2);display:block;margin-bottom:.3rem;">Descripción</label>
         <input type="text" name="desc_edit" id="eg-desc" required style="width:100%;padding:.45rem;border:1px solid var(--border);border-radius:8px;font-size:.82rem;box-sizing:border-box;">
       </div>
       <div style="margin-bottom:.9rem;">
-        <label style="font-size:.75rem;font-weight:700;color:var(--ink2);display:block;margin-bottom:.3rem;">Valor ($)</label>
+        <label for="eg-val" style="font-size:.75rem;font-weight:700;color:var(--ink2);display:block;margin-bottom:.3rem;">Valor ($)</label>
         <input type="number" name="val_edit" id="eg-val" min="1" step="1" required style="width:100%;padding:.45rem;border:1px solid var(--border);border-radius:8px;font-size:.82rem;box-sizing:border-box;">
       </div>
       <button type="submit" name="editar_gasto" style="width:100%;padding:.55rem;background:var(--c3);color:#fff;border:none;border-radius:9px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">

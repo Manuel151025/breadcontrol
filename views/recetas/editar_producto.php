@@ -101,11 +101,11 @@
         <form method="post">
           <?= campo_csrf() ?>
           <div class="fl">
-            <label>Categoría</label>
+            <label for="categoria">Categoría</label>
             <div class="cat-row">
               <?php foreach(['sal'=>['bi-slash-circle','Sal'],'dulce'=>['bi-heart','Dulce'],'especial'=>['bi-star','Especial']] as $val => [$ico, $lbl]): ?>
               <div class="cat-opt">
-                <input type="radio" name="categoria" id="c-<?= $val ?>" value="<?= $val ?>"
+                <input id="categoria" type="radio" name="categoria" id="c-<?= $val ?>" value="<?= $val ?>"
                   <?= ($producto['categoria'] ?? 'sal') === $val ? 'checked' : '' ?>>
                 <label class="cat-lbl" for="c-<?= $val ?>"><i class="bi <?= $ico ?>"></i><?= $lbl ?></label>
               </div>
@@ -114,14 +114,14 @@
           </div>
 
           <div class="fl">
-            <label>Nombre <span style="color:#c62828">*</span></label>
-            <input type="text" name="nombre" required maxlength="100" value="<?= htmlspecialchars($producto['nombre'] ?? '') ?>">
+            <label for="nombre">Nombre <span style="color:#c62828">*</span></label>
+            <input id="nombre" type="text" name="nombre" required maxlength="100" value="<?= htmlspecialchars($producto['nombre'] ?? '') ?>">
           </div>
 
           <div class="fl-row">
             <div class="fl">
-              <label>Unidad de producción <span style="color:#c62828">*</span></label>
-              <select name="unidad_produccion" required>
+              <label for="unidad_produccion">Unidad de producción <span style="color:#c62828">*</span></label>
+              <select id="unidad_produccion" name="unidad_produccion" required>
                 <option value="">— Seleccionar —</option>
                 <?php foreach(['lata','carro','unidad'] as $u): ?>
                 <option value="<?= $u ?>" <?= $producto['unidad_produccion'] === $u ? 'selected' : '' ?>><?= ucfirst($u) ?></option>
@@ -129,16 +129,16 @@
               </select>
             </div>
             <div class="fl">
-              <label>Unidades por tanda</label>
-              <input type="number" name="cantidad_por_tanda" min="0" step="1"
+              <label for="cantidad_por_tanda">Unidades por tanda</label>
+              <input id="cantidad_por_tanda" type="number" name="cantidad_por_tanda" min="0" step="1"
                      value="<?= $producto['cantidad_por_tanda'] ?? 0 ?>">
               <div class="fl-hint">0 si varía</div>
             </div>
           </div>
 
           <div class="fl">
-            <label>Precio de venta</label>
-            <input type="number" name="precio_venta" min="0" step="50"
+            <label for="precio_venta">Precio de venta</label>
+            <input id="precio_venta" type="number" name="precio_venta" min="0" step="50"
                    value="<?= $producto['precio_venta'] ?? 0 ?>">
           </div>
 

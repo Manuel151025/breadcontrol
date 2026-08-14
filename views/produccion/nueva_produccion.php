@@ -65,7 +65,7 @@
           <?= campo_csrf() ?>
 
           <div class="fl">
-            <label>Producto</label>
+            <label for="sel-prod">Producto</label>
             <select name="id_producto" id="sel-prod" required onchange="cargarLotes()">
               <option value="">— Seleccionar producto —</option>
               <?php foreach ($productos as $p): ?>
@@ -81,7 +81,7 @@
           </div>
 
           <div class="fl">
-            <label>N° de tandas a producir</label>
+            <label for="inp-und">N° de tandas a producir</label>
             <div class="und-ctrl">
               <button type="button" class="und-btn" onclick="changeUnd(-1)">−</button>
               <input type="number" name="num_tandas" id="inp-und" class="und-inp"
@@ -134,16 +134,16 @@
           </div>
 
           <div class="fl">
-            <label>Fecha</label>
-            <input type="date" name="fecha_produccion"
+            <label for="fecha_produccion">Fecha</label>
+            <input id="fecha_produccion" type="date" name="fecha_produccion"
                    min="<?= date('Y-m-d', strtotime('-7 days')) ?>"
                    max="<?= date('Y-m-d') ?>"
                    value="<?= htmlspecialchars($_POST['fecha_produccion'] ?? date('Y-m-d'), ENT_QUOTES) ?? date('Y-m-d') ?>">
           </div>
 
           <div class="fl">
-            <label>Observaciones <span style="font-weight:400;text-transform:none;font-size:.7rem;">(opcional)</span></label>
-            <textarea name="observaciones" placeholder="Ej: levadura reducida, horneado doble…"><?= htmlspecialchars($_POST['observaciones'] ?? '') ?></textarea>
+            <label for="observaciones">Observaciones <span style="font-weight:400;text-transform:none;font-size:.7rem;">(opcional)</span></label>
+            <textarea id="observaciones" name="observaciones" placeholder="Ej: levadura reducida, horneado doble…"><?= htmlspecialchars($_POST['observaciones'] ?? '') ?></textarea>
           </div>
 
           <button type="submit" name="guardar" class="btn-guardar" id="btn-guardar">

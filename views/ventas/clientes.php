@@ -130,8 +130,8 @@
           <?php if ($editando): ?><input type="hidden" name="id_cliente" value="<?= $editando['id_cliente'] ?>"><?php endif; ?>
 
           <div class="fl">
-            <label>Nombre de la tienda <span style="color:#c62828">*</span></label>
-            <input type="text" name="nombre"
+            <label for="nombre">Nombre de la tienda <span style="color:#c62828">*</span></label>
+            <input id="nombre" type="text" name="nombre"
                    placeholder="Ej: Tienda Don Pedro"
                    value="<?= htmlspecialchars($editando['nombre'] ?? '') ?>"
                    maxlength="100"
@@ -150,15 +150,15 @@
           </div>
 
           <div class="fl">
-            <label>Teléfono <span style="font-weight:400;text-transform:none;font-size:.68rem">(opcional)</span></label>
-            <input type="tel" name="telefono"
+            <label for="telefono">Teléfono <span style="font-weight:400;text-transform:none;font-size:.68rem">(opcional)</span></label>
+            <input id="telefono" type="tel" name="telefono"
                    placeholder="Ej: 3001234567"
                    value="<?= htmlspecialchars($editando['telefono'] ?? '') ?>">
           </div>
 
           <div class="fl">
-            <label>Notas <span style="font-weight:400;text-transform:none;font-size:.68rem">(opcional)</span></label>
-            <textarea name="notas" placeholder="Pedido frecuente, días de visita…"><?= htmlspecialchars($editando['notas'] ?? '') ?></textarea>
+            <label for="notas">Notas <span style="font-weight:400;text-transform:none;font-size:.68rem">(opcional)</span></label>
+            <textarea id="notas" name="notas" placeholder="Pedido frecuente, días de visita…"><?= htmlspecialchars($editando['notas'] ?? '') ?></textarea>
           </div>
 
           <button type="submit" name="guardar_cliente" class="btn-guardar">
@@ -232,7 +232,7 @@
                 <form method="POST" style="display:contents;" onsubmit="return confirm('¿Desactivar a <?= addslashes(htmlspecialchars($t['nombre'] ?? '')) ?>?')">
                   <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                   <input type="hidden" name="del" value="<?= $t['id_cliente'] ?>">
-                  <button type="submit" class="btn-act btn-del" title="Desactivar">
+                  <button type="submit" class="btn-act btn-del" title="Desactivar" aria-label="Desactivar">
                     <i class="bi bi-trash3"></i>
                   </button>
                 </form>

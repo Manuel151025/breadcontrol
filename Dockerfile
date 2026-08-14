@@ -33,6 +33,11 @@ RUN chown -R www-data:www-data /var/www/html
 # recoge en un minuto. El código normalmente no cambia en caliente (cada
 # despliegue construye una imagen nueva), así que el coste de esa comprobación
 # es despreciable frente a recompilarlo todo.
+# expose_php=Off retira la cabecera X-Powered-By, que anunciaba la version
+# exacta de PHP (R-05 del informe tecnico). No sustituye a mantener PHP
+# actualizado: solo deja de regalar el dato a un escaneo automatizado.
+RUN echo "expose_php = Off" > /usr/local/etc/php/conf.d/ocultar-version.ini
+
 RUN { \
         echo "opcache.enable=1"; \
         echo "opcache.memory_consumption=128"; \

@@ -77,7 +77,7 @@
           <?= campo_csrf() ?>
           <!-- CATEGORÍA -->
           <div class="fl">
-            <label>Categoría</label>
+            <label for="c-sal">Categoría</label>
             <div class="cat-row">
               <div class="cat-opt">
                 <input type="radio" name="categoria" id="c-sal" value="sal"
@@ -99,16 +99,16 @@
 
           <!-- NOMBRE -->
           <div class="fl">
-            <label>Nombre <span style="color:#c62828">*</span></label>
-            <input type="text" name="nombre" placeholder="Ej: Pan integral" required autofocus maxlength="100"
+            <label for="nombre">Nombre <span style="color:#c62828">*</span></label>
+            <input id="nombre" type="text" name="nombre" placeholder="Ej: Pan integral" required autofocus maxlength="100"
                    value="<?= htmlspecialchars($_POST['nombre'] ?? '') ?>">
           </div>
 
           <!-- UNIDAD + TANDA -->
           <div class="fl-row">
             <div class="fl">
-              <label>Unidad de producción <span style="color:#c62828">*</span></label>
-              <select name="unidad_produccion" required>
+              <label for="unidad_produccion">Unidad de producción <span style="color:#c62828">*</span></label>
+              <select id="unidad_produccion" name="unidad_produccion" required>
                 <option value="">— Seleccionar —</option>
                 <?php foreach(['unidad'] as $u): ?>
                 <option value="<?= $u ?>" <?= ($_POST['unidad_produccion'] ?? '') === $u ? 'selected' : '' ?>><?= ucfirst($u) ?></option>
@@ -117,8 +117,8 @@
               <div class="fl-hint">La receta se define por esta unidad</div>
             </div>
             <div class="fl">
-              <label>Unidades por tanda</label>
-              <input type="number" name="cantidad_por_tanda" min="0" step="1"
+              <label for="cantidad_por_tanda">Unidades por tanda</label>
+              <input id="cantidad_por_tanda" type="number" name="cantidad_por_tanda" min="0" step="1"
                      value="<?= htmlspecialchars($_POST['cantidad_por_tanda'] ?? '0', ENT_QUOTES) ?? 0 ?>" placeholder="0">
               <div class="fl-hint">0 si varía</div>
             </div>
@@ -126,8 +126,8 @@
 
           <!-- PRECIO -->
           <div class="fl">
-            <label>Precio de venta</label>
-            <input type="number" name="precio_venta" min="0" step="50"
+            <label for="precio_venta">Precio de venta</label>
+            <input id="precio_venta" type="number" name="precio_venta" min="0" step="50"
                    value="<?= htmlspecialchars($_POST['precio_venta'] ?? '0', ENT_QUOTES) ?? 0 ?>">
             <div class="fl-hint">Deja en 0 si el precio varía</div>
           </div>

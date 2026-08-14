@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BreadControl — Acceso</title>
-  <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="<?= APP_URL ?>/assets/img/favicon-32.png">
 <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
 <style>
@@ -290,21 +290,21 @@
     <?php endif; ?>
 
     <div class="field">
-      <label>Usuario</label>
+      <label for="usuario">Usuario</label>
       <div class="inp-wrap">
         <i class="bi bi-person inp-icon"></i>
-        <input type="text" name="usuario" placeholder="Introduce tu usuario" required maxlength="50"
+        <input id="usuario" type="text" name="usuario" placeholder="Introduce tu usuario" required maxlength="50"
                value="<?= htmlspecialchars($_POST['usuario'] ?? '') ?>" autocomplete="username">
       </div>
     </div>
 
     <div class="field">
-      <label>Contraseña</label>
+      <label for="inp-clave">Contraseña</label>
       <div class="inp-wrap">
         <i class="bi bi-lock inp-icon"></i>
         <input type="password" name="clave" id="inp-clave" placeholder="Introduce tu contraseña"
                required maxlength="255" autocomplete="current-password">
-        <button type="button" class="eye-btn" id="eye-toggle" tabindex="-1">
+        <button type="button" class="eye-btn" id="eye-toggle" tabindex="-1" aria-label="Mostrar contraseña">
           <i class="bi bi-eye" id="eye-ico"></i>
         </button>
       </div>

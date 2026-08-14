@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Aprendices — BreadControl</title>
-    <link rel="icon" type="image/png" href="<?= APP_URL ?>/assets/img/logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= APP_URL ?>/assets/img/favicon-32.png">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
 <style>
@@ -169,13 +169,13 @@
                 <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                 <div class="form-row">
                     <div class="fg">
-                        <label>Días de vigencia</label>
-                        <input type="number" name="dias_vigencia" value="30" min="0" max="365">
+                        <label for="dias_vigencia">Días de vigencia</label>
+                        <input id="dias_vigencia" type="number" name="dias_vigencia" value="30" min="0" max="365">
                         <span style="font-size:.7rem; color:var(--ink3);">0 = sin vencimiento</span>
                     </div>
                     <div class="fg">
-                        <label>Usos máximos</label>
-                        <input type="number" name="usos_maximos" value="30" min="1" max="1000">
+                        <label for="usos_maximos">Usos máximos</label>
+                        <input id="usos_maximos" type="number" name="usos_maximos" value="30" min="1" max="1000">
                     </div>
                 </div>
                 <label class="chk-row">
@@ -215,7 +215,7 @@
                                 <input type="hidden" name="aprendiz_id" value="<?= (int)$a['id_cliente'] ?>">
                                 <span class="cupo-lbl">Cupo $</span>
                                 <input type="number" name="cupo_semanal" value="<?= (int)$a['cupo_semanal'] ?>" min="0" max="100000" step="500">
-                                <button type="submit" name="actualizar_cupo" class="btn btn-ghost btn-sm" title="Guardar cupo">
+                                <button type="submit" name="actualizar_cupo" class="btn btn-ghost btn-sm" title="Guardar cupo" aria-label="Guardar cupo">
                                     <i class="bi bi-check-lg"></i>
                                 </button>
                             </form>

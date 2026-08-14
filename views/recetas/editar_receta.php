@@ -96,7 +96,7 @@
             <td><span class="lbl-unidad"><?= $label ?></span></td>
             <td style="text-align:center"><input type="checkbox" name="aplica_merma[<?= $idx ?>]" class="chk-merma" <?= $ing['aplica_merma']?'checked':'' ?>></td>
             <td><input type="text" name="notas[]" class="inp-nota" placeholder="Notas…" value="<?= htmlspecialchars($ing['notas'] ?? '') ?>"></td>
-            <td><button type="button" class="btn-del-row" onclick="eliminarFila(this)"><i class="bi bi-trash3"></i></button></td>
+            <td><button type="button" class="btn-del-row" onclick="eliminarFila(this)" aria-label="Eliminar"><i class="bi bi-trash3"></i></button></td>
           </tr>
           <?php endforeach; endif; ?>
           </tbody>
@@ -120,7 +120,7 @@
   <div class="modal-box">
     <div class="modal-hdr">
       <div class="modal-titulo"><i class="bi bi-bag-heart-fill"></i> Seleccionar ingrediente</div>
-      <button type="button" class="modal-cerrar" onclick="cerrarModal()"><i class="bi bi-x-lg"></i></button>
+      <button type="button" class="modal-cerrar" onclick="cerrarModal()" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
     </div>
     <div class="modal-search-wrap">
       <input type="text" class="modal-search" id="modal-buscar"
@@ -154,7 +154,7 @@ function filaVacia($insumos, $usados = [], $idx = 0) {
       <td><span class="lbl-unidad">g</span></td>
       <td style="text-align:center"><input type="checkbox" name="aplica_merma[]" class="chk-merma"></td>
       <td><input type="text" name="notas[]" class="inp-nota" placeholder="Notas…"></td>
-      <td><button type="button" class="btn-del-row" onclick="eliminarFila(this)"><i class="bi bi-trash3"></i></button></td>
+      <td><button type="button" class="btn-del-row" onclick="eliminarFila(this)" aria-label="Eliminar"><i class="bi bi-trash3"></i></button></td>
     </tr>
     <?php return ob_get_clean();
 }

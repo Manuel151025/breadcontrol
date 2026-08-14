@@ -36,7 +36,7 @@
     <div class="top-actions">
       <form method="get" style="display:flex;gap:.4rem;align-items:center;">
         <input type="text" name="q" class="inp-search" placeholder="Buscar insumo…" value="<?= htmlspecialchars($busca ?? '') ?>">
-        <button type="submit" class="btn-sec"><i class="bi bi-search"></i></button>
+        <button type="submit" class="btn-sec" aria-label="Buscar"><i class="bi bi-search"></i></button>
       </form>
       <button type="button" class="btn-sec <?= $filtro_alerta ? 'active' : '' ?>" onclick="toggleAlerta()">
         <i class="bi bi-exclamation-triangle<?= $filtro_alerta ? '-fill' : '' ?>"></i> Alertas
@@ -81,26 +81,26 @@
           <?= campo_csrf() ?>
           <?php if ($editando): ?><input type="hidden" name="id_insumo" value="<?= $editando['id_insumo'] ?>"><?php endif; ?>
           <div class="fl">
-            <label>Nombre del insumo</label>
-            <input type="text" name="nombre" placeholder="Ej: Harina de trigo" required value="<?= htmlspecialchars($editando['nombre'] ?? '') ?>" pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+" title="Solo se permiten letras y espacios" oninput="this.value = this.value.replace(/[0-9]/g, '')">
+            <label for="nombre">Nombre del insumo</label>
+            <input id="nombre" type="text" name="nombre" placeholder="Ej: Harina de trigo" required value="<?= htmlspecialchars($editando['nombre'] ?? '') ?>" pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+" title="Solo se permiten letras y espacios" oninput="this.value = this.value.replace(/[0-9]/g, '')">
           </div>
           <div class="fl-row">
             <div class="fl">
-              <label>Unidad de medida</label>
-              <select name="unidad_medida">
+              <label for="unidad_medida">Unidad de medida</label>
+              <select id="unidad_medida" name="unidad_medida">
                 <?php foreach(['kg','g','L','ml','unidad'] as $u): ?>
                 <option value="<?= $u ?>" <?= ($editando['unidad_medida'] ?? 'kg') === $u ? 'selected' : '' ?>><?= $u ?></option>
                 <?php endforeach; ?>
               </select>
             </div>
             <div class="fl">
-              <label>Stock actual</label>
-              <input type="number" name="stock_actual" min="0" step="0.001" placeholder="0" value="<?= $editando ? rtrim(rtrim(number_format((float)$editando['stock_actual'], 3, '.', ''), '0'), '.') : '' ?>">
+              <label for="stock_actual">Stock actual</label>
+              <input id="stock_actual" type="number" name="stock_actual" min="0" step="0.001" placeholder="0" value="<?= $editando ? rtrim(rtrim(number_format((float)$editando['stock_actual'], 3, '.', ''), '0'), '.') : '' ?>">
             </div>
           </div>
           <div class="fl">
-            <label>Punto de reposición</label>
-            <input type="number" name="punto_reposicion" min="0" step="0.001" placeholder="Stock mínimo para alertar" value="<?= $editando ? rtrim(rtrim(number_format((float)$editando['punto_reposicion'], 3, '.', ''), '0'), '.') : '' ?>">
+            <label for="punto_reposicion">Punto de reposición</label>
+            <input id="punto_reposicion" type="number" name="punto_reposicion" min="0" step="0.001" placeholder="Stock mínimo para alertar" value="<?= $editando ? rtrim(rtrim(number_format((float)$editando['punto_reposicion'], 3, '.', ''), '0'), '.') : '' ?>">
           </div>
           <label class="check-row">
             <input type="checkbox" name="es_harina" value="1" <?= ($editando['es_harina'] ?? 0) ? 'checked' : '' ?>>

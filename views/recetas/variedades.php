@@ -131,7 +131,7 @@
                 <form method="POST" style="display:contents;" onsubmit="return confirm('¿Eliminar esta variedad?')">
                   <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                   <input type="hidden" name="del_var" value="<?= $v['id_variedad'] ?>">
-                  <button type="submit" class="btn-act btn-del" title="Eliminar"><i class="bi bi-trash3"></i></button>
+                  <button type="submit" class="btn-act btn-del" title="Eliminar" aria-label="Eliminar"><i class="bi bi-trash3"></i></button>
                 </form>
               </div>
             </div>
@@ -143,13 +143,16 @@
         <form method="POST" enctype="multipart/form-data" class="add-form">
           <?= campo_csrf() ?>
           <input type="hidden" name="id_categoria" value="<?= $cat['id_categoria'] ?>">
+          <?php // Este formulario se repite una vez por categoría de precio, así que los
+                // identificadores llevan la categoría dentro: con un id duplicado, pulsar
+                // cualquier etiqueta enfocaría siempre el primer campo de la página. ?>
           <div class="fl">
-            <label>Nombre</label>
-            <input type="text" name="nombre_variedad" placeholder="Ej: Pan Galleta" required>
+            <label for="nombre_variedad_<?= $cat['id_categoria'] ?>">Nombre</label>
+            <input id="nombre_variedad_<?= $cat['id_categoria'] ?>" type="text" name="nombre_variedad" placeholder="Ej: Pan Galleta" required>
           </div>
           <div class="fl">
-            <label>Foto del pan</label>
-            <input type="file" name="imagen" accept="image/jpeg,image/png,image/webp">
+            <label for="imagen_<?= $cat['id_categoria'] ?>">Foto del pan</label>
+            <input id="imagen_<?= $cat['id_categoria'] ?>" type="file" name="imagen" accept="image/jpeg,image/png,image/webp">
           </div>
           <button type="submit" name="agregar_variedad" class="btn-add"><i class="bi bi-plus-lg"></i> Agregar</button>
         </form>
@@ -168,12 +171,12 @@
       <input type="hidden" name="id_variedad" id="edit-id">
       <img id="edit-preview" class="modal-preview" src="" style="display:none;">
       <div class="fl">
-        <label>Nombre</label>
+        <label for="edit-nombre">Nombre</label>
         <input type="text" name="nombre_edit" id="edit-nombre" required>
       </div>
       <div class="fl">
-        <label>Cambiar foto (opcional)</label>
-        <input type="file" name="imagen_edit" accept="image/jpeg,image/png,image/webp">
+        <label for="imagen_edit">Cambiar foto (opcional)</label>
+        <input id="imagen_edit" type="file" name="imagen_edit" accept="image/jpeg,image/png,image/webp">
       </div>
       <div class="modal-btns">
         <button type="button" class="m-cancel" onclick="cerrarEdit()">Cancelar</button>
