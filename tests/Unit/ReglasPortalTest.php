@@ -85,6 +85,40 @@ final class ReglasPortalTest extends TestCase
         $this->assertFalse(ReglasPortal::fueraDeLimiteGestion('2026-06-15 12:00:00', $ahora), 'A 72 horas');
     }
 
+    // ============ GRUPO 2b: Pedidos sin fecha de entrega asignada ============
+    //
+    // Un aprendiz que pide para la cuenta ADSO no elige la fecha: la fija el
+    // instructor al aprobar. Hasta entonces el pedido guarda la fecha centinela
+    // 1000-01-01, que la regla de las 48 horas leia como "entrega vencida" y
+    // bloqueaba la edicion justo cuando el aprendiz aun podia querer cambiarla.
+
+    public function testReconoceLaEntregaSinDefinir(): void
+    {
+        $this->assertTrue(ReglasPortal::entregaSinDefinir('1000-01-01 00:00:00'));
+        $this->assertFalse(ReglasPortal::entregaSinDefinir('2026-06-15 12:00:00'));
+    }
+
+    public function testPermiteGestionarUnPedidoQueAunNoTieneFecha(): void
+    {
+        $this->assertTrue(
+            ReglasPortal::puedeGestionarPedido('pendiente', '1000-01-01 00:00:00'),
+            'Mientras espera al instructor, el aprendiz debe poder editar o cancelar'
+        );
+    }
+
+    public function testUnPedidoSinFechaNoCuentaComoProximoNiVencido(): void
+    {
+        $this->assertFalse(ReglasPortal::dentroDeLimite48h('1000-01-01 00:00:00'));
+        $this->assertFalse(ReglasPortal::fueraDeLimiteGestion('1000-01-01 00:00:00'));
+    }
+
+    public function testUnPedidoSinFechaYaConfirmadoTampocoSeGestiona(): void
+    {
+        // La falta de fecha no debe saltarse la otra mitad de la regla: una vez
+        // confirmado, el pedido deja de estar en manos del cliente.
+        $this->assertFalse(ReglasPortal::puedeGestionarPedido('confirmado', '1000-01-01 00:00:00'));
+    }
+
     // ============ GRUPO 3: Bloqueo por pago pendiente del instructor ============
 
     #[DataProvider('provideBloqueoPago')]

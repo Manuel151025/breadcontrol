@@ -192,16 +192,27 @@
     </div>
     
     <div id="bulk-approve-bar" style="display:none; align-items:center; gap:.7rem; background:#e8f5e9; border:1px solid #a5d6a7; border-radius:10px; padding:.6rem 1rem; margin-bottom:.8rem; flex-wrap:wrap;">
-        <span style="font-size:.85rem; font-weight:700; color:#1b5e20;"><i class="bi bi-check2-square"></i> <span id="bulk-approve-count">0</span> pedido(s) seleccionado(s)</span>
-        
+        <?php // La etiqueta anterior decía «Fecha Entrega Lote», jerga que no explicaba
+              // lo que hace el campo: al aprobar, esa fecha se ESCRIBE en todos los
+              // pedidos marcados, que hasta entonces figuran como «Por definir».
+              // Quien abría esta pantalla no tenía forma de deducirlo. ?>
+        <span style="font-size:.85rem; font-weight:700; color:#1b5e20; width:100%;">
+            <i class="bi bi-check2-square"></i>
+            ¿Cuándo entregas los <span id="bulk-approve-count">0</span> pedidos seleccionados?
+        </span>
+        <span style="font-size:.78rem; color:#2e7d32; width:100%; margin-top:-.35rem;">
+            Al aprobar, esta fecha y hora quedarán fijadas en todos ellos. Si unos se
+            entregan otro día, apruébalos por separado.
+        </span>
+
         <form method="POST" id="form-bulk-approve" style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin:0; width: auto; background: none; border: none; box-shadow: none; padding: 0;">
             <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
             <div id="bulk-approve-ids-container"></div>
-            
-            <span style="font-size:.8rem; font-weight:600; color:#1b5e20;">Fecha Entrega Lote:</span>
+
+            <label for="bulk-fecha" style="font-size:.8rem; font-weight:600; color:#1b5e20;">Fecha de entrega:</label>
             <input type="date" name="fecha_entrega" id="bulk-fecha" min="<?= date('Y-m-d') ?>" required style="padding:.45rem; border:1px solid #a5d6a7; border-radius:8px; font-size:.83rem;">
-            
-            <span style="font-size:.8rem; font-weight:600; color:#1b5e20;">Hora:</span>
+
+            <label for="bulk-hora" style="font-size:.8rem; font-weight:600; color:#1b5e20;">Hora:</label>
             <input type="time" name="hora_entrega" id="bulk-hora" min="07:00" max="20:00" value="08:00" required style="padding:.45rem; border:1px solid #a5d6a7; border-radius:8px; font-size:.83rem; width:100px;">
             
             <button type="button" onclick="submitBulkApprove()" style="background:linear-gradient(135deg,#2e7d32,#1b5e20); color:#fff; border:none; padding:.45rem 1rem; border-radius:8px; font-weight:700; cursor:pointer; font-size:.8rem;">

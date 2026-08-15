@@ -18,6 +18,15 @@ class ReglasPortal {
     /** Horas mínimas antes de la entrega para poder editar/cancelar un pedido. */
     public const HORAS_LIMITE_GESTION = 48;
 
+    /**
+     * Los pedidos que un aprendiz dirige a la cuenta ADSO se guardan con una
+     * fecha imposible (`1000-01-01`) porque quien fija la entrega es el
+     * instructor al aprobarlos, no el aprendiz al pedirlos. Cualquier año
+     * anterior a este se interpreta como «entrega sin definir» — el mismo
+     * criterio que usa formatearFechaEntrega() para mostrar «Por definir».
+     */
+    public const ANIO_SIN_DEFINIR = 1970;
+
     /** Cupo semanal máximo de un aprendiz (COP). */
     public const CUPO_MAXIMO = 100000;
 
@@ -68,8 +77,28 @@ class ReglasPortal {
      * (la vista lo usa para explicar el bloqueo).
      */
     public static function dentroDeLimite48h(string $fecha_entrega, ?DateTimeInterface $ahora = null): bool {
+        if (self::entregaSinDefinir($fecha_entrega)) {
+            return false;
+        }
         $t = self::estadoTiempo($fecha_entrega, $ahora);
         return !$t['vencido'] && $t['horas_restantes'] < self::HORAS_LIMITE_GESTION;
+    }
+
+    /**
+     * True si el pedido todavía no tiene fecha de entrega asignada.
+     *
+     * Distinguir este caso importa: sin él, la fecha centinela del año 1000 se
+     * lee como «entrega vencida» y el sistema bloquea la edición justo en la
+     * ventana en la que el aprendiz querría cambiar su pedido — mientras espera
+     * que el instructor lo apruebe.
+     */
+    public static function entregaSinDefinir(string $fecha_entrega): bool {
+        try {
+            $anio = (int) (new DateTimeImmutable($fecha_entrega))->format('Y');
+        } catch (Exception $e) {
+            return false;
+        }
+        return $anio <= self::ANIO_SIN_DEFINIR;
     }
 
     /**
@@ -77,6 +106,11 @@ class ReglasPortal {
      * de 48 horas de la entrega.
      */
     public static function fueraDeLimiteGestion(string $fecha_entrega, ?DateTimeInterface $ahora = null): bool {
+        // Sin fecha asignada no hay entrega que proteger: el pedido sigue en
+        // manos del aprendiz hasta que el instructor le ponga fecha.
+        if (self::entregaSinDefinir($fecha_entrega)) {
+            return false;
+        }
         $t = self::estadoTiempo($fecha_entrega, $ahora);
         return $t['vencido'] || $t['horas_restantes'] < self::HORAS_LIMITE_GESTION;
     }
