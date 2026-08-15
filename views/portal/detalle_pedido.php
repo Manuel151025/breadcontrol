@@ -62,9 +62,17 @@
                             <a href="nuevo_pedido.php?edit_id=<?= $pedido['id_pedido'] ?>" class="btn-edit" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">
                                 <i class="bi bi-pencil-square"></i> Editar
                             </a>
-                            <a href="#" onclick="cancelarPedido(<?= $pedido['id_pedido'] ?>)" class="btn-cancel">
-                                <i class="bi bi-trash"></i> Cancelar
-                            </a>
+                            <?php // Cancelar es una acción destructiva, así que va por POST con
+                                  // token. Antes era un enlace GET: bastaba con que el cliente
+                                  // abriera una URL preparada por un tercero para perder su pedido. ?>
+                            <form method="POST" action="cancelar_pedido.php" style="display:inline;"
+                                  onsubmit="return confirm('¿Seguro que deseas cancelar este pedido? Esta acción no se puede deshacer.');">
+                                <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
+                                <input type="hidden" name="id" value="<?= $pedido['id_pedido'] ?>">
+                                <button type="submit" class="btn-cancel" style="border:none; font-family:inherit; cursor:pointer;">
+                                    <i class="bi bi-trash"></i> Cancelar
+                                </button>
+                            </form>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -461,12 +469,9 @@
         <?php endif; ?>
     </div>
 
-    <script>
-    function cancelarPedido(id) {
-        if (confirm('¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer.')) {
-            window.location.href = 'cancelar_pedido.php?id=' + id;
-        }
-    }
-    </script>
+    <?php // Aquí vivía cancelarPedido(), que navegaba a cancelar_pedido.php?id=N.
+          // La cancelación ahora va por POST con token desde su propio formulario,
+          // así que esta función quedó sin uso y se elimina para que nadie la
+          // reutilice creyendo que sigue siendo la forma correcta de cancelar. ?>
 </body>
 </html>

@@ -506,7 +506,22 @@ class PortalPedidoController extends PortalControllerBase {
     public function cancelarPedido(): void {
         $this->requireCliente();
         $cliente_id = (int)$_SESSION['cliente_id'];
-        $id_pedido  = (int)($_GET['id'] ?? 0);
+
+        // Cancelar destruye un pedido, así que exige POST con token. Antes se
+        // hacía por GET y sin token: bastaba con que el cliente, ya autenticado,
+        // abriera un enlace preparado por un tercero para perder su pedido sin
+        // haber decidido nada. Es el mismo fallo que se corrigió en el
+        // back-office; este punto del portal se había quedado fuera.
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: dashboard.php');
+            exit;
+        }
+        if (!validar_token_csrf(post_texto('csrf_token'))) {
+            header('Location: dashboard.php?error=csrf');
+            exit;
+        }
+
+        $id_pedido = (int) post_texto('id');
 
         try {
             $this->model->cancelarPedido($id_pedido, $cliente_id);
