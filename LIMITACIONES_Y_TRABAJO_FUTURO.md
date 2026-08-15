@@ -37,6 +37,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 23 | Respaldos: probados, pero en el mismo servidor | Continuidad | Medio | 🟡 Parcial — falta copia externa |
 | 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ⬜ Abierto — S |
 | 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Medio | ⬜ Abierto — S-M (antes de nov 2026) |
+| 26 | La fecha «sin definir» es un valor mágico (`1000-01-01`) | Diseño de datos | Bajo | ⬜ Abierto — M |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -364,6 +365,29 @@ Se declaran las tres **puertas de enlace del propio host** y no rangos amplios: 
 **Severidad:** Media (creciente con el tiempo). **Esfuerzo:** S-M — cambiar el `FROM` del `Dockerfile` a `php:8.3-apache` o `php:8.4-apache`, correr las 154 pruebas y PHPStan en nivel 10 con la nueva imagen, y verificar en local antes de publicar. Esa red de pruebas es justamente lo que permite hacer el salto con confianza en vez de a ciegas.
 
 **Relacionado:** `MySQL 8.0` alcanzó su fin de vida en abril de 2026 según el calendario de Oracle. Conviene **verificarlo** —esa fecha está en el límite de lo comprobable desde aquí— y evaluar el paso a MySQL 8.4 LTS, con respaldo previo y probando el esquema: la diferencia de `only_full_group_by` entre motores ya rompió una pantalla en producción una vez.
+
+---
+
+### 26. ⬜ La fecha «sin definir» se representa con un valor mágico
+
+**Descubierto el 2026-08-15**, a raíz de un fallo real que provocó (ver más abajo).
+
+**Descripción:** cuando un aprendiz pide para la cuenta ADSO, la entrega la fija el instructor al aprobar, no el aprendiz al pedir. Hasta entonces, `pedido_cliente.fecha_entrega` guarda `1000-01-01`, una fecha imposible que significa «todavía sin definir».
+
+**Por qué importa:** obliga a que **cada** pieza que lea esa columna conozca la convención. Hoy son cuatro y todas la respetan:
+
+| Consumidor | Cómo lo trata |
+|---|---|
+| `formatearFechaEntrega()` | muestra «Por definir» |
+| `ReglasPortal::entregaSinDefinir()` | permite gestionar el pedido |
+| `getPedidosPendientesPago()` | exige `aprobado_instructor = 1` antes de cobrar |
+| Panel de cobro del propietario | solo lista pedidos aprobados |
+
+**El fallo que ya causó:** la regla de las 48 horas leía esa fecha como «entrega vencida» y bloqueaba la edición y la cancelación **justo mientras el pedido esperaba aprobación** — la ventana en la que el aprendiz aún podía cambiar de opinión sin molestar a nadie. Para modificarlo tenía que pedirle al instructor que lo rechazara. Corregido el 2026-08-15 con cuatro pruebas que fijan el caso.
+
+**La alternativa limpia** es `fecha_entrega NULL`: hace imposible ignorar el caso, porque cualquier código que la lea sin comprobarlo falla de inmediato en vez de calcular mal en silencio. Un valor mágico, en cambio, se cuela sin que nada avise — como acaba de ocurrir.
+
+**Severidad:** Baja hoy (los cuatro consumidores la respetan), creciente con cada consumidor nuevo. **Esfuerzo:** M — migración de la columna a nullable, más ajustar esos cuatro puntos y las consultas que filtran por rango de fechas.
 
 ---
 
