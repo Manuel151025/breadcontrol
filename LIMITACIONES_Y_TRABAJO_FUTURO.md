@@ -34,6 +34,8 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 20 | Los mensajes de confirmación nunca se muestran | Usabilidad | Bajo-Medio | ⬜ Abierto — S |
 | 21 | HSTS, versión de Nginx y cabeceras de proxy | Seguridad | Medio | ✅ **Resuelto** (2026-08-14/15) |
 | 22 | `unsafe-inline` en la CSP: 157 manejadores en línea | Seguridad | Medio | ⬜ Abierto — L |
+| 23 | Respaldos: probados, pero en el mismo servidor | Continuidad | Medio | 🟡 Parcial — falta copia externa |
+| 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ⬜ Abierto — S |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -319,6 +321,34 @@ Se declaran las tres **puertas de enlace del propio host** y no rangos amplios: 
 **Severidad:** Media. **Esfuerzo:** L — extraer 157 manejadores a archivos `.js` con `addEventListener`, mover los 31 bloques a archivos externos y sustituir los `style` en línea por clases. Alternativamente, firmar cada bloque con un `nonce` por petición, que es menos trabajo pero obliga a tocar todas las vistas igual.
 
 **Por qué se pospuso:** quitarlo sin hacer ese trabajo rompería la interfaz por completo. Se prefirió una CSP activa e imperfecta —que ya bloquea el origen externo— sobre no tener ninguna.
+
+---
+
+### 23. 🟡 Respaldos: existen y están probados, pero viven en el mismo servidor
+
+**Punto C11 del informe técnico.** Hasta el 2026-08-15 **no había ningún procedimiento de respaldo**: solo dos volcados sueltos hechos a mano, sin automatización, sin rotación y sin que nadie hubiera probado restaurarlos. Era el único hueco de la lista que podía costar datos reales.
+
+**Resuelto:** `sql/respaldo_breadcontrol.sh` (volcado comprimido, verificado y rotado: 7 diarias y 4 semanales) más el procedimiento completo en `docs/respaldos.md`. La restauración **se probó de verdad** el 2026-08-15: se volcó la base, se restauró en una base nueva y coincidieron las 35 tablas y los conteos de las 7 tablas principales.
+
+**Lo que queda:** los archivos se guardan en el propio VPS. Eso cubre los accidentes probables —una consulta mal escrita, una migración equivocada— pero **no la pérdida del servidor**: si el VPS desaparece, se van los datos y los respaldos juntos. La corrección más barata es descargar el último respaldo al equipo propio de vez en cuando (`scp`, un minuto al mes); la completa, una copia automática a almacenamiento externo.
+
+**Severidad:** Media. **Esfuerzo:** S.
+
+---
+
+### 24. ⬜ El registro de errores se borra en cada despliegue
+
+**Descubierto el 2026-08-12** mientras se diagnosticaba el fallo del reporte por aprendiz.
+
+**Descripción:** `logs/` vive dentro del contenedor de la aplicación, y Dokploy crea un contenedor nuevo en cada despliegue. El registro de errores **se pierde entero** cada vez que se publica una versión.
+
+**Evidencia:** tras desplegar la v1.7.2, `ls -la /var/www/html/logs/` mostraba únicamente el `.htaccess`; las excepciones registradas antes del despliegue habían desaparecido.
+
+**Impacto:** el fallo del 2026-08-12 se diagnosticó en dos minutos gracias a la traza guardada. Si hubiera ocurrido poco antes de un despliegue, esa evidencia no existiría y el diagnóstico habría partido de cero. Tampoco hay rotación: mientras el contenedor vive, el archivo crece sin límite.
+
+**Severidad:** Media (afecta a la capacidad de diagnosticar, no al funcionamiento). **Esfuerzo:** S — montar `logs/` como volumen persistente en la configuración del servicio en Dokploy, y añadir rotación.
+
+**Por qué sigue abierto:** es configuración de la infraestructura, no del repositorio.
 
 ---
 
