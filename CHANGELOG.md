@@ -67,11 +67,15 @@ dependen del servidor web y están documentados en el anexo de limitaciones.
   renovación del certificado con `certbot renew --dry-run`. De paso se activó
   **HTTP/2**, que no estaba en el informe: el `listen 443 ssl` no lo tenía y el
   navegador abría hasta seis conexiones con su apretón TLS cada una.
-- Queda abierto el reenvío de `X-Forwarded-*` (punto 21 del anexo). La suposición
-  inicial era falsa: Nginx **sí** las envía; es Traefik quien las reescribe. Ya
-  no afecta a la cookie, pero sí al bloqueo por IP. Y `unsafe-inline` sigue en la
-  CSP porque el proyecto tiene 157 manejadores en línea y 31 bloques de script
-  incrustados (punto 22).
+- **El reenvío de `X-Forwarded-*` quedó resuelto el 2026-08-15.** La suposición
+  inicial era falsa: Nginx **sí** las envía; era Traefik quien las descartaba por
+  no tener a nadie declarado como proxy de confianza. Se añadieron las tres
+  puertas de enlace del host a `forwardedHeaders.trustedIPs` del punto de entrada
+  `web`. Verificado: un intento de acceso fallido desde una IP pública conocida
+  ahora se registra con esa IP, donde el día anterior quedaba una dirección
+  interna de Docker. El bloqueo por IP vuelve a medir lo que dice medir.
+- Sigue abierto `unsafe-inline` en la CSP, porque el proyecto tiene 157
+  manejadores en línea y 31 bloques de script incrustados (punto 22 del anexo).
 
 ## [1.7.3] — 2026-08-12
 

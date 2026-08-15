@@ -32,7 +32,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 18 | Condiciones de carrera (lotes, cupo semanal) | Concurrencia | Medio | 🟡 Parcial — falta el número de lote |
 | 19 | Columna huérfana `pedido_cliente.id_tienda_destino` | Arquitectura | Bajo | ✅ **Resuelto** (2026-08-06) |
 | 20 | Los mensajes de confirmación nunca se muestran | Usabilidad | Bajo-Medio | ⬜ Abierto — S |
-| 21 | HSTS y versión de Nginx (servidor web) | Seguridad | Medio | ✅ **Resueltos** (2026-08-14) · queda `X-Forwarded-*` |
+| 21 | HSTS, versión de Nginx y cabeceras de proxy | Seguridad | Medio | ✅ **Resuelto** (2026-08-14/15) |
 | 22 | `unsafe-inline` en la CSP: 157 manejadores en línea | Seguridad | Medio | ⬜ Abierto — L |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
@@ -268,7 +268,7 @@ Es inerte: `config/app.php` ejecuta `date_default_timezone_set('America/Bogota')
 
 ---
 
-### 21. 🟡 Controles del servidor web (R-02 y R-05) — RESUELTOS el 2026-08-14; queda un matiz
+### 21. ✅ Controles del servidor web (R-02, R-05 y cabeceras de proxy) — RESUELTOS
 
 **Origen:** informe técnico externo del 2026-08-12. Nueve de sus once recomendaciones se resolvieron en la v1.8.0 dentro del repositorio; estas dos vivían en el Nginx del VPS y se aplicaron directamente allí, **dentro del bloque `server` de BreadControl** y nunca en `nginx.conf`: el servidor aloja 24 sitios, varios de otras personas, y un cambio global los habría afectado a todos.
 
@@ -278,17 +278,31 @@ Es inerte: `config/app.php` ejecuta `date_default_timezone_set('America/Bogota')
 
 **➕ HTTP/2**, que no estaba en el informe. El `listen 443 ssl` no lo tenía, así que el navegador abría hasta seis conexiones separadas y pagaba un apretón TLS (~0,3 s) en cada una. Con `listen 443 ssl http2` todo viaja multiplexado por una sola conexión.
 
-**⬜ Lo que queda: el reenvío de `X-Forwarded-*`.** Al corregir R-01 se supuso que Nginx no reenviaba `X-Forwarded-Proto`. **Era falso**: el bloque sí lo envía. Lo que ocurre es un salto más adelante — Nginx entrega a **Traefik** por HTTP en el puerto 9080, y Traefik reescribe esas cabeceras con su propia visión de la conexión porque no está configurado para confiar en el proxy que tiene delante.
+**✅ El reenvío de `X-Forwarded-*` — RESUELTO el 2026-08-15.**
 
-Esto ya no afecta a la cookie `Secure` (ahora decide `APP_ENV`, no el proxy), pero **sí afecta al bloqueo por IP** de RS-05: `ip_cliente()` lee `X-Forwarded-For`, y si llega reescrita, todos los intentos parecen venir de la misma dirección. El umbral por cuenta —la defensa principal— no se ve afectado.
+Al corregir R-01 se supuso que Nginx no reenviaba `X-Forwarded-Proto`. **Era falso**: su bloque `server` sí lo envía. El problema estaba un salto más adelante — Nginx entrega a **Traefik** por HTTP en el puerto 9080, y Traefik descartaba esas cabeceras y las reescribía con su propia visión de la conexión.
 
-**Cómo verificarlo:** provocar un intento de acceso fallido y mirar qué quedó guardado:
-```sql
-SELECT identificador, ip, fecha FROM intento_login ORDER BY fecha DESC LIMIT 5;
+Ese comportamiento es correcto por defecto, y conviene entender por qué: `X-Forwarded-For` es texto que cualquiera puede escribir en una petición. Si Traefik creyera cualquier valor entrante, un atacante podría declararse en la IP que quisiera y burlar cualquier control basado en dirección. Traefik solo la respeta si se le dice explícitamente de quién fiarse.
+
+**Corrección aplicada** en `/etc/dokploy/traefik/traefik.yml`, punto de entrada `web`:
+```yaml
+entryPoints:
+  web:
+    address: :80
+    forwardedHeaders:
+      trustedIPs:
+        - "127.0.0.1/32"
+        - "172.16.0.1/32"     # puerta del puente por defecto
+        - "172.16.11.1/32"    # la observada en produccion
 ```
-Si la columna `ip` muestra una dirección interna (`127.0.0.1` o la del proxy) en vez de la pública del cliente, está confirmado. La corrección es de la configuración de Traefik en Dokploy, no del repositorio.
 
-**Severidad:** Baja-Media. **Esfuerzo:** S.
+Se declaran las tres **puertas de enlace del propio host** y no rangos amplios: son direcciones del servidor, no de contenedores vecinos, así que ningún proyecto ajeno del VPS puede falsificar la cabecera. Se incluyen las tres porque Traefik está conectado a varias redes y la ruta podría cambiar; si una deja de existir, la confianza sigue vigente por otra.
+
+**Verificación:** un intento de acceso fallido desde una IP pública conocida quedó registrado con esa misma IP (`181.51.91.8`), mientras que el intento equivalente del día anterior había quedado como `172.16.11.1`.
+
+**Detalle operativo que conviene recordar:** a diferencia de Nginx, que tiene `nginx -t` para validar antes de aplicar, la configuración estática de Traefik solo se comprueba al arrancar, y un error deja **los 24 sitios del VPS** caídos hasta corregirlo. El procedimiento seguro que se usó: copia de seguridad, preparar el cambio en `/tmp`, validar el YAML con `python3 -c "import yaml; yaml.safe_load(...)"`, revisar el `diff`, y solo entonces reemplazar y reiniciar.
+
+**Fragilidad conocida:** Traefik está conectado a `bot-n8n-kleywu`, una red de otro proyecto del VPS, y de ahí sale la dirección `172.16.11.1`. Si ese proyecto desaparece, la ruta cambiará a otra de las puertas declaradas. Si aun así dejara de funcionar, el síntoma es benigno —la columna `ip` de `intento_login` vuelve a mostrar direcciones internas— y se corrige añadiendo la nueva puerta.
 
 ---
 
