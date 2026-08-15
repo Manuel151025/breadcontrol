@@ -36,6 +36,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 22 | `unsafe-inline` en la CSP: 157 manejadores en línea | Seguridad | Medio | ⬜ Abierto — L |
 | 23 | Respaldos: probados, pero en el mismo servidor | Continuidad | Medio | 🟡 Parcial — falta copia externa |
 | 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ⬜ Abierto — S |
+| 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Medio | ⬜ Abierto — S-M (antes de nov 2026) |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -349,6 +350,20 @@ Se declaran las tres **puertas de enlace del propio host** y no rangos amplios: 
 **Severidad:** Media (afecta a la capacidad de diagnosticar, no al funcionamiento). **Esfuerzo:** S — montar `logs/` como volumen persistente en la configuración del servicio en Dokploy, y añadir rotación.
 
 **Por qué sigue abierto:** es configuración de la infraestructura, no del repositorio.
+
+---
+
+### 25. ⬜ PHP 8.2 deja de recibir parches de seguridad el 31 de diciembre de 2026
+
+**Detectado el 2026-08-15** al elaborar el calendario de mantenimiento (`docs/mantenimiento.md`, punto C13 del informe).
+
+**Descripción:** el `Dockerfile` fija `php:8.2-apache`. PHP 8.2 sale de soporte de seguridad al terminar 2026: a partir de esa fecha, una vulnerabilidad descubierta en el intérprete **no recibe corrección**, y nada en el sistema avisa de ello.
+
+**Impacto:** faltan unos cuatro meses. No es urgente hoy, pero sí tiene fecha, y es de los problemas que se descubren tarde porque no producen ningún síntoma visible.
+
+**Severidad:** Media (creciente con el tiempo). **Esfuerzo:** S-M — cambiar el `FROM` del `Dockerfile` a `php:8.3-apache` o `php:8.4-apache`, correr las 154 pruebas y PHPStan en nivel 10 con la nueva imagen, y verificar en local antes de publicar. Esa red de pruebas es justamente lo que permite hacer el salto con confianza en vez de a ciegas.
+
+**Relacionado:** `MySQL 8.0` alcanzó su fin de vida en abril de 2026 según el calendario de Oracle. Conviene **verificarlo** —esa fecha está en el límite de lo comprobable desde aquí— y evaluar el paso a MySQL 8.4 LTS, con respaldo previo y probando el esquema: la diferencia de `only_full_group_by` entre motores ya rompió una pantalla en producción una vez.
 
 ---
 
