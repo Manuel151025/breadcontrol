@@ -79,11 +79,17 @@ if [ "$(date +%u)" -eq 7 ]; then
 fi
 
 # ── Rotación ────────────────────────────────────────────────────────────────
+# El `|| true` del final no es adorno: cuando la carpeta está vacía —el caso
+# normal de `semanales` cualquier día que no sea domingo— el comodín no expande,
+# `ls` devuelve error y, con `set -euo pipefail`, ese error aborta el script
+# ANTES de imprimir la línea de confirmación. El respaldo quedaba bien hecho
+# pero el script terminaba en silencio y con código de error: por cron, eso se
+# lee como un fallo que no ocurrió.
 podar() {
     local carpeta="$1" conservar="$2"
     ls -1t "$carpeta"/breadcontrol_*.sql.gz 2>/dev/null \
         | tail -n +"$((conservar + 1))" \
-        | xargs -r rm -f
+        | xargs -r rm -f || true
 }
 podar "$DESTINO/diarias"   "$RETENCION_DIARIAS"
 podar "$DESTINO/semanales" "$RETENCION_SEMANALES"
