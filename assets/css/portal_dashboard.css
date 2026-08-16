@@ -10,6 +10,12 @@
         *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
         html,body{width:100%;max-width:100%;overflow-x:hidden;font-family:'Plus Jakarta Sans',sans-serif;background:var(--cbg);color:var(--ink);-webkit-text-size-adjust:100%;}
 
+        /* El nav es fixed, asi que un salto a #pedidos dejaria el titulo debajo de el.
+           scroll-margin-top reserva su altura; scroll-behavior evita el salto brusco. */
+        html{scroll-behavior:smooth;}
+        #pedidos{scroll-margin-top:calc(var(--nav-h) + 1rem);}
+        @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+
         /* ── NAV ── */
         nav{position:fixed;top:0;left:0;right:0;z-index:900;height:var(--nav-h);background:linear-gradient(100deg,var(--c1) 0%,var(--c3) 55%,var(--c4) 100%);display:flex;align-items:center;justify-content:space-between;padding:0 1rem;box-shadow:0 3px 24px rgba(100,40,10,.35);}
         nav::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);}

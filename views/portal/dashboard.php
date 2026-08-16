@@ -421,7 +421,7 @@
                         </td>
                         <td data-label="Acciones">
                             <?php if ($a['total_pedidos'] > 0): ?>
-                            <a href="dashboard.php?aprendiz_id=<?= $a['id_cliente'] ?>" class="btn-filtrar">
+                            <a href="dashboard.php?aprendiz_id=<?= $a['id_cliente'] ?>#pedidos" class="btn-filtrar">
                                 <i class="bi bi-funnel-fill"></i> Ver pedidos
                             </a>
                             <?php else: ?>
@@ -438,7 +438,10 @@
     <?php endif; // fin es_instructor ?>
 
     <!-- ══ SECCIÓN PEDIDOS ══ -->
-    <div class="topbar" style="margin-top:.4rem;">
+    <?php // El id es el destino de «Ver pedidos» y de los filtros. Sin él, filtrar
+          // recargaba la página y devolvía al usuario arriba del todo, con la lista
+          // ya filtrada tan abajo que parecía que el botón no hacía nada. ?>
+    <div class="topbar" id="pedidos" style="margin-top:.4rem;">
         <div class="mod-titulo">
             <i class="bi bi-basket2-fill"></i>
             <?php if ($nombre_filtro): ?>
@@ -461,12 +464,16 @@
     <div class="filtro-activo">
         <i class="bi bi-funnel-fill"></i>
         Mostrando pedidos de <strong><?= htmlspecialchars($nombre_filtro ?? '') ?></strong>
-        <a href="dashboard.php" title="Quitar filtro"><i class="bi bi-x-circle-fill"></i></a>
+        <a href="dashboard.php#pedidos" title="Quitar filtro"><i class="bi bi-x-circle-fill"></i></a>
     </div>
     <?php endif; ?>
 
     <div class="filter-card">
-        <form method="GET" class="filter-grid" id="form-filtros">
+        <?php // action con ancla: al enviar por GET el navegador conserva el #pedidos
+              // tras los parámetros, así que filtrar deja la vista donde estaba en vez
+              // de saltar arriba. Vale también para el filtro por variedad, que envía
+              // este mismo formulario desde JavaScript. ?>
+        <form method="GET" action="dashboard.php#pedidos" class="filter-grid" id="form-filtros">
             <?php if ($f_aprendiz): ?>
                 <input type="hidden" name="aprendiz_id" value="<?= $f_aprendiz ?>">
             <?php endif; ?>
@@ -491,7 +498,7 @@
                 </select>
             </div>
             <button type="submit" class="btn-filter"><i class="bi bi-filter"></i> Filtrar</button>
-            <a href="dashboard.php<?= $f_aprendiz ? '?aprendiz_id='.$f_aprendiz : '' ?>" class="btn-clear"><i class="bi bi-x-circle"></i> Limpiar</a>
+            <a href="dashboard.php<?= $f_aprendiz ? '?aprendiz_id='.$f_aprendiz : '' ?>#pedidos" class="btn-clear"><i class="bi bi-x-circle"></i> Limpiar</a>
         </form>
 
         <?php if ($nombre_variedad): ?>
