@@ -351,14 +351,32 @@ foreach ($plan as $fecha => $produccion_del_dia) {
         $tandas   = $item['tandas'];
         $unidades = (int) round($tandas * $prod['por_tanda']);
 
-        // Reparto entre 2 categorías: la mayoría al precio bajo, el resto arriba.
-        $cat_baja = $categorias[0];
-        $cat_alta = $categorias[min(2, count($categorias) - 1)];
-        $en_alta  = (int) floor($unidades * (mt_rand(15, 35) / 100));
-        $dist = [
-            (int) $cat_baja['id_categoria'] => $unidades - $en_alta,
-            (int) $cat_alta['id_categoria'] => $en_alta,
-        ];
+        // Reparto entre tres precios: una panadería saca pan corriente y algunas
+        // piezas más caras de la misma hornada. Usar solo dos categorías dejaba
+        // el panel «Productos más vendidos» con dos líneas y aspecto de vacío.
+        //
+        // El grueso va al precio más bajo, que es como se vende de verdad.
+        $peso = [60, 25, 15];
+        $elegidas = [];
+        $indices = array_rand($categorias, min(3, count($categorias)));
+        foreach ((array) $indices as $idx) {
+            $elegidas[] = $categorias[$idx];
+        }
+        usort($elegidas, static fn(array $a, array $b): int
+            => (float) $a['precio_unitario'] <=> (float) $b['precio_unitario']);
+
+        $dist = [];
+        $repartidas = 0;
+        foreach ($elegidas as $pos => $cat) {
+            $ultima = $pos === count($elegidas) - 1;
+            $und = $ultima
+                ? $unidades - $repartidas          // el resto, para que cuadre
+                : (int) floor($unidades * ($peso[$pos] ?? 10) / 100);
+            if ($und > 0) {
+                $dist[(int) $cat['id_categoria']] = $und;
+                $repartidas += $und;
+            }
+        }
 
         $r = $modelo_produccion->registrarProduccionConConsumos(
             $prod['id_producto'],
