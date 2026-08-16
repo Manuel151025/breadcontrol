@@ -148,4 +148,53 @@ final class FuncionesTest extends TestCase
         $this->assertFalse(esDomingo('no soy una fecha'));
         $this->assertFalse(esDomingo(''));
     }
+
+    // ── prefijoLote(): tres letras ASCII para el código del lote ──
+
+    public function testPrefijoDeUnNombreCorriente(): void
+    {
+        $this->assertSame('HAR', prefijoLote('Harina de trigo'));
+        $this->assertSame('SAL', prefijoLote('Sal'));
+    }
+
+    /**
+     * El caso que rompía el sistema: «Azúcar» tiene la ú como tercer carácter.
+     * Cortar por bytes se llevaba medio carácter y dejaba un prefijo inválido
+     * que no encontraba sus propios lotes, así que la secuencia reiniciaba y la
+     * segunda compra del insumo chocaba con la primera para siempre.
+     */
+    public function testUnNombreConTildeNoProduceUnPrefijoRoto(): void
+    {
+        $prefijo = prefijoLote('Azúcar');
+
+        $this->assertSame('AZU', $prefijo);
+        $this->assertSame(3, strlen($prefijo), 'Tres bytes: una letra ASCII cada uno');
+        $this->assertMatchesRegularExpression('/^[A-Z0-9]+$/', $prefijo, 'Va impreso en la etiqueta: solo ASCII');
+    }
+
+    public function testOtrosNombresAcentuadosYLaEnie(): void
+    {
+        $this->assertSame('ANI', prefijoLote('Anís estrellado'));
+        $this->assertSame('PIN', prefijoLote('Piña en almíbar'));
+        $this->assertSame('MAN', prefijoLote('Mantequilla'));
+    }
+
+    public function testSeIgnoranEspaciosYSignos(): void
+    {
+        $this->assertSame('ACE', prefijoLote('  ¡Aceite! vegetal'));
+    }
+
+    public function testUnNombreSinLetrasIgualObtieneCodigo(): void
+    {
+        // Un insumo raro no puede quedarse sin poder comprarse.
+        $this->assertSame('INS', prefijoLote('...'));
+        $this->assertSame('INS', prefijoLote(''));
+    }
+
+    public function testUnNombreCortoNoSeRellena(): void
+    {
+        // «Ají» sin tilde ya son tres letras; el caso corto de verdad es de dos.
+        $this->assertSame('AJI', prefijoLote('Ají'));
+        $this->assertSame('TE', prefijoLote('Té'));
+    }
 }

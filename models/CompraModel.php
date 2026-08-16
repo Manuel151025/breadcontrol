@@ -166,7 +166,9 @@ class CompraModel {
         }
 
         // 4. Merma 6% en harina
-        $prefijo_lote = strtoupper(substr($insumo_data['nombre'], 0, 3));
+        // Se pasa el nombre completo: quien lo recorta a tres letras es
+        // generarNumeroLote(), que sabe hacerlo sin partir un carácter por la mitad.
+        $prefijo_lote = is_string($insumo_data['nombre']) ? $insumo_data['nombre'] : '';
         $es_harina = (bool)$insumo_data['es_harina'];
         $cantidad_disponible = $es_harina ? round($cantidad * 0.94, 3) : $cantidad;
 

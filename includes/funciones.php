@@ -137,10 +137,34 @@ function getConfiguracion(): array {
     return $config;
 }
 
+/**
+ * Reduce el nombre de un insumo a tres letras ASCII para el código de lote.
+ *
+ * `substr($nombre, 0, 3)` corta BYTES, no caracteres. Con «Azúcar» (41 7A C3 BA
+ * 63) se llevaba «Az» más el primer byte de la ú, que por sí solo no es UTF-8
+ * válido. Ese prefijo roto no encontraba sus propios lotes con LIKE, así que la
+ * secuencia reiniciaba en 001 y **la segunda compra de ese insumo chocaba con
+ * la primera de forma permanente**: ni reintentando se salía, porque el número
+ * calculado era siempre el mismo.
+ *
+ * Se quitan las tildes en vez de conservarlas porque el código va impreso en
+ * las etiquetas de los lotes, donde conviene que sea ASCII.
+ */
+function prefijoLote(string $nombre): string {
+    $sin_tildes = strtr($nombre, [
+        'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n',
+        'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U', 'Ü' => 'U', 'Ñ' => 'N',
+    ]);
+    $solo_letras = preg_replace('/[^A-Za-z0-9]/', '', $sin_tildes) ?? '';
+
+    // Un nombre sin una sola letra ASCII no puede quedarse sin código.
+    return $solo_letras === '' ? 'INS' : strtoupper(substr($solo_letras, 0, 3));
+}
+
 // Generar número de lote único
 // Formato: INS-2026-02-25-001
 function generarNumeroLote(string $prefijo): string {
-    $pre3   = strtoupper(substr($prefijo, 0, 3));
+    $pre3   = prefijoLote($prefijo);
     $fecha  = date('Y-m-d');
     $patron = $pre3 . '-' . $fecha . '-%';
     $pdo    = getConexion();

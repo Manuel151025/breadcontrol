@@ -44,3 +44,5 @@ vendor/
 *.sql
 !sql/migraciones/*.sql
 !sql/init/*.sql
+# Manifiesto del generador de datos de demostracion (ids locales, no se comparte)
+scripts/datos_demo_manifiesto.json

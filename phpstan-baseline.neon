@@ -1963,12 +1963,6 @@ parameters:
 			path: models/CompraModel.php
 
 		-
-			message: '#^Parameter \#1 \$string of function substr expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: models/CompraModel.php
-
-		-
 			message: '#^Method ConfiguracionModel\:\:getConfiguracion\(\) should return array\<string, mixed\>\|false but returns mixed\.$#'
 			identifier: return.type
 			count: 1
