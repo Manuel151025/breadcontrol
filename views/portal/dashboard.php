@@ -307,7 +307,19 @@
                 <a href="exportar_cartera_instructor.php" target="_blank" class="btn-ver" style="display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.72rem; padding: 0.35rem 0.7rem; border-color: var(--c3); color: var(--c3);">
                     <i class="bi bi-file-earmark-pdf-fill"></i> Exportar Cartera PDF
                 </a>
-                <span style="font-size:.72rem;color:var(--ink3);"><?= count($aprendices) ?> registrados</span>
+                <?php
+                // count($aprendices) ya no sirve como «registrados»: la tabla puede
+                // incluir a quienes salieron del grupo pero siguen debiendo. Los
+                // registrados son los del grupo actual; el resto se anuncia aparte.
+                $fuera_del_grupo = 0;
+                foreach ($aprendices as $_a) {
+                    if (empty($_a['en_mi_grupo'])) { $fuera_del_grupo++; }
+                }
+                ?>
+                <span style="font-size:.72rem;color:var(--ink3);">
+                    <?= $total_reg ?> registrados<?php if ($fuera_del_grupo > 0): ?>
+                        · <?= $fuera_del_grupo ?> con saldo fuera del grupo<?php endif; ?>
+                </span>
             </div>
         </div>
         <div class="tbl-wrap">
@@ -348,7 +360,17 @@
                                     <?php endif; ?>
                                 </div>
                                 <div>
-                                    <div class="apr-name"><?= htmlspecialchars($a['nombre'] ?? '') ?></div>
+                                    <div class="apr-name">
+                                        <?= htmlspecialchars($a['nombre'] ?? '') ?>
+                                        <?php // Aparece porque aún debe dinero, aunque ya no esté en el grupo:
+                                              // si no se listara, su deuda quedaría dentro del total de arriba
+                                              // sin ninguna fila que la explicara. ?>
+                                        <?php if (empty($a['en_mi_grupo'])): ?>
+                                            <span class="badge-fuera-grupo" title="Ya no está en tu grupo, pero conserva saldo pendiente">
+                                                <i class="bi bi-person-dash-fill" aria-hidden="true"></i> Fuera del grupo
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                     <div class="apr-contact">
                                         <?= $a['telefono'] ? htmlspecialchars($a['telefono'] ?? '') : ($a['email'] ? htmlspecialchars($a['email'] ?? '') : '—') ?>
                                     </div>

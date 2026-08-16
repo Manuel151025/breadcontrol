@@ -39,6 +39,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Medio | ⬜ Abierto — S-M (antes de nov 2026) |
 | 26 | La fecha «sin definir» es un valor mágico (`1000-01-01`) | Diseño de datos | Bajo | ⬜ Abierto — M |
 | 27 | Controles hechos con `<div onclick>`: inalcanzables con teclado | Accesibilidad | Medio | 🟡 Parcial — faltan los modales |
+| 28 | El tablero del instructor no cuadraba consigo mismo | Integridad de datos | Medio | ✅ **Resuelto** (2026-08-15) |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -419,6 +420,28 @@ Se declaran las tres **puertas de enlace del propio host** y no rangos amplios: 
 **Rótulos:** cuatro `<label>` encabezaban un grupo de campos o un dato fijo, no un control único al que saltar. Pasaron a `<span class="fl-rotulo">` con `role="group"` + `aria-labelledby` (mismo aspecto, sin prometer un control que no existe), y los dos selectores de compras usan `aria-labelledby` porque `<label for>` no funciona sobre un `<button>`.
 
 **Abierto:** los cinco `modal-overlay`/`modal-backdrop` conservan su `onclick` de «clic fuera para cerrar». No es un defecto equivalente —todos tienen su botón de cierre real, alcanzable con teclado— pero falta soporte de `Escape`. **Severidad:** Bajo. **Esfuerzo:** S.
+
+---
+
+### 28. ✅ El tablero del instructor no cuadraba consigo mismo — RESUELTO (2026-08-15)
+
+**Detectado el 2026-08-15** por el propietario, al notar que un aprendiz con 4 pedidos mostraba el mismo importe que otro con 1.
+
+**Era:** los números grandes de arriba y la tabla «Resumen por aprendiz» se calculaban por separado, con reglas distintas, así que no se podían cruzar. Tres causas independientes:
+
+1. **El saldo pendiente se calculaba dos veces con criterios distintos.** El KPI incluía los pedidos con abono parcial y les restaba lo ya abonado; la columna de la tabla los excluía por completo y no restaba nada. Se equivocaba en las dos direcciones a la vez: escondía la deuda de los pagos a medias e inflaba la de los que ya tenían abonos.
+
+2. **Un pedido cancelado seguía contando como pedido.** Cancelar pone `estado = 'rechazado'` pero deja `aprobado_instructor = 1` (`PedidosPortalTrait.php:288`). Los contadores filtraban solo por `aprobado_instructor`, mientras que los importes excluían los rechazados: la columna PEDIDOS y las de dinero describían conjuntos distintos, e invitaban a dividir una entre otra y sacar un promedio falso. También inflaba «aprendices activos» y «pedidos totales».
+
+3. **Desactivar a un aprendiz le escondía la deuda.** La tabla filtraba por `activo = 1 AND id_instructor = ?` y los KPIs no: su saldo seguía dentro del total de arriba, pero sin ninguna fila que lo explicara.
+
+**Ahora:** `InstructorPortalTrait::calcularSaldoPendiente()` es la **única** definición de «cuánto se debe» — la usan el KPI, la tabla y el PDF de cartera, que además tenía el mismo descuadre en su total. Los contadores excluyen los rechazados. Y la tabla lista también a quien ya no está en el grupo pero conserva saldo, marcado con «Fuera del grupo»: **la regla es que el total de arriba siempre esté explicado por filas visibles**, nunca esconder deuda para que las cifras cuadren.
+
+**El detalle difícil:** un pago consolidado cubre pedidos de varios aprendices a la vez, y el abono se registra contra el pago, no contra cada pedido. Para desglosarlo hay que repartir lo pendiente a prorrata, y el reparto tiene que cerrar al peso: el residuo del redondeo se le carga al último pedido, porque si no las filas sumarían unos pesos por encima o por debajo del total.
+
+**Un supuesto que resultó falso:** durante el diagnóstico se dio por hecho que los pedidos con `estado_pago` nulo también descuadraban, porque el KPI los contaba y la columna no. La columna es `NOT NULL DEFAULT 'no_aplica'`, así que ese caso **no puede darse**; esa rama del KPI es código muerto. Se comprobó contra el esquema antes de darlo por bueno.
+
+**Fijado en** `tests/Integration/CuadreInstructorTest.php` (6 pruebas, con base de datos real) y `tests/Unit/SaldoInstructorTest.php` (7 pruebas del reparto). El invariante que fijan es «la suma de la columna == el total de arriba»; se verificó que la prueba falla si se revierte la regla del saldo. Queda además `sql/verificar_cuadre_instructor.sql`, de solo lectura, para auditar el cuadre en producción.
 
 ---
 

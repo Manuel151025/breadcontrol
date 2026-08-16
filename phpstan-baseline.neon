@@ -2277,7 +2277,7 @@ parameters:
 		-
 			message: '#^Cannot access offset ''id_pago_activo'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 4
+			count: 3
 			path: models/PortalClienteModel.php
 
 		-
@@ -2288,12 +2288,6 @@ parameters:
 
 		-
 			message: '#^Cannot access offset ''pendiente_total'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: models/PortalClienteModel.php
-
-		-
-			message: '#^Cannot access offset ''total_estimado'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: models/PortalClienteModel.php
@@ -2313,13 +2307,13 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to float\.$#'
 			identifier: cast.double
-			count: 2
+			count: 1
 			path: models/PortalClienteModel.php
 
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 19
+			count: 18
 			path: models/PortalClienteModel.php
 
 		-
@@ -2330,12 +2324,6 @@ parameters:
 
 		-
 			message: '#^Method PortalClienteModel\:\:getAprendicesGestion\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: models/PortalClienteModel.php
-
-		-
-			message: '#^Method PortalClienteModel\:\:getAprendicesResumen\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
 			identifier: return.type
 			count: 1
 			path: models/PortalClienteModel.php

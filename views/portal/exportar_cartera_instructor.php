@@ -4,16 +4,28 @@
 
 require_once __DIR__ . '/../partials/reporte_documento.php';
 
-$total_deuda = 0.0;
+// La suma de la columna debe dar el «Pendiente total» del recuadro: los dos
+// salen ya del mismo cálculo (InstructorPortalTrait::calcularSaldoPendiente).
+$total_deuda     = 0.0;
+$fuera_del_grupo = 0;
 foreach ($aprendices as $a) {
     $total_deuda += (float) ($a['saldo_pendiente'] ?? 0);
+    if (empty($a['en_mi_grupo'])) {
+        $fuera_del_grupo++;
+    }
 }
+
+// La tabla puede incluir a quienes salieron del grupo y siguen debiendo, así
+// que el conteo del encabezado distingue unos de otros.
+$conteo_aprendices = $fuera_del_grupo > 0
+    ? ($total_reg . ' (+' . $fuera_del_grupo . ' fuera del grupo)')
+    : (string) $total_reg;
 
 reporte_documento_inicio([
     'titulo'    => 'Cartera de aprendices',
     'subtitulo' => 'Consumo, cupo semanal y saldo pendiente por aprendiz',
     'meta'      => [
-        'Aprendices' => (string) count($aprendices),
+        'Aprendices' => $conteo_aprendices,
         'Por cobrar' => '$' . number_format($total_deuda, 0, ',', '.'),
     ],
 ]);
@@ -30,7 +42,7 @@ reporte_documento_inicio([
     </div>
     <div class="rp-cifra">
         <span class="k">Aprendices</span>
-        <span class="v"><?= count($aprendices) ?></span>
+        <span class="v"><?= $conteo_aprendices ?></span>
     </div>
 </div>
 
@@ -51,7 +63,12 @@ reporte_documento_inicio([
     <tbody>
     <?php foreach ($aprendices as $a): ?>
         <tr>
-            <td><strong><?= htmlspecialchars($a['nombre'] ?? '') ?></strong></td>
+            <td>
+                <strong><?= htmlspecialchars($a['nombre'] ?? '') ?></strong>
+                <?php if (empty($a['en_mi_grupo'])): ?>
+                    <span class="rp-vacio">(fuera del grupo)</span>
+                <?php endif; ?>
+            </td>
             <td style="font-size:8pt;">
                 <?php $contacto = $a['email'] ?: ($a['telefono'] ?: ''); ?>
                 <?= $contacto !== '' ? htmlspecialchars($contacto) : '<span class="rp-vacio">Sin contacto</span>' ?>

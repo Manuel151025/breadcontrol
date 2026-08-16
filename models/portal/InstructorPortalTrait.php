@@ -13,56 +13,180 @@ trait InstructorPortalTrait {
      * @return array<string, mixed>
      */
     public function getInstructorStats(int $cliente_id): array {
-        // Resumen financiero global
+        // Resumen financiero global.
+        //
+        // Cancelar un pedido lo pone en 'rechazado' pero le deja
+        // aprobado_instructor = 1 (PedidosPortalTrait::cancelarPedido), así que
+        // los contadores tienen que excluir ese estado explícitamente. Cuando no
+        // lo hacían, un pedido cancelado seguía sumando en «pedidos totales» y
+        // su autor seguía figurando como aprendiz activo, aunque su dinero ya no
+        // apareciera por ningún lado: el contador y el importe describían
+        // conjuntos distintos de pedidos.
         $sf = $this->pdo->prepare("
             SELECT
                 COALESCE(SUM(CASE WHEN estado != 'rechazado' AND aprobado_instructor = 1 AND MONTH(fecha_solicitud) = MONTH(NOW()) AND YEAR(fecha_solicitud) = YEAR(NOW()) THEN total_estimado ELSE 0 END), 0) AS total_mes,
-                COUNT(DISTINCT CASE WHEN aprobado_instructor = 1 THEN id_creador ELSE NULL END) AS aprendices_activos,
-                COUNT(CASE WHEN aprobado_instructor = 1 THEN 1 ELSE NULL END) AS total_pedidos
+                COUNT(DISTINCT CASE WHEN aprobado_instructor = 1 AND estado != 'rechazado' THEN id_creador ELSE NULL END) AS aprendices_activos,
+                COUNT(CASE WHEN aprobado_instructor = 1 AND estado != 'rechazado' THEN 1 ELSE NULL END) AS total_pedidos
             FROM pedido_cliente
             WHERE id_cliente = ? AND id_creador IS NOT NULL AND id_creador != ?
         ");
         $sf->execute([$cliente_id, $cliente_id]);
         $resumen = $sf->fetch(PDO::FETCH_ASSOC) ?: [];
 
-        // Obtener pedidos pendientes de cobro para calcular pendiente real
-        $stmt_pends = $this->pdo->prepare("
-            SELECT id_pedido, total_estimado, id_pago_activo
+        $saldo = $this->calcularSaldoPendiente($cliente_id);
+        $resumen['pendiente_total'] = $saldo['total'];
+        return $resumen;
+    }
+
+    /**
+     * Saldo pendiente del instructor, en total y desglosado por aprendiz.
+     *
+     * Es la única definición de «cuánto se debe» en el portal: la usan el KPI
+     * del tablero, la columna de la tabla y el PDF de cartera. Antes cada uno
+     * la calculaba por su cuenta con reglas distintas, así que los números de
+     * la misma pantalla no cuadraban entre sí:
+     *
+     *   - El KPI contaba los pedidos con estado_pago nulo o 'parcial'; la
+     *     columna de la tabla no, así que la tabla escondía deuda real.
+     *   - El KPI restaba los abonos; la columna no, así que la inflaba.
+     *
+     * Gana la regla del KPI, que es la correcta: un pedido sin estado de pago
+     * está sin pagar, y de uno con abono parcial solo se debe el resto.
+     *
+     * @return array{total: float, por_aprendiz: array<int, float>}
+     */
+    private function calcularSaldoPendiente(int $cliente_id): array {
+        $stmt = $this->pdo->prepare("
+            SELECT id_pedido, id_creador, total_estimado, id_pago_activo
             FROM pedido_cliente
-            WHERE id_cliente = ? AND id_creador IS NOT NULL AND id_creador != ? AND estado != 'rechazado' AND aprobado_instructor = 1
+            WHERE id_cliente = ? AND id_creador IS NOT NULL AND id_creador != ?
+              AND estado != 'rechazado' AND aprobado_instructor = 1
               AND (estado_pago IS NULL OR estado_pago IN ('pendiente', 'no_aplica', 'parcial'))
         ");
-        $stmt_pends->execute([$cliente_id, $cliente_id]);
-        $pedidos_pends = $stmt_pends->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->execute([$cliente_id, $cliente_id]);
 
-        $pedidos_por_pago = [];
-        foreach ($pedidos_pends as $p) {
-            $pago_id = !empty($p['id_pago_activo']) ? (int)$p['id_pago_activo'] : 0;
-            $pedidos_por_pago[$pago_id][] = $p;
+        // PDO devuelve las filas sin tipo, así que se convierten aquí una sola
+        // vez y el resto del cálculo trabaja con números de verdad.
+        $pedidos = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $fila) {
+            if (!is_array($fila)) {
+                continue;
+            }
+            $pedidos[] = [
+                'id_creador'     => self::aEntero($fila['id_creador'] ?? null),
+                'total_estimado' => self::aDecimal($fila['total_estimado'] ?? null),
+                'id_pago_activo' => self::aEntero($fila['id_pago_activo'] ?? null),
+            ];
         }
 
-        $pendiente_total_real = 0.0;
-        foreach ($pedidos_por_pago as $pago_id => $grupo_pedidos) {
-            $suma_grupo = 0.0;
-            foreach ($grupo_pedidos as $p) {
-                $suma_grupo += (float)$p['total_estimado'];
-            }
+        // Un pago consolidado cubre varios pedidos a la vez, y el abono se
+        // registra contra el pago, no contra cada pedido: hay que agrupar
+        // primero para saber cuánto queda debiendo el grupo.
+        $por_pago = [];
+        foreach ($pedidos as $p) {
+            $por_pago[$p['id_pago_activo']][] = $p;
+        }
+
+        $por_aprendiz = [];
+        $total = 0.0;
+
+        foreach ($por_pago as $pago_id => $grupo) {
+            // Sin pago abierto: cada pedido debe su importe completo.
             if ($pago_id === 0) {
-                $pendiente_total_real += $suma_grupo;
-            } else {
-                $stmt_ab = $this->pdo->prepare("SELECT COALESCE(SUM(monto), 0) FROM pago_abono WHERE id_pago = ?");
-                $stmt_ab->execute([$pago_id]);
-                $abonado = (float)$stmt_ab->fetchColumn();
-                
-                $deficit = $suma_grupo - $abonado;
-                if ($deficit > 0) {
-                    $pendiente_total_real += $deficit;
+                foreach ($grupo as $p) {
+                    $creador = $p['id_creador'];
+                    $por_aprendiz[$creador] = ($por_aprendiz[$creador] ?? 0.0) + $p['total_estimado'];
+                    $total += $p['total_estimado'];
                 }
+                continue;
+            }
+
+            $suma_grupo = 0.0;
+            foreach ($grupo as $p) {
+                $suma_grupo += $p['total_estimado'];
+            }
+
+            $stmt_ab = $this->pdo->prepare("SELECT COALESCE(SUM(monto), 0) FROM pago_abono WHERE id_pago = ?");
+            $stmt_ab->execute([$pago_id]);
+            $abonado = (float) $stmt_ab->fetchColumn();
+
+            $deficit = $suma_grupo - $abonado;
+            if ($deficit <= 0) {
+                continue;
+            }
+            $total += $deficit;
+
+            // El pago puede cubrir pedidos de varios aprendices, así que lo que
+            // queda debiendo se reparte a prorrata de lo que puso cada pedido.
+            $montos = [];
+            foreach ($grupo as $p) {
+                $montos[] = $p['total_estimado'];
+            }
+            $partes = self::repartirDeficit($montos, $deficit);
+
+            foreach ($grupo as $i => $p) {
+                $creador = $p['id_creador'];
+                $por_aprendiz[$creador] = ($por_aprendiz[$creador] ?? 0.0) + $partes[$i];
             }
         }
 
-        $resumen['pendiente_total'] = $pendiente_total_real;
-        return $resumen;
+        return ['total' => $total, 'por_aprendiz' => $por_aprendiz];
+    }
+
+    /**
+     * Convierte a entero un valor recién salido de PDO, que llega sin tipo.
+     *
+     * Devuelve 0 si no era un número: un identificador ilegible no puede
+     * convertirse en un id válido por accidente.
+     */
+    private static function aEntero(mixed $valor): int {
+        return is_numeric($valor) ? (int) $valor : 0;
+    }
+
+    /** Igual que aEntero(), para importes. */
+    private static function aDecimal(mixed $valor): float {
+        return is_numeric($valor) ? (float) $valor : 0.0;
+    }
+
+    /**
+     * Reparte lo que se sigue debiendo de un pago entre los pedidos que cubre,
+     * a prorrata de lo que aportó cada uno.
+     *
+     * Las partes suman **exactamente** el déficit: el residuo del redondeo se
+     * le carga al último pedido. Sin eso, el desglose por aprendiz podría
+     * quedar unos pesos por encima o por debajo del total del tablero, que es
+     * justo el descuadre que este cálculo existe para evitar.
+     *
+     * @param array<int, float> $montos Importe de cada pedido del pago.
+     * @return array<int, float> Una parte por pedido, en el mismo orden.
+     */
+    private static function repartirDeficit(array $montos, float $deficit): array {
+        $suma = array_sum($montos);
+        $ultimo = count($montos) - 1;
+
+        if ($ultimo < 0) {
+            return [];
+        }
+        // Sin importes de referencia no hay prorrata posible: se carga al último.
+        if ($suma <= 0) {
+            $partes = array_fill(0, $ultimo + 1, 0.0);
+            $partes[$ultimo] = $deficit;
+            return $partes;
+        }
+
+        $partes   = [];
+        $restante = $deficit;
+        foreach ($montos as $i => $monto) {
+            if ($i === $ultimo) {
+                $partes[$i] = round($restante, 2);
+                break;
+            }
+            $parte      = round($deficit * ($monto / $suma), 2);
+            $partes[$i] = $parte;
+            $restante  -= $parte;
+        }
+
+        return $partes;
     }
 
     /**
@@ -70,6 +194,11 @@ trait InstructorPortalTrait {
      * @return array<int, array<string, mixed>>
      */
     public function getAprendicesResumen(int $cliente_id): array {
+        // Se listan los aprendices del grupo actual y, además, cualquiera que
+        // todavía deba dinero aunque ya no esté activo o lo hayan pasado a otro
+        // instructor. Si no, al desactivar a alguien su deuda desaparecía de la
+        // tabla pero seguía dentro del total de arriba, y el KPI dejaba de estar
+        // explicado por las filas visibles. La deuda no se esconde: se marca.
         $sa = $this->pdo->prepare("
             SELECT
                 c.id_cliente,
@@ -78,6 +207,7 @@ trait InstructorPortalTrait {
                 c.email,
                 c.foto_url,
                 c.cupo_semanal,
+                (c.activo = 1 AND c.id_instructor = ?) AS en_mi_grupo,
                 (
                     SELECT COALESCE(SUM(pc.total_estimado), 0)
                     FROM pedido_cliente pc
@@ -86,19 +216,62 @@ trait InstructorPortalTrait {
                       AND pc.estado != 'rechazado'
                       AND pc.fecha_solicitud >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), '%Y-%m-%d 00:00:00')
                 ) AS consumido_semana,
-                COUNT(CASE WHEN p.aprobado_instructor = 1 THEN p.id_pedido ELSE NULL END) AS total_pedidos,
+                COUNT(CASE WHEN p.aprobado_instructor = 1 AND p.estado != 'rechazado' THEN p.id_pedido ELSE NULL END) AS total_pedidos,
                 COALESCE(SUM(CASE WHEN p.estado != 'rechazado' AND p.aprobado_instructor = 1 THEN p.total_estimado ELSE 0 END), 0) AS total_comprado,
-                COALESCE(SUM(CASE WHEN p.estado != 'rechazado' AND p.aprobado_instructor = 1 AND p.estado_pago IN ('pendiente','no_aplica') THEN p.total_estimado ELSE 0 END), 0) AS saldo_pendiente,
-                MAX(CASE WHEN p.aprobado_instructor = 1 THEN p.fecha_solicitud ELSE NULL END) AS ultimo_pedido,
+                MAX(CASE WHEN p.aprobado_instructor = 1 AND p.estado != 'rechazado' THEN p.fecha_solicitud ELSE NULL END) AS ultimo_pedido,
                 COALESCE(SUM(CASE WHEN p.estado = 'pendiente' AND p.aprobado_instructor = 1 THEN 1 ELSE 0 END), 0) AS sin_confirmar
             FROM cliente c
             LEFT JOIN pedido_cliente p ON p.id_creador = c.id_cliente AND p.id_cliente = ?
-            WHERE c.es_aprendiz = 1 AND c.activo = 1 AND c.id_instructor = ?
-            GROUP BY c.id_cliente, c.nombre, c.telefono, c.email, c.foto_url, c.cupo_semanal
-            ORDER BY saldo_pendiente DESC, total_comprado DESC
+            WHERE c.es_aprendiz = 1
+              AND (
+                    (c.activo = 1 AND c.id_instructor = ?)
+                 OR EXISTS (
+                        SELECT 1 FROM pedido_cliente pe
+                        WHERE pe.id_creador = c.id_cliente
+                          AND pe.id_cliente = ?
+                          AND pe.aprobado_instructor = 1
+                          AND pe.estado != 'rechazado'
+                    )
+              )
+            GROUP BY c.id_cliente, c.nombre, c.telefono, c.email, c.foto_url,
+                     c.cupo_semanal, c.activo, c.id_instructor
         ");
-        $sa->execute([$cliente_id, $cliente_id, $cliente_id]);
-        return $sa->fetchAll(PDO::FETCH_ASSOC);
+        $sa->execute([$cliente_id, $cliente_id, $cliente_id, $cliente_id, $cliente_id]);
+
+        // El saldo no se calcula en esta consulta: sale del mismo sitio que el
+        // KPI, para que los dos números no puedan volver a separarse.
+        $saldo = $this->calcularSaldoPendiente($cliente_id);
+
+        $aprendices = [];
+        foreach ($sa->fetchAll(PDO::FETCH_ASSOC) as $fila) {
+            if (!is_array($fila)) {
+                continue;
+            }
+            $id = self::aEntero($fila['id_cliente'] ?? null);
+            $aprendices[] = [
+                'id_cliente'       => $id,
+                'nombre'           => $fila['nombre']    ?? '',
+                'telefono'         => $fila['telefono']  ?? '',
+                'email'            => $fila['email']     ?? '',
+                'foto_url'         => $fila['foto_url']  ?? '',
+                'ultimo_pedido'    => $fila['ultimo_pedido'] ?? null,
+                'en_mi_grupo'      => !empty($fila['en_mi_grupo']),
+                'cupo_semanal'     => self::aDecimal($fila['cupo_semanal'] ?? null),
+                'consumido_semana' => self::aDecimal($fila['consumido_semana'] ?? null),
+                'total_pedidos'    => self::aEntero($fila['total_pedidos'] ?? null),
+                'total_comprado'   => self::aDecimal($fila['total_comprado'] ?? null),
+                'sin_confirmar'    => self::aEntero($fila['sin_confirmar'] ?? null),
+                'saldo_pendiente'  => $saldo['por_aprendiz'][$id] ?? 0.0,
+            ];
+        }
+
+        // El orden lo hacía el SQL por saldo_pendiente, que ya no es una columna.
+        usort($aprendices, static function (array $x, array $y): int {
+            return [self::aDecimal($y['saldo_pendiente'] ?? null), self::aDecimal($y['total_comprado'] ?? null)]
+               <=> [self::aDecimal($x['saldo_pendiente'] ?? null), self::aDecimal($x['total_comprado'] ?? null)];
+        });
+
+        return $aprendices;
     }
 
     /**
