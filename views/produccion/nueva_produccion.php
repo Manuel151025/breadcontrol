@@ -100,8 +100,10 @@
 
           <!-- DISTRIBUCIÓN POR PRECIO -->
           <div id="panel-distribucion" class="fl" style="display:none;">
-            <label><i class="bi bi-grid-3x3-gap" style="color:var(--c3)"></i> ¿Cuántos de cada precio?</label>
-            <div style="background:var(--clight);border:1px solid var(--border);border-radius:10px;padding:.7rem .85rem;">
+            <?php // Encabeza varios campos (uno por precio), no uno solo: un <label>
+                  // solo puede apuntar a un control, así que va como rótulo de grupo. ?>
+            <span class="fl-rotulo" id="et-distribucion"><i class="bi bi-grid-3x3-gap" style="color:var(--c3)" aria-hidden="true"></i> ¿Cuántos de cada precio?</span>
+            <div role="group" aria-labelledby="et-distribucion" style="background:var(--clight);border:1px solid var(--border);border-radius:10px;padding:.7rem .85rem;">
               <div style="font-size:.7rem;color:var(--ink3);margin-bottom:.5rem;">
                 Se esperan <strong id="dist-total-label">0</strong> unidades. Escribe cuántas salieron realmente de cada precio:
               </div>
@@ -121,8 +123,9 @@
 
           <!-- PANEL DE LOTES FIFO -->
           <div id="panel-lotes" class="fl" style="display:none;">
-            <label><i class="bi bi-boxes" style="color:var(--c3)"></i> Guía de lotes a usar (más antiguos primero)</label>
-            <div class="lotes-panel">
+            <?php // Panel informativo de solo lectura: no hay campo que rotular. ?>
+            <span class="fl-rotulo" id="et-lotes"><i class="bi bi-boxes" style="color:var(--c3)" aria-hidden="true"></i> Guía de lotes a usar (más antiguos primero)</span>
+            <div class="lotes-panel" role="group" aria-labelledby="et-lotes">
               <div class="lotes-hdr">
                 <span class="lotes-hdr-ttl"><i class="bi bi-sort-up"></i> Orden FIFO — saca estos lotes del estante</span>
                 <span id="badge-lotes" class="badge b-neu"></span>

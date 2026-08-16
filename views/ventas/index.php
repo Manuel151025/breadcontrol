@@ -74,17 +74,19 @@
                   $stk = max(0, (int) $c['stock_hoy']);
                   $stk_class = $stk > 20 ? 'stk-ok' : ($stk > 0 ? 'stk-warn' : 'stk-zero');
                   ?>
-                  <div class="cat-btn" data-id="<?= $c['id_categoria'] ?>" data-precio="<?= $c['precio_unitario'] ?>"
-                    data-stock="<?= $stk ?>" onclick="selCat(this)">
+                  <?php // Eran <div onclick>: con el teclado no se podía elegir precio,
+                        // así que no había forma de registrar una venta sin ratón. ?>
+                  <button type="button" class="cat-btn" data-id="<?= $c['id_categoria'] ?>" data-precio="<?= $c['precio_unitario'] ?>"
+                    data-stock="<?= $stk ?>" onclick="selCat(this)" aria-pressed="false">
                     <div class="cat-price">$<?= number_format($c['precio_unitario'], 0, ',', '.') ?></div>
                     <div class="cat-stock <?= $stk_class ?>"><?= $stk ?> disp.</div>
-                  </div>
+                  </button>
                 <?php endforeach; ?>
               </div>
               <div style="margin-top:.4rem;">
-                <div class="cat-btn" id="cat-custom" onclick="toggleCustom()">
+                <button type="button" class="cat-btn" id="cat-custom" onclick="toggleCustom()" aria-pressed="false" aria-expanded="false" aria-controls="custom-input">
                   <div class="cat-price" style="font-size:.85rem;">✏️ Otro precio</div>
-                </div>
+                </button>
                 <div id="custom-input" style="display:none;margin-top:.35rem;">
                   <input type="number" id="inp-custom-precio" min="100" max="20000" step="100" placeholder="Ej: 1500"
                     style="width:100%;border:1px solid var(--border);border-radius:9px;padding:.5rem;font-size:.9rem;font-family:'Fraunces',serif;font-weight:700;text-align:center;background:var(--clight);"
@@ -107,10 +109,10 @@
             <div class="sec-sep">Tipo de salida</div>
             <div class="fl">
               <div class="tipo-grid">
-                <div class="tipo-btn active" data-tipo="venta" onclick="selTipo(this)"><i class="bi bi-cash-coin"></i>
-                  Venta</div>
-                <div class="tipo-btn" data-tipo="consumo_interno" onclick="selTipo(this)"><i class="bi bi-cup-hot"></i>
-                  Consumo</div>
+                <button type="button" class="tipo-btn active" data-tipo="venta" onclick="selTipo(this)" aria-pressed="true"><i class="bi bi-cash-coin" aria-hidden="true"></i>
+                  Venta</button>
+                <button type="button" class="tipo-btn" data-tipo="consumo_interno" onclick="selTipo(this)" aria-pressed="false"><i class="bi bi-cup-hot" aria-hidden="true"></i>
+                  Consumo</button>
               </div>
             </div>
             <div id="wrap-cliente">

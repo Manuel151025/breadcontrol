@@ -139,9 +139,11 @@
           </div>
 
           <div class="fl">
-            <label>Tipo de cliente</label>
-            <div class="tipo-fijo">
-              <i class="bi bi-shop-window"></i> Tienda
+            <?php // No es un campo: el tipo siempre es Tienda. Un <label> aquí anunciaba
+                  // un control que no existe, así que rotula el dato como texto. ?>
+            <span class="fl-rotulo" id="et-tipo-cliente">Tipo de cliente</span>
+            <div class="tipo-fijo" role="group" aria-labelledby="et-tipo-cliente">
+              <i class="bi bi-shop-window" aria-hidden="true"></i> Tienda
             </div>
             <div class="bonif-nota">
               <i class="bi bi-gift-fill"></i>

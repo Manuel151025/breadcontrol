@@ -281,7 +281,10 @@
     margin-bottom: .72rem;
   }
 
-  .fl label {
+  /* .fl-rotulo rotula un dato fijo en pantalla (no un campo): mismo aspecto
+     que un <label>, pero sin prometer un control que no existe. */
+  .fl label,
+  .fl .fl-rotulo {
     font-size: .63rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -329,7 +332,12 @@
     gap: .4rem;
   }
 
+  /* Son <button> (antes divs): width/margin/color neutralizan el estilo propio
+     del navegador, que si no los encogería al contenido. */
   .cat-btn {
+    width: 100%;
+    margin: 0;
+    color: inherit;
     border: 2px solid var(--border);
     border-radius: 10px;
     padding: .55rem .5rem;
@@ -338,6 +346,12 @@
     background: var(--clight);
     transition: all .2s;
     font-family: inherit;
+  }
+
+  .cat-btn:focus-visible,
+  .tipo-btn:focus-visible {
+    outline: 2px solid var(--c3);
+    outline-offset: 2px;
   }
 
   .cat-btn:hover {
@@ -398,6 +412,8 @@
   }
 
   .tipo-btn {
+    width: 100%;
+    margin: 0;
     border: 2px solid var(--border);
     border-radius: 9px;
     padding: .45rem .3rem;

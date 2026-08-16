@@ -51,25 +51,50 @@ function redirigir(string $url, string $tipo = 'exito', string $mensaje = ''): n
     exit;
 }
 
-// Mostrar mensaje flash de sesión (llámalo en la vista)
+/**
+ * Devuelve el mensaje flash guardado por redirigir(), y lo consume.
+ *
+ * Se invoca una sola vez, en views/layouts/header.php, de modo que cualquier
+ * pantalla del back-office lo muestre sin tener que acordarse de nada.
+ *
+ * Durante mucho tiempo esta función existió pero **ninguna vista la llamaba**:
+ * los 11 avisos que el sistema guardaba al redirigir ("Insumo creado",
+ * "Proveedor desactivado", "Producción registrada") se escribían en la sesión
+ * y se descartaban sin llegar nunca a la pantalla. La acción sí ocurría, pero
+ * el usuario no recibía confirmación de nada.
+ *
+ * El marcado lleva sus estilos incrustados a propósito: cada vista del
+ * back-office define sus propias clases de mensaje, así que depender de ellas
+ * haría que el aviso se viera bien en unas pantallas y roto en otras.
+ */
 function mostrarMensaje(): string {
-    if (!isset($_SESSION['mensaje_texto'])) return '';
+    if (!isset($_SESSION['mensaje_texto'])) {
+        return '';
+    }
 
     $tipo    = $_SESSION['mensaje_tipo']  ?? 'exito';
     $mensaje = $_SESSION['mensaje_texto'] ?? '';
     unset($_SESSION['mensaje_tipo'], $_SESSION['mensaje_texto']);
 
-    $clases = [
-        'exito'  => 'alert-success',
-        'error'  => 'alert-danger',
-        'alerta' => 'alert-warning',
-    ];
-    $clase = $clases[$tipo] ?? 'alert-info';
+    if (!is_string($mensaje) || trim($mensaje) === '') {
+        return '';
+    }
 
-    return "<div class='alert {$clase} alert-dismissible fade show' role='alert'>
-                {$mensaje}
-                <button type='button' class='btn-close' data-bs-dismiss='alert'></button>
-            </div>";
+    $estilos = [
+        'exito'  => ['#e8f5e9', '#a5d6a7', '#1b5e20', 'bi-check-circle-fill'],
+        'error'  => ['#ffebee', '#ef9a9a', '#b71c1c', 'bi-exclamation-triangle-fill'],
+        'alerta' => ['#fff8e1', '#ffe082', '#8d6e00', 'bi-info-circle-fill'],
+    ];
+    [$fondo, $borde, $texto, $icono] = $estilos[is_string($tipo) ? $tipo : 'exito']
+        ?? $estilos['exito'];
+
+    // El mensaje puede traer <strong> con el nombre del insumo o la tienda, así
+    // que no se escapa aquí: lo componen los controladores, no el usuario.
+    return '<div role="status" style="max-width:1000px;margin:1rem auto 0;padding:.75rem 1rem;'
+         . 'border-radius:10px;font-size:.88rem;font-weight:600;display:flex;align-items:center;'
+         . 'gap:.5rem;background:' . $fondo . ';border:1px solid ' . $borde . ';'
+         . 'border-left:3px solid ' . $texto . ';color:' . $texto . ';">'
+         . '<i class="bi ' . $icono . '"></i><span>' . $mensaje . '</span></div>';
 }
 
 // Verificar si hoy es domingo (no se generan órdenes de compra)

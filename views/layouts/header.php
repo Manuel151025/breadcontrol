@@ -94,6 +94,15 @@ function navActive($path) {
   </div>
 </nav>
 
+<?php
+// Aviso de la acción anterior ("Insumo creado", "Proveedor desactivado"...).
+// Va aquí, en el layout, y no en cada vista: así ninguna pantalla se queda sin
+// confirmar lo que acaba de hacer. mostrarMensaje() consume el aviso al leerlo.
+if (function_exists('mostrarMensaje')) {
+    echo mostrarMensaje();
+}
+?>
+
 <!-- Manual de Usuario -->
 <a href="<?= APP_URL ?>/assets/docs/Manual_BreadControl.pdf" target="_blank" class="btn-manual" title="Manual de Usuario">
   <i class="bi bi-book-half"></i>

@@ -168,7 +168,9 @@ class InventarioController {
             if (empty($errores)) {
                 try {
                     $this->model->registrarInsumo($nombre, $unidad, 0, $punto_repos, $es_harina);
-                    redirigir(APP_URL . '/modules/inventario/index.php', 'exito', "Insumo <strong>$nombre</strong> creado correctamente.");
+                    // El nombre lo escribe el usuario y el aviso se imprime como HTML:
+                    // sin escapar, un insumo llamado <script>… se ejecutaría al mostrarlo.
+                    redirigir(APP_URL . '/modules/inventario/index.php', 'exito', 'Insumo <strong>' . htmlspecialchars($nombre) . '</strong> creado correctamente.');
                 } catch (Exception $e) {
                     log_error($e);
                     $errores[] = 'Error al registrar el insumo en el sistema.';
@@ -218,7 +220,7 @@ class InventarioController {
             if (empty($errores)) {
                 try {
                     $this->model->actualizarInsumo($id, $nombre, $unidad, (float)$insumo['stock_actual'], $punto_repos, $es_harina, $activo);
-                    redirigir(APP_URL . '/modules/inventario/index.php', 'exito', "Insumo <strong>$nombre</strong> actualizado.");
+                    redirigir(APP_URL . '/modules/inventario/index.php', 'exito', 'Insumo <strong>' . htmlspecialchars($nombre) . '</strong> actualizado.');
                 } catch (Exception $e) {
                     log_error($e);
                     $errores[] = 'Error al actualizar el insumo en el sistema.';
@@ -267,10 +269,14 @@ class InventarioController {
                 $id_usuario = usuarioActual()['id_usuario'];
                 try {
                     $res = $this->model->registrarAjusteInventario($id, $id_usuario, $cantidad_real, $motivo);
+                    // La unidad la escribió un usuario al crear el insumo y el aviso
+                    // se imprime como HTML, así que se escapa antes de componerlo.
+                    $unidad = is_string($res['unidad']) ? htmlspecialchars($res['unidad']) : '';
                     redirigir(
                         APP_URL . '/modules/inventario/index.php',
                         'exito',
-                        "Ajuste registrado. Diferencia: " . ($res['diferencia'] >= 0 ? '+' : '') . formatoDecimal($res['diferencia'], 3) . " {$res['unidad']}"
+                        'Ajuste registrado. Diferencia: ' . ($res['diferencia'] >= 0 ? '+' : '')
+                        . formatoDecimal($res['diferencia'], 3) . ' ' . $unidad
                     );
                 } catch (Exception $e) {
                     log_error($e);

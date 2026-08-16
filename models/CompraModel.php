@@ -2,6 +2,9 @@
 // models/CompraModel.php
 
 class CompraModel {
+    /** Reintentos ante el choque de dos compras por el mismo número de lote. */
+    private const MAX_INTENTOS_LOTE = 5;
+
     private PDO $pdo;
 
     public function __construct(PDO $pdo) {
@@ -159,14 +162,64 @@ class CompraModel {
             throw new Exception('El insumo seleccionado no existe.');
         }
 
-        // 4. Generar lote
+        // 4. Merma 6% en harina
         $prefijo_lote = strtoupper(substr($insumo_data['nombre'], 0, 3));
-        $numero_lote  = generarNumeroLote($prefijo_lote);
-
-        // 5. Merma 6% en harina
         $es_harina = (bool)$insumo_data['es_harina'];
         $cantidad_disponible = $es_harina ? round($cantidad * 0.94, 3) : $cantidad;
 
+        // 5. Registrar, reintentando si otro usuario se quedó con el consecutivo.
+        //
+        // generarNumeroLote() lee el último número del día y le suma uno, así que
+        // dos compras simultáneas pueden calcular el mismo. La UNIQUE KEY de
+        // numero_lote impide que se guarden datos corruptos, pero sin reintento la
+        // segunda compra moría con un error de duplicado incomprensible y el
+        // usuario tenía que volver a capturarla entera. Aquí se recalcula el
+        // número y se reintenta: el consecutivo perdido es de quien llegó primero.
+        $ultimo_error = null;
+        for ($intento = 1; $intento <= self::MAX_INTENTOS_LOTE; $intento++) {
+            $numero_lote = generarNumeroLote($prefijo_lote);
+            try {
+                return $this->guardarCompraYLote(
+                    $id_insumo, $id_proveedor, $fecha, $cantidad, $precio_unit,
+                    $total, $variacion, $id_usuario, $numero_lote,
+                    $cantidad_disponible, $es_harina
+                );
+            } catch (PDOException $e) {
+                if (!$this->esLoteDuplicado($e)) {
+                    throw $e;
+                }
+                $ultimo_error = $e;
+            }
+        }
+
+        throw new Exception(
+            'No se pudo asignar un número de lote libre después de '
+            . self::MAX_INTENTOS_LOTE . ' intentos. Vuelve a intentarlo.',
+            0,
+            $ultimo_error
+        );
+    }
+
+    /**
+     * ¿El error es el choque de dos compras por el mismo número de lote?
+     *
+     * Se comprueba la clave violada y no solo el SQLSTATE 23000, que también
+     * cubre las llaves foráneas: un insumo o proveedor inexistente es un error
+     * real del que no tiene sentido reintentar.
+     */
+    private function esLoteDuplicado(PDOException $e): bool {
+        return $e->getCode() === '23000' && str_contains($e->getMessage(), 'numero_lote');
+    }
+
+    /**
+     * Escribe la compra, su lote y los efectos derivados en una sola transacción.
+     * @return array<mixed>
+     */
+    private function guardarCompraYLote(
+        int $id_insumo, int $id_proveedor, string $fecha, float $cantidad,
+        float $precio_unit, float $total, float $variacion, int $id_usuario,
+        string $numero_lote, float $cantidad_disponible, bool $es_harina
+    ): array {
         $this->pdo->beginTransaction();
         try {
             // A. Registrar compra

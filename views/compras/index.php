@@ -96,20 +96,37 @@
           <!-- ── PASO 1: ¿Qué compraste? ── -->
           <div class="sec-sep">¿Qué compraste?</div>
 
+          <?php
+          // Estos dos selectores eran <div onclick>: el ratón los abría, pero con
+          // el teclado no había forma de llegar a ellos ni de activarlos, así que
+          // el formulario de compras era imposible de completar sin ratón. Como
+          // <button> el navegador da foco, Enter y Espacio sin JavaScript extra.
+          //
+          // El domingo van 'disabled' y no con pointer-events:none, que solo
+          // desactiva el ratón: con el teclado se seguían pudiendo abrir.
+          // aria-labelledby une el rótulo con el valor elegido, porque <label for>
+          // no funciona sobre un <button>.
+          ?>
           <div class="fl">
-            <label>Insumo</label>
-            <div class="picker-field" id="picker-insumo" onclick="abrirModal('insumos')" <?= esHoyDomingo() ? 'style="pointer-events:none;opacity:.5"' : '' ?>>
+            <label id="et-insumo">Insumo</label>
+            <button type="button" class="picker-field" id="picker-insumo"
+                    onclick="abrirModal('insumos')"
+                    aria-labelledby="et-insumo lbl-insumo"
+                    <?= esHoyDomingo() ? 'disabled' : '' ?>>
               <span id="lbl-insumo" style="color:var(--ink3)">Seleccionar insumo…</span>
-              <i class="bi bi-grid-3x3-gap"></i>
-            </div>
+              <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+            </button>
           </div>
 
           <div class="fl">
-            <label>Proveedor</label>
-            <div class="picker-field" id="picker-prov" onclick="abrirModal('proveedores')" <?= esHoyDomingo() ? 'style="pointer-events:none;opacity:.5"' : '' ?>>
+            <label id="et-proveedor">Proveedor</label>
+            <button type="button" class="picker-field" id="picker-prov"
+                    onclick="abrirModal('proveedores')"
+                    aria-labelledby="et-proveedor lbl-prov"
+                    <?= esHoyDomingo() ? 'disabled' : '' ?>>
               <span id="lbl-prov" style="color:var(--ink3)">Seleccionar proveedor…</span>
-              <i class="bi bi-grid-3x3-gap"></i>
-            </div>
+              <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+            </button>
           </div>
 
           <!-- ── PASO 2: ¿Cuánto compraste? ── -->

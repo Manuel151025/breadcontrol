@@ -781,12 +781,6 @@ parameters:
 			path: controllers/InventarioController.php
 
 		-
-			message: '#^Part \$res\[''unidad''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: controllers/InventarioController.php
-
-		-
 			message: '#^Binary operation "\+\=" between \(float\|int\) and mixed results in an error\.$#'
 			identifier: assignOp.invalid
 			count: 1
@@ -1833,18 +1827,6 @@ parameters:
 		-
 			message: '#^Function getConfiguracion\(\) should return array\<mixed\> but returns mixed\.$#'
 			identifier: return.type
-			count: 1
-			path: includes/funciones.php
-
-		-
-			message: '#^Part \$mensaje \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: includes/funciones.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
 			count: 1
 			path: includes/funciones.php
 

@@ -448,11 +448,9 @@
             <?php if ($f_aprendiz): ?>
                 <input type="hidden" name="aprendiz_id" value="<?= $f_aprendiz ?>">
             <?php endif; ?>
-            <?php if ($f_variedad): ?>
-                <input type="hidden" name="variedad_id" id="hdn-variedad" value="<?= $f_variedad ?>">
-            <?php else: ?>
-                <input type="hidden" name="variedad_id" id="hdn-variedad" value="">
-            <?php endif; ?>
+            <?php // Las dos ramas de un if/else escribían el mismo id, lo que hacía
+                  // creer que estaba duplicado. Es un solo campo: sin variedad va vacío. ?>
+            <input type="hidden" name="variedad_id" id="hdn-variedad" value="<?= $f_variedad ?: '' ?>">
             <div class="filter-group">
                 <label for="estado">Estado</label>
                 <select id="estado" name="estado" class="filter-input">

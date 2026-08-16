@@ -59,7 +59,10 @@
 /* Forms & UI Elements */
 .form-body { padding:.9rem 1.1rem; overflow-y:auto; flex:1; }
 .fl { margin-bottom:.75rem; }
-.fl label { font-size:.63rem; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:var(--ink3); display:block; margin-bottom:.3rem; }
+/* .fl-rotulo encabeza un grupo de campos o un panel informativo: mismo aspecto
+   que un <label>, pero sin prometer un único control al que saltar. */
+.fl label,
+.fl .fl-rotulo { font-size:.63rem; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:var(--ink3); display:block; margin-bottom:.3rem; }
 .fl input,.fl select,.fl textarea { width:100%; border:1px solid var(--border); border-radius:9px; padding:.45rem .75rem; font-size:.84rem; color:var(--ink); font-family:inherit; background:var(--clight); transition:border-color .2s,box-shadow .2s; box-sizing:border-box; }
 .fl input:focus,.fl select:focus,.fl textarea:focus { outline:none; border-color:var(--c3); box-shadow:0 0 0 3px rgba(198,113,36,.1); }
 .fl textarea { resize:vertical; min-height:55px; }

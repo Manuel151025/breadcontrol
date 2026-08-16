@@ -29,15 +29,16 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 15 | Vistas clásicas de insumo sin estilo ni enlace | Arquitectura | Bajo | ⬜ Abierto — S (medio día) |
 | 16 | `php.ini` con `date.timezone=Europe/Berlin` (inerte) | Configuración | Cosmético | ⬜ Abierto — S (1 línea) |
 | 17 | El despliegue limpio no reflejaba el esquema real | Configuración | Alto | ✅ **Resuelto** (2026-08-06) |
-| 18 | Condiciones de carrera (lotes, cupo semanal) | Concurrencia | Medio | 🟡 Parcial — falta el número de lote |
+| 18 | Condiciones de carrera (lotes, cupo semanal) | Concurrencia | Medio | ✅ **Resuelto** (2026-08-15) |
 | 19 | Columna huérfana `pedido_cliente.id_tienda_destino` | Arquitectura | Bajo | ✅ **Resuelto** (2026-08-06) |
-| 20 | Los mensajes de confirmación nunca se muestran | Usabilidad | Bajo-Medio | ⬜ Abierto — S |
+| 20 | Los mensajes de confirmación nunca se muestran | Usabilidad | Bajo-Medio | ✅ **Resuelto** (2026-08-15) |
 | 21 | HSTS, versión de Nginx y cabeceras de proxy | Seguridad | Medio | ✅ **Resuelto** (2026-08-14/15) |
 | 22 | `unsafe-inline` en la CSP: 157 manejadores en línea | Seguridad | Medio | ⬜ Abierto — L |
 | 23 | Respaldos: probados, pero en el mismo servidor | Continuidad | Medio | 🟡 Parcial — falta copia externa |
 | 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ⬜ Abierto — S |
 | 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Medio | ⬜ Abierto — S-M (antes de nov 2026) |
 | 26 | La fecha «sin definir» es un valor mágico (`1000-01-01`) | Diseño de datos | Bajo | ⬜ Abierto — M |
+| 27 | Controles hechos con `<div onclick>`: inalcanzables con teclado | Accesibilidad | Medio | 🟡 Parcial — faltan los modales |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -238,13 +239,15 @@ Es inerte: `config/app.php` ejecuta `date_default_timezone_set('America/Bogota')
 
 ## CONCURRENCIA
 
-### 18. 🟡 Condiciones de carrera — PARCIALMENTE RESUELTO
+### 18. ✅ Condiciones de carrera — RESUELTO (2026-08-15)
 
-**Resuelto:** la validación de **cupo semanal** ya bloquea la fila del creador con `SELECT ... FOR UPDATE` (`models/portal/PedidosPortalTrait.php:352`), de modo que dos pedidos simultáneos del mismo aprendiz no pueden pasar ambos la validación. El canje de código de aprendiz usa el mismo patrón sobre la fila del código.
+**Cupo semanal:** la validación bloquea la fila del creador con `SELECT ... FOR UPDATE` (`models/portal/PedidosPortalTrait.php:352`), de modo que dos pedidos simultáneos del mismo aprendiz no pueden pasar ambos la validación. El canje de código de aprendiz usa el mismo patrón sobre la fila del código.
 
-**Abierto:** `includes/funciones.php::generarNumeroLote()` (líneas 101-118) sigue con el patrón "leer, calcular en PHP, escribir": hace `SELECT ... ORDER BY numero_lote DESC LIMIT 1`, calcula `último + 1` y solo después se inserta. Dos compras casi simultáneas pueden calcular la misma secuencia; la `UNIQUE KEY` evita datos corruptos, pero una de las dos inserciones falla con un error de duplicado poco claro en vez de reintentar con el siguiente número.
+**Número de lote:** `generarNumeroLote()` sigue con el patrón "leer, calcular en PHP, escribir", pero ya no es un problema. `CompraModel::registrarCompra()` reintenta hasta 5 veces (`MAX_INTENTOS_LOTE`): si dos compras simultáneas calculan la misma secuencia, la `UNIQUE KEY` rechaza la segunda, se recalcula el número y se vuelve a intentar. Antes esa compra moría con un error de duplicado incomprensible y había que capturarla entera de nuevo.
 
-**Severidad:** Medio (requiere concurrencia real para manifestarse). **Esfuerzo:** S-M — reintento ante duplicado, o `SELECT ... FOR UPDATE` sobre una fila de control. Propuesto en la revisión del 2026-08-06 y **no incluido** en esa tanda por decisión del propietario.
+**Por qué reintentar y no bloquear:** una fila de control con `FOR UPDATE` serializaría *todas* las compras del sistema para proteger un caso que exige que dos usuarios registren compras en el mismo milisegundo. El reintento solo cuesta algo cuando el choque ocurre de verdad.
+
+**El detalle que importa:** solo se reintenta ante el duplicado del lote, comprobando la clave violada y no únicamente el `SQLSTATE 23000`, que también cubre las llaves foráneas. Un insumo o proveedor inexistente falla de inmediato en vez de reintentar cinco veces y esconder el error real. Fijado en `tests/Unit/CompraModelLoteTest.php` (4 pruebas).
 
 ---
 
@@ -258,17 +261,23 @@ Es inerte: `config/app.php` ejecuta `date_default_timezone_set('America/Bogota')
 
 ---
 
-### 20. ⬜ Los mensajes flash de `redirigir()` nunca se muestran
+### 20. ✅ Los mensajes flash de `redirigir()` nunca se mostraban — RESUELTO (2026-08-15)
 
 **Descubierto el 2026-08-06** al elegir cómo avisar de un token CSRF inválido.
 
-**Descripción:** `redirigir($url, $tipo, $mensaje)` (`includes/funciones.php:32`) guarda el mensaje en `$_SESSION['mensaje_texto']`, y `mostrarMensaje()` (`:42`) lo renderiza. Pero **ninguna vista llama a `mostrarMensaje()`** (`grep -rn 'mostrarMensaje' views/` → cero coincidencias), así que todos esos mensajes se escriben en la sesión y nunca se muestran; la siguiente pantalla simplemente aparece sin explicación.
+**Era:** `redirigir($url, $tipo, $mensaje)` guardaba el mensaje en `$_SESSION['mensaje_texto']` y `mostrarMensaje()` lo renderizaba, pero **ninguna vista llamaba a `mostrarMensaje()`**. Los 11 avisos que el sistema creía estar comunicando ("Proveedor desactivado", "Insumo creado correctamente") se escribían en la sesión y se descartaban sin llegar nunca a la pantalla. La acción sí se ejecutaba; el usuario simplemente no recibía confirmación de nada.
 
-**Impacto:** confirmaciones y errores que el código cree estar comunicando ("Proveedor desactivado", "Insumo creado correctamente") se pierden. No hay pérdida de datos: la acción sí se ejecuta.
+**Ahora:** el layout `views/layouts/header.php` llama a `mostrarMensaje()` una sola vez, así que cualquier pantalla del back-office confirma lo que acaba de hacer sin tener que acordarse de nada.
 
-**Severidad:** Bajo-Medio (usabilidad). **Esfuerzo:** S — llamar a `mostrarMensaje()` en el layout `views/layouts/header.php`, revisando que el HTML que genera (clases de Bootstrap `alert`) encaje con el sistema de diseño propio, que no usa Bootstrap.
+**Dos cosas hubo que arreglar de paso:**
 
-**Por qué no se resolvió en esta tanda:** por eso los avisos de CSRF usan la convención `?err=csrf`, que sí se muestra. Arreglar el sistema flash haría aparecer de golpe decenas de mensajes hoy invisibles en pantallas que no se han revisado, y eso merece su propia tanda con revisión visual.
+1. **El HTML usaba clases de Bootstrap** (`alert alert-success`, `btn-close`, `data-bs-dismiss`) y el proyecto no carga Bootstrap: los avisos habrían salido sin estilo, y el botón de cerrar no habría hecho nada. Se reescribió con estilos propios incrustados, porque cada vista define sus propias clases de mensaje y depender de ellas dejaría el aviso bien en unas pantallas y roto en otras.
+
+2. **Tres mensajes metían datos del usuario en HTML sin escapar** (`InventarioController.php`, el nombre del insumo y la unidad de medida). Mientras nadie los mostraba eran inofensivos; al hacerlos visibles se convertían en XSS almacenado: bastaba crear un insumo llamado `<script>…` para que se ejecutara al confirmar. Se escaparon con `htmlspecialchars`, como ya hacían los otros ocho.
+
+**Fijado en** `tests/Unit/MensajeFlashTest.php` (5 pruebas): que el aviso se muestre, que se consuma al leerlo para que no reaparezca al recargar, que cada tipo se distinga visualmente y que un mensaje vacío no deje un recuadro huérfano.
+
+**Nota:** los avisos de CSRF siguen usando la convención `?err=csrf`, que ya estaba en su sitio y funciona.
 
 ---
 
@@ -388,6 +397,28 @@ Se declaran las tres **puertas de enlace del propio host** y no rangos amplios: 
 **La alternativa limpia** es `fecha_entrega NULL`: hace imposible ignorar el caso, porque cualquier código que la lea sin comprobarlo falla de inmediato en vez de calcular mal en silencio. Un valor mágico, en cambio, se cuela sin que nada avise — como acaba de ocurrir.
 
 **Severidad:** Baja hoy (los cuatro consumidores la respetan), creciente con cada consumidor nuevo. **Esfuerzo:** M — migración de la columna a nullable, más ajustar esos cuatro puntos y las consultas que filtran por rango de fechas.
+
+---
+
+## ACCESIBILIDAD
+
+### 27. 🟡 Controles hechos con `<div onclick>` — PARCIALMENTE RESUELTO (2026-08-15)
+
+**Era:** varios controles centrales eran `<div>` con un `onclick`. Un `<div>` no recibe foco ni responde a Enter, así que **con el teclado no había forma de usarlos**. En la pantalla de ventas eso significaba que no se podía registrar una venta sin ratón: ni elegir el precio, ni «Otro precio», ni cambiar entre Venta y Consumo interno. En compras, ni elegir insumo ni proveedor.
+
+**Resuelto (5 controles):** convertidos a `<button type="button">`, que el navegador ya hace enfocable y activable con Enter y Espacio, sin JavaScript adicional. El CSS de `.picker-field`, `.cat-btn` y `.tipo-btn` ya fijaba borde, fondo y tipografía; solo hubo que añadir `width`, `margin`, `color` y un `:focus-visible` visible.
+
+- `views/compras/index.php` — selectores de insumo y proveedor.
+- `views/ventas/index.php` — cuadrícula de precios, «Otro precio» y el par Venta/Consumo.
+
+**Dos detalles que importan más de lo que parecen:**
+
+1. **El domingo no se registran compras.** Los selectores se desactivaban con `pointer-events:none`, que solo desactiva el ratón: con el teclado se seguían pudiendo abrir. Ahora van `disabled`. (El servidor ya lo rechazaba de todos modos: `registrarCompra()` lanza excepción los domingos.)
+2. **La clase `.active` es puramente visual**, y un lector de pantalla no la ve: no anunciaba cuál precio o tipo estaba elegido. Se añadió `aria-pressed`, que `marcarActivo()` mueve junto con la clase para que no se separen.
+
+**Rótulos:** cuatro `<label>` encabezaban un grupo de campos o un dato fijo, no un control único al que saltar. Pasaron a `<span class="fl-rotulo">` con `role="group"` + `aria-labelledby` (mismo aspecto, sin prometer un control que no existe), y los dos selectores de compras usan `aria-labelledby` porque `<label for>` no funciona sobre un `<button>`.
+
+**Abierto:** los cinco `modal-overlay`/`modal-backdrop` conservan su `onclick` de «clic fuera para cerrar». No es un defecto equivalente —todos tienen su botón de cierre real, alcanzable con teclado— pero falta soporte de `Escape`. **Severidad:** Bajo. **Esfuerzo:** S.
 
 ---
 

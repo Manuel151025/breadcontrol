@@ -52,8 +52,13 @@
   .fl-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
 
   /* Picker — campo que abre modal */
-  .picker-field{width:100%;border:1px solid var(--border);border-radius:9px;padding:.45rem .75rem;font-size:.84rem;color:var(--ink);font-family:inherit;background:var(--clight);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:.4rem;transition:border-color .2s,box-shadow .2s;user-select:none;}
+  /* Es un <button> (antes un div): margin/text-align neutralizan el estilo propio del navegador. */
+  .picker-field{width:100%;margin:0;text-align:left;border:1px solid var(--border);border-radius:9px;padding:.45rem .75rem;font-size:.84rem;color:var(--ink);font-family:inherit;background:var(--clight);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:.4rem;transition:border-color .2s,box-shadow .2s;user-select:none;}
   .picker-field:hover{border-color:var(--c3);}
+  .picker-field:focus-visible{outline:2px solid var(--c3);outline-offset:2px;}
+  /* Domingo: no se registran compras. */
+  .picker-field:disabled{opacity:.5;cursor:not-allowed;}
+  .picker-field:disabled:hover{border-color:var(--border);}
   .picker-field.filled{background:var(--ccard);border-color:var(--c3);font-weight:600;}
   .picker-field i{color:var(--ink3);font-size:.8rem;flex-shrink:0;}
   .picker-field.filled i{color:var(--c3);}

@@ -13,11 +13,18 @@
   }
 
   // ══ QUICK MODE ══
-  function toggleCustom() { var ci = document.getElementById('custom-input'); var cc = document.getElementById('cat-custom'); if (ci.style.display === 'none') { ci.style.display = 'block'; cc.classList.add('active'); document.querySelectorAll('.cat-btn:not(#cat-custom)').forEach(function (b) { b.classList.remove('active') }); document.getElementById('inp-custom-precio').focus(); } else { ci.style.display = 'none'; cc.classList.remove('active'); } }
+  // Los botones de precio y de tipo de salida marcan su estado con la clase
+  // .active, que es puramente visual: un lector de pantalla no la ve. aria-pressed
+  // dice en voz alta cuál está elegido, y debe moverse junto con la clase.
+  function marcarActivo(grupo, el) {
+    document.querySelectorAll(grupo).forEach(function (b) { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+    if (el) { el.classList.add('active'); el.setAttribute('aria-pressed', 'true'); }
+  }
+  function toggleCustom() { var ci = document.getElementById('custom-input'); var cc = document.getElementById('cat-custom'); if (ci.style.display === 'none') { ci.style.display = 'block'; marcarActivo('.cat-btn', cc); cc.setAttribute('aria-expanded', 'true'); document.getElementById('inp-custom-precio').focus(); } else { ci.style.display = 'none'; cc.classList.remove('active'); cc.setAttribute('aria-pressed', 'false'); cc.setAttribute('aria-expanded', 'false'); } }
   function setCustomPrice() { var val = parseFloat(document.getElementById('inp-custom-precio').value) || 0; if (val > 20000) { val = 20000; document.getElementById('inp-custom-precio').value = 20000; } if (val > 0) { document.getElementById('inp-cat').value = ''; document.getElementById('inp-precio-custom').value = val; precioSel = val; stockSel = 9999; calcTotal(); } }
-  function selCat(el) { document.querySelectorAll('.cat-btn').forEach(function (b) { b.classList.remove('active') }); el.classList.add('active'); document.getElementById('custom-input').style.display = 'none'; document.getElementById('inp-precio-custom').value = '0'; document.getElementById('inp-cat').value = el.dataset.id; precioSel = parseFloat(el.dataset.precio); stockSel = parseInt(el.dataset.stock) || 0; calcTotal(); }
+  function selCat(el) { marcarActivo('.cat-btn', el); document.getElementById('custom-input').style.display = 'none'; document.getElementById('cat-custom').setAttribute('aria-expanded', 'false'); document.getElementById('inp-precio-custom').value = '0'; document.getElementById('inp-cat').value = el.dataset.id; precioSel = parseFloat(el.dataset.precio); stockSel = parseInt(el.dataset.stock) || 0; calcTotal(); }
   function toggleNapa() { var chk = document.getElementById('chk-napa'); document.getElementById('napa-input').style.display = chk.checked ? 'block' : 'none'; calcTotal(); }
-  function selTipo(el) { document.querySelectorAll('.tipo-btn').forEach(function (b) { b.classList.remove('active') }); el.classList.add('active'); var tipo = el.dataset.tipo; document.getElementById('inp-tipo').value = tipo; document.getElementById('wrap-cliente').style.display = tipo === 'venta' ? 'block' : 'none'; document.getElementById('napa-preview').style.display = 'none'; document.getElementById('inp-napa').value = 0; calcTotal(); }
+  function selTipo(el) { marcarActivo('.tipo-btn', el); var tipo = el.dataset.tipo; document.getElementById('inp-tipo').value = tipo; document.getElementById('wrap-cliente').style.display = tipo === 'venta' ? 'block' : 'none'; document.getElementById('napa-preview').style.display = 'none'; document.getElementById('inp-napa').value = 0; calcTotal(); }
   var _updating = false;
   // === Núcleo: dada la cantidad ya fijada, recalcula total, ñapa y bonificación ===
   function recalcPreview() {
