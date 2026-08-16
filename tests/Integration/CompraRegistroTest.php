@@ -25,9 +25,6 @@ final class CompraRegistroTest extends TestCase
         } catch (Throwable $e) {
             $this->markTestSkipped('Base de datos no disponible: ' . $e->getMessage());
         }
-        if (esHoyDomingo()) {
-            $this->markTestSkipped('registrarCompra bloquea los domingos por regla de negocio.');
-        }
         $this->model = new CompraModel($this->pdo);
 
         $u = uniqid();
@@ -47,6 +44,23 @@ final class CompraRegistroTest extends TestCase
         $this->pdo->prepare("INSERT INTO insumo (nombre, unidad_medida, es_harina, stock_actual, punto_reposicion) VALUES (?, 'unidad', 0, 0, 1)")
             ->execute(['Zqn Huevos PHPUnit ' . $u]);
         $this->id_normal = (int) $this->pdo->lastInsertId();
+    }
+
+    /**
+     * Una fecha reciente que no caiga en domingo.
+     *
+     * La suite tiene que dar el mismo resultado cualquier día de la semana: si
+     * usara `date()` a secas, los domingos toparía con la regla de negocio y
+     * antes se resolvía saltándose las pruebas justo ese día.
+     */
+    private function fechaHabil(): string
+    {
+        $fecha = new DateTimeImmutable('today');
+        while ($fecha->format('w') === '0') {
+            $fecha = $fecha->modify('-1 day');
+        }
+
+        return $fecha->format('Y-m-d H:i:s');
     }
 
     protected function tearDown(): void
@@ -73,7 +87,7 @@ final class CompraRegistroTest extends TestCase
     public function testCompraDeHarinaAplicaMermaDel6PorCiento(): void
     {
         // 100 kg en 2 bultos a $90.000 el bulto → $1.800/kg, $180.000 total
-        $r = $this->model->registrarCompra($this->id_harina, $this->id_proveedor, date('Y-m-d H:i:s'), 100, 2, 90000, $this->id_usuario);
+        $r = $this->model->registrarCompra($this->id_harina, $this->id_proveedor, $this->fechaHabil(), 100, 2, 90000, $this->id_usuario);
 
         $this->assertTrue($r['es_harina']);
         $this->assertSame(94.0, (float) $r['cantidad_disponible'], 'Harina: 100 kg - 6% de merma = 94 kg');
@@ -104,9 +118,9 @@ final class CompraRegistroTest extends TestCase
 
     public function testSegundaCompraMasCaraRegistraLaVariacionDePrecio(): void
     {
-        $this->model->registrarCompra($this->id_harina, $this->id_proveedor, date('Y-m-d H:i:s'), 100, 2, 90000, $this->id_usuario);
+        $this->model->registrarCompra($this->id_harina, $this->id_proveedor, $this->fechaHabil(), 100, 2, 90000, $this->id_usuario);
         // Mismo volumen pero 10% más caro: $1.980/kg
-        $r = $this->model->registrarCompra($this->id_harina, $this->id_proveedor, date('Y-m-d H:i:s'), 100, 2, 99000, $this->id_usuario);
+        $r = $this->model->registrarCompra($this->id_harina, $this->id_proveedor, $this->fechaHabil(), 100, 2, 99000, $this->id_usuario);
 
         $this->assertSame(10.0, (float) $r['variacion'], '(1980-1800)/1800 = +10%');
 
@@ -121,7 +135,7 @@ final class CompraRegistroTest extends TestCase
     public function testInsumoSinMermaConservaLaCantidadCompleta(): void
     {
         // 50 unidades en 1 bulto a $40.000 → $800/unidad, sin merma
-        $r = $this->model->registrarCompra($this->id_normal, $this->id_proveedor, date('Y-m-d H:i:s'), 50, 1, 40000, $this->id_usuario);
+        $r = $this->model->registrarCompra($this->id_normal, $this->id_proveedor, $this->fechaHabil(), 50, 1, 40000, $this->id_usuario);
 
         $this->assertFalse($r['es_harina']);
         $this->assertSame(50.0, (float) $r['cantidad_disponible']);
@@ -136,6 +150,40 @@ final class CompraRegistroTest extends TestCase
         // Manejo de error: no debe crear nada ni fallar en silencio
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('El insumo seleccionado no existe.');
-        $this->model->registrarCompra(99999999, $this->id_proveedor, date('Y-m-d H:i:s'), 10, 1, 1000, $this->id_usuario);
+        $this->model->registrarCompra(99999999, $this->id_proveedor, $this->fechaHabil(), 10, 1, 1000, $this->id_usuario);
+    }
+
+    public function testUnaCompraFechadaEnDomingoSeRechaza(): void
+    {
+        // El proveedor no entrega los domingos.
+        $domingo = (new DateTimeImmutable('last sunday'))->format('Y-m-d H:i:s');
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('No se pueden registrar compras con fecha de domingo.');
+        $this->model->registrarCompra($this->id_normal, $this->id_proveedor, $domingo, 10, 1, 1000, $this->id_usuario);
+    }
+
+    /**
+     * La regla mira la fecha de la compra, no el día en que se teclea.
+     *
+     * Antes preguntaba «¿hoy es domingo?», así que el domingo el sistema
+     * rechazaba incluso la compra del sábado: había que esperar al lunes para
+     * poder anotarla.
+     */
+    public function testUnDiaHabilPasadoSeRegistraAunqueHoySeaDomingo(): void
+    {
+        $sabado = (new DateTimeImmutable('last saturday'))->format('Y-m-d H:i:s');
+
+        $r = $this->model->registrarCompra($this->id_normal, $this->id_proveedor, $sabado, 20, 1, 16000, $this->id_usuario);
+
+        $this->assertGreaterThan(0, $r['id_compra']);
+
+        $stmt = $this->pdo->prepare("SELECT DATE(fecha_compra) FROM compra WHERE id_compra = ?");
+        $stmt->execute([$r['id_compra']]);
+        $this->assertSame(
+            (new DateTimeImmutable('last saturday'))->format('Y-m-d'),
+            $stmt->fetchColumn(),
+            'La compra debe quedar guardada con la fecha del sábado'
+        );
     }
 }

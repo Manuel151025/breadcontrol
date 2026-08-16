@@ -118,4 +118,34 @@ final class FuncionesTest extends TestCase
     {
         $this->assertSame('15/06/2026', formatearFechaEntrega('2026-06-15 00:00:00', false));
     }
+
+    // ── esDomingo(): el proveedor no entrega los domingos ──
+    //
+    // La regla es una propiedad de la fecha de la compra, no del día en que se
+    // registra. Se comprueba con fechas fijas para que la prueba dé lo mismo
+    // cualquier día de la semana.
+
+    public function testReconoceUnDomingo(): void
+    {
+        $this->assertTrue(esDomingo('2026-08-16'), '16/08/2026 fue domingo');
+    }
+
+    public function testUnDiaHabilNoEsDomingo(): void
+    {
+        $this->assertFalse(esDomingo('2026-08-15'), '15/08/2026 fue sábado');
+        $this->assertFalse(esDomingo('2026-08-17'), '17/08/2026 fue lunes');
+    }
+
+    public function testFuncionaConFechaYHora(): void
+    {
+        $this->assertTrue(esDomingo('2026-08-16 14:30:00'));
+    }
+
+    public function testUnaFechaIlegibleNoBloqueaLaCompra(): void
+    {
+        // Validar el formato es tarea del formulario. Aquí, ante la duda, no se
+        // rechaza una compra por un motivo que no es el suyo.
+        $this->assertFalse(esDomingo('no soy una fecha'));
+        $this->assertFalse(esDomingo(''));
+    }
 }

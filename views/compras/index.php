@@ -74,15 +74,25 @@
         <a href="etiqueta_lote.php?id_compra=<?= $last_id ?>" target="_blank"
            style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:700;color:var(--c3);text-decoration:none;background:rgba(198,113,36,.07);border:1px solid rgba(198,113,36,.2);border-radius:9px;padding:.45rem .8rem;margin-bottom:.6rem;transition:all .2s"
            onmouseover="this.style.background='rgba(198,113,36,.13)'"
-           onmouseout="this.style.background='rgba(198,113,36,.07)'"
-        ><i class="bi bi-tag-fill"></i> Imprimir etiquetas de este lote</a>
+           onmouseout="this.style.background='rgba(198,113,36,.07)'"><i class="bi bi-tag-fill"></i> Imprimir etiquetas de este lote</a>
         <?php endif; ?>
         <?php endif; ?>
         <?php if ($msg_err): ?>
         <div class="msg-err"><i class="bi bi-exclamation-triangle-fill"></i><span><?= $msg_err ?></span></div>
         <?php endif; ?>
+        <?php
+        // Antes el domingo se desactivaba el formulario entero. Pero la regla es
+        // que el proveedor no entrega en domingo, no que hoy no se pueda anotar
+        // nada: la compra del sábado se registra igual. Se avisa y se propone la
+        // fecha hábil más reciente, en vez de bloquear.
+        $fecha_sugerida = esHoyDomingo() ? date('Y-m-d', strtotime('-1 day')) : date('Y-m-d');
+        ?>
         <?php if (esHoyDomingo()): ?>
-        <div class="domingo-aviso"><i class="bi bi-moon-stars-fill"></i> Los domingos no se registran compras.</div>
+        <div class="domingo-aviso">
+          <i class="bi bi-moon-stars-fill"></i>
+          Hoy es domingo y no hay entregas. Puedes registrar la compra del sábado:
+          la fecha ya viene puesta.
+        </div>
         <?php endif; ?>
 
         <form method="POST" id="form-compra" onsubmit="prepararEnvio()">
@@ -102,8 +112,6 @@
           // el formulario de compras era imposible de completar sin ratón. Como
           // <button> el navegador da foco, Enter y Espacio sin JavaScript extra.
           //
-          // El domingo van 'disabled' y no con pointer-events:none, que solo
-          // desactiva el ratón: con el teclado se seguían pudiendo abrir.
           // aria-labelledby une el rótulo con el valor elegido, porque <label for>
           // no funciona sobre un <button>.
           ?>
@@ -111,8 +119,7 @@
             <label id="et-insumo">Insumo</label>
             <button type="button" class="picker-field" id="picker-insumo"
                     onclick="abrirModal('insumos')"
-                    aria-labelledby="et-insumo lbl-insumo"
-                    <?= esHoyDomingo() ? 'disabled' : '' ?>>
+                    aria-labelledby="et-insumo lbl-insumo">
               <span id="lbl-insumo" style="color:var(--ink3)">Seleccionar insumo…</span>
               <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
             </button>
@@ -122,8 +129,7 @@
             <label id="et-proveedor">Proveedor</label>
             <button type="button" class="picker-field" id="picker-prov"
                     onclick="abrirModal('proveedores')"
-                    aria-labelledby="et-proveedor lbl-prov"
-                    <?= esHoyDomingo() ? 'disabled' : '' ?>>
+                    aria-labelledby="et-proveedor lbl-prov">
               <span id="lbl-prov" style="color:var(--ink3)">Seleccionar proveedor…</span>
               <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
             </button>
@@ -138,8 +144,7 @@
               <input type="number" id="vis-bultos"
                      value="<?= htmlspecialchars($_POST['num_bultos'] ?? '1', ENT_QUOTES) ?? '1' ?>"
                      min="1" step="1" placeholder="1"
-                     oninput="recalcular()"
-                     <?= esHoyDomingo() ? 'disabled' : '' ?>>
+                     oninput="recalcular()">
             </div>
             <div class="fl">
               <label for="vis-cant-bolsa">Cantidad por bolsa</label>
@@ -147,8 +152,7 @@
                 <input type="number" id="vis-cant-bolsa"
                        value="<?= htmlspecialchars($_POST['vis_cant_bolsa'] ?? '', ENT_QUOTES) ?? '' ?>"
                        min="0.001" step="0.001" placeholder="Ej: 2.5"
-                       oninput="recalcular()"
-                       <?= esHoyDomingo() ? 'disabled' : '' ?>>
+                       oninput="recalcular()">
                 <span id="tag-unidad" class="inp-unidad-tag" style="display:none"></span>
               </div>
             </div>
@@ -174,8 +178,7 @@
             <input type="number" name="precio_bulto" id="inp-precio"
                    value="<?= htmlspecialchars($_POST['precio_bulto'] ?? '', ENT_QUOTES) ?? '' ?>"
                    min="1" placeholder="Ej: 9.800"
-                   oninput="recalcular()"
-                   <?= esHoyDomingo() ? 'disabled' : '' ?>>
+                   oninput="recalcular()">
           </div>
 
           <!-- Resumen automático -->
@@ -199,13 +202,11 @@
           <div class="fl" style="margin-top:.3rem">
             <label for="fecha_compra" style="color:var(--ink3)">Fecha de compra</label>
             <input id="fecha_compra" type="date" name="fecha_compra"
-                   value="<?= htmlspecialchars($_POST['fecha_compra'] ?? date('Y-m-d'), ENT_QUOTES) ?? date('Y-m-d') ?>"
-                   max="<?= date('Y-m-d') ?>"
-                   <?= esHoyDomingo() ? 'disabled' : '' ?>>
+                   value="<?= htmlspecialchars(post_texto('fecha_compra') ?: $fecha_sugerida, ENT_QUOTES) ?>"
+                   max="<?= date('Y-m-d') ?>">
           </div>
 
-          <button type="submit" name="guardar_compra" id="btn-guardar" class="btn-guardar"
-                  <?= esHoyDomingo() ? 'disabled' : '' ?>>
+          <button type="submit" name="guardar_compra" id="btn-guardar" class="btn-guardar">
             <i class="bi bi-cart-check-fill"></i> Registrar compra
           </button>
         </form>

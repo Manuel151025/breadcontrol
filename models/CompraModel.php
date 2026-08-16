@@ -140,8 +140,11 @@ class CompraModel {
      * @return array<mixed>
      */
     public function registrarCompra(int $id_insumo, int $id_proveedor, string $fecha, float $cantidad, int $num_bultos, float $precio_bulto, int $id_usuario): array {
-        if (esHoyDomingo()) {
-            throw new Exception('No se pueden registrar compras los domingos.');
+        // La restricción es sobre la fecha de la compra, no sobre el día en que
+        // se registra: el proveedor no entrega los domingos, pero anotar la
+        // compra al día siguiente es normal.
+        if (esDomingo($fecha)) {
+            throw new Exception('No se pueden registrar compras con fecha de domingo.');
         }
 
         // 1. Obtener precio unitario anterior

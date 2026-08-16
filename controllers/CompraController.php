@@ -30,16 +30,18 @@ class CompraController {
 
         // ── 1. Registrar nueva compra (POST) ─────────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_compra'])) {
-            if (esHoyDomingo()) {
-                $msg_err = 'No se pueden registrar compras los domingos.';
-            } else {
-                $id_insumo    = (int)($_POST['id_insumo'] ?? 0);
-                $id_proveedor = (int)($_POST['id_proveedor'] ?? 0);
-                $fecha        = $_POST['fecha_compra'] ?? date('Y-m-d');
-                $cantidad     = (float)($_POST['cantidad'] ?? 0);
-                $num_bultos   = max(1, (int)($_POST['num_bultos'] ?? 1));
-                $precio_bulto = (float)($_POST['precio_bulto'] ?? 0);
+            $id_insumo    = (int)($_POST['id_insumo'] ?? 0);
+            $id_proveedor = (int)($_POST['id_proveedor'] ?? 0);
+            $fecha        = post_texto('fecha_compra') ?: date('Y-m-d');
+            $cantidad     = (float)($_POST['cantidad'] ?? 0);
+            $num_bultos   = max(1, (int)($_POST['num_bultos'] ?? 1));
+            $precio_bulto = (float)($_POST['precio_bulto'] ?? 0);
 
+            // Se comprueba la fecha elegida, no el día de hoy: un domingo se
+            // puede registrar la compra del sábado, pero no fecharla en domingo.
+            if (esDomingo($fecha)) {
+                $msg_err = 'No se pueden registrar compras con fecha de domingo.';
+            } else {
                 if (!$id_insumo || !$id_proveedor || $cantidad <= 0 || $precio_bulto <= 0) {
                     $msg_err = 'Todos los campos son obligatorios y deben ser mayores a 0.';
                 } else {

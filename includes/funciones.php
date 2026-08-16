@@ -97,9 +97,25 @@ function mostrarMensaje(): string {
          . '<i class="bi ' . $icono . '"></i><span>' . $mensaje . '</span></div>';
 }
 
-// Verificar si hoy es domingo (no se generan órdenes de compra)
+/**
+ * ¿Esa fecha cae en domingo? El proveedor no entrega los domingos.
+ *
+ * La regla es una propiedad de la **fecha de la compra**, no del momento en que
+ * se teclea: registrar un lunes la compra que llegó el sábado siempre debe
+ * poderse. Antes se comprobaba «¿hoy es domingo?», así que el domingo el
+ * sistema bloqueaba incluso las compras fechadas en día hábil.
+ *
+ * Una fecha ilegible se considera no-domingo: quien valida el formato es el
+ * formulario, y aquí no queremos rechazar una compra por un motivo equivocado.
+ */
+function esDomingo(string $fecha): bool {
+    $marca = strtotime($fecha);
+    return $marca !== false && date('w', $marca) === '0';
+}
+
+// Verificar si hoy es domingo (para los avisos de la pantalla de compras)
 function esHoyDomingo(): bool {
-    return date('w') === '0';
+    return esDomingo(date('Y-m-d'));
 }
 
 // Verificar si hoy es sábado
