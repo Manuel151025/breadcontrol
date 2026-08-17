@@ -4,6 +4,83 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.9.0] — 2026-08-17
+
+Tanda nacida de dos preguntas del propietario —«¿el resumen por aprendiz
+cuadra?» y «¿me metes datos de prueba?»— que acabaron destapando defectos
+latentes. Ninguno se había manifestado todavía en producción; casi todos
+esperaban a la primera condición que los disparara.
+
+### Seguridad
+
+- **XSS almacenado en los avisos de inventario.** Tres mensajes metían el
+  nombre del insumo y la unidad de medida en HTML sin escapar. Eran inofensivos
+  mientras nadie los mostraba; al arreglar el sistema de avisos (ver abajo) un
+  insumo llamado `<script>…` habría ejecutado su contenido al confirmarlo.
+  Escapados con `htmlspecialchars`, como ya hacían los otros ocho.
+- **Cancelar un pedido del portal exigía solo visitar una URL.** Ahora requiere
+  POST con token CSRF.
+
+### Corregido
+
+- **Los mensajes de confirmación nunca llegaban a la pantalla.** `redirigir()`
+  los guardaba y `mostrarMensaje()` sabía pintarlos, pero ninguna vista la
+  llamaba: los 11 avisos del sistema («Insumo creado», «Proveedor desactivado»)
+  se escribían en la sesión y se descartaban. Ahora los muestra el layout, con
+  estilos propios en vez de las clases de Bootstrap que el proyecto no carga.
+- **El tablero del instructor no cuadraba consigo mismo.** El saldo pendiente
+  se calculaba dos veces con reglas distintas: el KPI incluía los abonos
+  parciales y los restaba, la tabla los ignoraba por completo. Además, un
+  pedido cancelado seguía contando como pedido pero no como dinero, y
+  desactivar a un aprendiz escondía su deuda dejándola dentro del total.
+  Una sola definición (`calcularSaldoPendiente`) alimenta ahora el KPI, la
+  tabla y el PDF de cartera.
+- **La segunda compra de un insumo con tilde fallaba para siempre.** El código
+  del lote se recortaba con `substr`, que corta *bytes*: «Azúcar» perdía medio
+  carácter y producía un prefijo inválido que no encontraba sus propios lotes,
+  así que la secuencia reiniciaba en 001 y chocaba con la anterior. Ni
+  reintentando se salía, porque el número calculado era siempre el mismo.
+- **Dos compras simultáneas podían calcular el mismo número de lote.** La clave
+  única evitaba datos corruptos, pero la segunda compra moría con un error de
+  duplicado y había que capturarla entera de nuevo. Ahora reintenta, y solo
+  ante ese choque: una llave foránea rota falla de inmediato en vez de
+  esconderse tras cinco intentos.
+- **La regla del domingo miraba el día de hoy, no la fecha de la compra.** El
+  proveedor no entrega en domingo, pero anotar el lunes la compra del sábado
+  siempre debió poderse; y en domingo el sistema rechazaba incluso las compras
+  fechadas en día hábil.
+- **«Ver pedidos» parecía recargar la página sin hacer nada.** El filtro
+  siempre funcionó: la lista quedaba tan por debajo del pliegue que el
+  navegador dejaba al usuario arriba del todo. Ahora salta a la sección.
+
+### Accesibilidad
+
+- **Cinco controles centrales eran `<div onclick>`**, que no recibe foco ni
+  responde a Enter: registrar una venta era imposible sin ratón —ni elegir
+  precio, ni cambiar entre Venta y Consumo—, igual que elegir insumo o
+  proveedor en compras. Convertidos a `<button>`, con `aria-pressed` para que
+  un lector de pantalla anuncie cuál está elegido.
+- Los selectores de compras se desactivaban el domingo con
+  `pointer-events:none`, que solo desactiva el ratón: con el teclado se seguían
+  pudiendo abrir.
+
+### Añadido
+
+- **Generador de datos de demostración** (`scripts/sembrar_datos_demo.php`): un
+  mes de compras, producción, ventas y gastos para que los informes tengan algo
+  que mostrar. No inserta filas sueltas, llama a los mismos modelos que la
+  aplicación, así que lotes, stock, FIFO y costos salen consistentes por
+  construcción. Solo corre en local y es reversible por manifiesto de ids.
+
+### Pruebas
+
+- De 158 a 192 pruebas. Las nuevas fijan el reparto proporcional de un pago
+  compartido entre varios aprendices, el cuadre del tablero contra base real,
+  el prefijo de lote con nombres acentuados y la regla del domingo. Las de
+  compras dejaron de saltarse los domingos.
+
+---
+
 ## [1.8.0] — 2026-08-12
 
 Implementación del informe técnico externo del 2026-08-12 (recomendaciones
