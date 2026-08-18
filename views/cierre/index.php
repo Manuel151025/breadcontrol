@@ -79,9 +79,14 @@
       </div>
 
       <div class="kpi">
-        <div class="kpi-lbl"><i class="bi bi-cart-fill" style="color:#c62828"></i>Compras + Gastos</div>
+        <?php // La cifra es el COSTO de lo producido hoy mas los gastos, no lo que se
+              // pago a proveedores: es la base con la que se calcula la utilidad neta.
+              // El rotulo decia "Compras + Gastos" y el subtitulo enumeraba compras, asi
+              // que un dia sin comprar mostraba "0 compras - gastos $0" junto a una cifra
+              // de seis digitos. Las compras del dia se listan mas abajo. ?>
+        <div class="kpi-lbl"><i class="bi bi-cash-stack" style="color:#c62828"></i>Costo + Gastos</div>
         <div class="kpi-val red">$<?= number_format($costo_produccion_hoy + $total_gastos, 0, ',', '.') ?></div>
-        <div class="kpi-sub"><?= $num_compras ?> compra<?= $num_compras != 1 ? 's' : '' ?> · gastos $<?= number_format($total_gastos, 0, ',', '.') ?></div>
+        <div class="kpi-sub">producción $<?= number_format($costo_produccion_hoy, 0, ',', '.') ?> · gastos $<?= number_format($total_gastos, 0, ',', '.') ?> · <?= $num_compras ?> compra<?= $num_compras != 1 ? 's' : '' ?></div>
       </div>
 
       <div class="kpi">
