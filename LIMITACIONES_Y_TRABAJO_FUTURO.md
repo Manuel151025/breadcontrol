@@ -35,7 +35,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 21 | HSTS, versión de Nginx y cabeceras de proxy | Seguridad | Medio | ✅ **Resuelto** (2026-08-14/15) |
 | 22 | `unsafe-inline` en la CSP: 157 manejadores en línea | Seguridad | Medio | ⬜ Abierto — L |
 | 23 | Respaldos: probados, pero en el mismo servidor | Continuidad | Medio | 🟡 Parcial — falta copia externa |
-| 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ⬜ Abierto — S |
+| 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
 | 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Medio | ⬜ Abierto — S-M (antes de nov 2026) |
 | 26 | La fecha «sin definir» es un valor mágico (`1000-01-01`) | Diseño de datos | Bajo | ⬜ Abierto — M |
 | 27 | Controles hechos con `<div onclick>`: inalcanzables con teclado | Accesibilidad | Medio | 🟡 Parcial — faltan los modales |
@@ -348,19 +348,21 @@ Se declaran las tres **puertas de enlace del propio host** y no rangos amplios: 
 
 ---
 
-### 24. ⬜ El registro de errores se borra en cada despliegue
+### 24. ✅ El registro de errores se borraba en cada despliegue — RESUELTO (2026-08-20)
 
 **Descubierto el 2026-08-12** mientras se diagnosticaba el fallo del reporte por aprendiz.
 
-**Descripción:** `logs/` vive dentro del contenedor de la aplicación, y Dokploy crea un contenedor nuevo en cada despliegue. El registro de errores **se pierde entero** cada vez que se publica una versión.
+**Era:** `logs/` vivía dentro del contenedor y Dokploy crea uno nuevo en cada despliegue, así que el registro de errores se perdía entero al publicar una versión. Tras desplegar la v1.7.2, `ls -la /var/www/html/logs/` mostraba únicamente el `.htaccess`. El fallo del 2026-08-12 se diagnosticó en dos minutos gracias a una traza guardada; ocurrido poco antes de un despliegue, esa evidencia no habría existido.
 
-**Evidencia:** tras desplegar la v1.7.2, `ls -la /var/www/html/logs/` mostraba únicamente el `.htaccess`; las excepciones registradas antes del despliegue habían desaparecido.
+**Ahora:** la ruta es configurable con `APP_LOG_PATH` y en el servidor apunta a `/var/log/breadcontrol`, montado como volumen Docker (`breadcontrol-logs`). Los registros sobreviven al reemplazo del contenedor.
 
-**Impacto:** el fallo del 2026-08-12 se diagnosticó en dos minutos gracias a la traza guardada. Si hubiera ocurrido poco antes de un despliegue, esa evidencia no existiría y el diagnóstico habría partido de cero. Tampoco hay rotación: mientras el contenedor vive, el archivo crece sin límite.
+**Por qué se movió en vez de montar un volumen sobre `logs/`:** ese directorio está bajo el `DocumentRoot` y lo único que impide leerlo desde el navegador es un `.htaccess`. Montar un volumen encima lo dejaría vacío, sin ese archivo, y las trazas —con rutas internas y datos del sistema— pasarían a ser públicas. Se habría ganado persistencia a cambio de publicarlas. Fuera de la carpeta pública el problema no se plantea.
 
-**Severidad:** Media (afecta a la capacidad de diagnosticar, no al funcionamiento). **Esfuerzo:** S — montar `logs/` como volumen persistente en la configuración del servicio en Dokploy, y añadir rotación.
+**El detalle que lo habría hecho fallar en silencio:** el `Dockerfile` crea `/var/log/breadcontrol` con dueño `www-data` a propósito. Cuando Docker monta un volumen vacío sobre un directorio que ya existe en la imagen, hereda su propietario; sin ese paso el volumen habría nacido de root, Apache no habría podido escribir, y el fallo no se habría notado, porque lo que no se puede registrar es precisamente el error.
 
-**Por qué sigue abierto:** es configuración de la infraestructura, no del repositorio.
+**Retención:** ya había un archivo por día, así que ninguno crecía sin control —lo que crecía era su número, con registros de tres meses acumulados—. Ahora se borran los de más de 30 días, y la limpieza corre solo al estrenar el archivo del día. Fijado en `tests/Unit/PurgaLogsTest.php` (7 pruebas), incluida la que garantiza que no se lleva por delante el `.htaccess`.
+
+**Verificado en producción el 2026-08-20:** variable definida, directorio propiedad de `www-data`, escritura correcta y `docker inspect` confirmando un montaje de tipo `volume`.
 
 ---
 

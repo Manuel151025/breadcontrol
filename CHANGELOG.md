@@ -4,6 +4,42 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.9.1] — 2026-08-20
+
+### Operación
+
+- **Los registros de errores sobreviven al despliegue.** Vivían dentro del
+  contenedor, y Dokploy crea uno nuevo cada vez que se publica: el registro se
+  perdía entero. La ruta pasa a ser configurable con `APP_LOG_PATH` y en el
+  servidor apunta a `/var/log/breadcontrol`, montado como volumen Docker.
+- **Se mueven fuera de la carpeta pública, no se monta un volumen sobre
+  `logs/`.** Ese directorio está bajo el `DocumentRoot` y solo lo protege un
+  `.htaccess`; montar un volumen encima lo dejaría vacío y las trazas —con rutas
+  internas y datos del sistema— pasarían a ser legibles desde el navegador. Se
+  habría ganado persistencia a cambio de publicarlas.
+- **Retención de 30 días.** Ya había un archivo por día, así que ninguno crecía
+  sin control; lo que crecía era su número, con registros de tres meses
+  acumulados. La limpieza corre al estrenar el archivo del día, no en cada
+  escritura, y va silenciada entera: registrar un fallo jamás debe provocar otro.
+
+### Detalles que lo habrían hecho fallar en silencio
+
+- El `Dockerfile` crea `/var/log/breadcontrol` con dueño `www-data` a propósito:
+  Docker hace que un volumen vacío herede el propietario del directorio que
+  cubre. Sin ese paso el volumen habría nacido de root, Apache no habría podido
+  escribir, y nadie se habría enterado, porque lo que no se puede registrar es
+  precisamente el error.
+- Un `APP_LOG_PATH` presente pero vacío se trata como ausente: `get_env()`
+  devuelve la cadena vacía si la clave existe, y sin esa comprobación los
+  registros habrían acabado en la raíz del disco.
+
+### Pruebas
+
+- 199 en total (7 nuevas), incluida la que garantiza que la limpieza no se lleva
+  por delante el `.htaccess` que impide leer los registros desde la web.
+
+---
+
 ## [1.9.0] — 2026-08-17
 
 Tanda nacida de dos preguntas del propietario —«¿el resumen por aprendiz
