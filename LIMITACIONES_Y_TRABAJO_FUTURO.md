@@ -40,6 +40,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 26 | La fecha «sin definir» es un valor mágico (`1000-01-01`) | Diseño de datos | Bajo | ⬜ Abierto — M |
 | 27 | Controles hechos con `<div onclick>`: inalcanzables con teclado | Accesibilidad | Medio | 🟡 Parcial — faltan los modales |
 | 28 | El tablero del instructor no cuadraba consigo mismo | Integridad de datos | Medio | ✅ **Resuelto** (2026-08-15) |
+| 29 | No se sabía qué migraciones tenía aplicada una base | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -444,6 +445,30 @@ Se declaran las tres **puertas de enlace del propio host** y no rangos amplios: 
 **Un supuesto que resultó falso:** durante el diagnóstico se dio por hecho que los pedidos con `estado_pago` nulo también descuadraban, porque el KPI los contaba y la columna no. La columna es `NOT NULL DEFAULT 'no_aplica'`, así que ese caso **no puede darse**; esa rama del KPI es código muerto. Se comprobó contra el esquema antes de darlo por bueno.
 
 **Fijado en** `tests/Integration/CuadreInstructorTest.php` (6 pruebas, con base de datos real) y `tests/Unit/SaldoInstructorTest.php` (7 pruebas del reparto). El invariante que fijan es «la suma de la columna == el total de arriba»; se verificó que la prueba falla si se revierte la regla del saldo. Queda además `sql/verificar_cuadre_instructor.sql`, de solo lectura, para auditar el cuadre en producción.
+
+---
+
+### 29. ✅ No había forma de saber qué migraciones tenía aplicada una base — RESUELTO (2026-08-20)
+
+**Era el hallazgo C1 de la auditoría de julio**, y siguió abierto hasta que se pagó su precio en vivo.
+
+**Era:** `sql/migraciones/` acumulaba nueve archivos y la base no guardaba constancia de ninguno. Para responder «¿está producción al día?» había que exportar la estructura de los dos lados y compararla a mano.
+
+**Lo que costó el 2026-08-20:** cuatro comandos, dos idas y vueltas por SSH y **una falsa alarma**. El método elegido —un MD5 de los nombres de columna por tabla— marcó `consumo_lote` e `intento_login` como distintas entre local y producción. Las columnas eran idénticas: solo cambiaba el orden, porque MySQL 8 ordena el guion bajo antes que las letras y MariaDB después. Comparar esquemas a ojo invita justo a este tipo de error, y el susto de creer que falta una migración no es gratis.
+
+**Ahora:** tabla `migracion` (`sql/migraciones/2026-08-20_01_control_migraciones.sql`) y `scripts/migraciones.php`. Una orden responde la pregunta:
+
+```
+php scripts/migraciones.php
+```
+
+Las nueve anteriores se dan por aplicadas: lo están en todas las bases existentes, y un despliegue nuevo parte de `sql/init/01_esquema_base.sql`, que es un volcado del esquema real y ya las lleva dentro. Se registran con checksum nulo y se muestran como «heredadas», porque no se puede saber con qué contenido se aplicaron; las que se registren de aquí en adelante guardan el MD5 del archivo.
+
+**Detecta además dos cosas que suelen pasar desapercibidas:** una migración **alterada** —el archivo cambió después de aplicarse, así que lo que hay en la base se generó con otro contenido, y editarla no vuelve a ejecutarla— y una **huérfana**, registrada pero cuyo archivo ya no existe por un borrado o un renombrado.
+
+**Por qué no las aplica:** en MySQL el DDL hace commit implícito, de modo que una migración que falle en su tercer `ALTER` deja hechos los dos primeros sin vuelta atrás automática. Aplicarlas de una en una, sabiendo dónde se quedó si algo falla, es más seguro que un automatismo que promete atomicidad y no puede darla. Además la imagen de la aplicación no lleva cliente `mysql`: en el servidor no podría ejecutarlas aunque quisiera.
+
+**Lo que sigue faltando:** un despliegue nuevo desde `docker-compose.yml` monta solo `01_esquema_base.sql`, que todavía no incluye la tabla `migracion`. En ese caso el script lo dice y pide ejecutar la migración de control. Se resolverá al regenerar ese volcado.
 
 ---
 

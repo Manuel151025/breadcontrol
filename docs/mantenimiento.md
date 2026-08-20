@@ -41,6 +41,42 @@ composer audit                 # vulnerabilidades conocidas en ellas
 
 Las actualizaciones de parche y menores se aplican directamente: `composer update`, correr las pruebas, y publicar si pasan. Así se hizo con PHPStan 2.2.7 → 2.2.8 el 2026-08-15: las 154 pruebas y el análisis en nivel 10 siguieron limpios.
 
+### Antes y después de cada despliegue — 1 minuto
+
+```bash
+php scripts/migraciones.php
+```
+
+Responde si la base tiene aplicadas todas las migraciones de `sql/migraciones/`.
+Conviene mirarlo **antes** de publicar —para saber si el código nuevo necesita un
+esquema que todavía no está— y **después**, para confirmar que quedó al día.
+
+Hasta el 2026-08-20 esa pregunta no se podía responder sin exportar la estructura
+de los dos lados y compararla a mano. Ese día costó cuatro comandos, dos idas y
+vueltas y una falsa alarma: dos tablas parecían distintas y solo cambiaba el
+orden de las columnas, porque MySQL 8 y MariaDB ordenan el guion bajo al revés.
+
+El script **no aplica** nada, a propósito. En MySQL el DDL hace commit implícito,
+así que una migración que falle a mitad deja hechas las sentencias anteriores y
+no hay vuelta atrás automática; conviene aplicarlas de una en una y sabiendo
+dónde se quedó si algo sale mal. Además la imagen de la aplicación no lleva
+cliente `mysql`, de modo que en el servidor no podría ejecutarlas aunque quisiera.
+
+El flujo para una migración nueva es:
+
+```bash
+# 1) aplicarla contra la base
+docker exec -i "$DB" sh -c 'mysql -u root -p"$MYSQL_ROOT_PASSWORD" breadcontrol' < sql/migraciones/ARCHIVO.sql
+
+# 2) registrarla
+php scripts/migraciones.php --marcar=ARCHIVO.sql
+```
+
+También avisa de dos situaciones que suelen pasar desapercibidas: una migración
+**alterada** (el archivo cambió después de aplicarse, así que lo que hay en la
+base se generó con otro contenido) y una **huérfana** (registrada, pero el
+archivo ya no existe porque se borró o se renombró).
+
 ### Cada trimestre — 1 hora
 
 - **Imágenes base**: reconstruir con la última versión de parche de `php:8.2-apache` y `mysql:8`. Basta con volver a desplegar; Docker traerá la imagen actualizada.
