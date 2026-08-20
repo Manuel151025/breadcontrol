@@ -4,6 +4,38 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [1.10.0] — 2026-08-20
+
+### Añadido
+
+- **Control de versiones de esquema.** Nueva tabla `migracion` y
+  `scripts/migraciones.php`: la base guarda constancia de qué migraciones tiene
+  aplicadas, y `php scripts/migraciones.php` lo responde en un comando. Es el
+  hallazgo C1 de la auditoría de julio.
+
+  Hasta ahora `sql/migraciones/` acumulaba nueve archivos sin que nada registrara
+  cuáles se habían ejecutado. Responder «¿está producción al día?» obligaba a
+  exportar la estructura de los dos lados y compararla a mano; ese mismo día
+  costó cuatro comandos, dos idas y vueltas por SSH y una falsa alarma —dos
+  tablas parecían distintas y solo cambiaba el orden de las columnas, porque
+  MySQL 8 ordena el guion bajo antes que las letras y MariaDB después—.
+
+  Avisa además de una migración **alterada** (el archivo cambió después de
+  aplicarse, y editarla no vuelve a ejecutarla) y de una **huérfana** (registrada
+  pero sin archivo, por un borrado o un renombrado).
+
+  **No las aplica, a propósito:** en MySQL el DDL hace *commit* implícito, así
+  que una migración que falle en su tercer `ALTER` deja hechos los dos primeros
+  sin vuelta atrás automática. Aplicarlas de una en una, sabiendo dónde se quedó
+  si algo falla, es más seguro que un automatismo que promete atomicidad y no
+  puede darla.
+
+  Las nueve anteriores se dan por aplicadas con checksum nulo y se muestran como
+  «heredadas»: nadie puede saber con qué contenido se aplicaron en su momento, y
+  fingir un checksum sería peor que admitirlo.
+
+---
+
 ## [1.9.1] — 2026-08-20
 
 ### Operación
