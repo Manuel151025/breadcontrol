@@ -1,16 +1,67 @@
 <?php
 // config/logger.php
 
-define('LOG_PATH', __DIR__ . '/../logs');
+// Normalmente la define config/app.php, que se carga antes y lee APP_LOG_PATH.
+// El valor de aquí es la red de seguridad por si alguien incluye este archivo
+// suelto (una tarea de consola, una prueba).
+if (!defined('LOG_PATH')) {
+    define('LOG_PATH', __DIR__ . '/../logs');
+}
+
+/** Días que se conservan los registros antes de borrarse. */
+define('LOG_RETENCION_DIAS', 30);
 
 if (!is_dir(LOG_PATH)) {
     @mkdir(LOG_PATH, 0777, true);
 }
 
+/**
+ * Borra los registros con más de LOG_RETENCION_DIAS días.
+ *
+ * Ya hay un archivo por día, así que ninguno crece sin control; lo que crecía
+ * sin control era su número —había registros de tres meses atrás acumulados—.
+ *
+ * Se ejecuta solo cuando se estrena el archivo del día, no en cada escritura:
+ * recorrer el directorio en mitad de un error sería trabajo inútil repetido.
+ * Todo va silenciado: registrar un fallo jamás debe provocar otro.
+ *
+ * Los parámetros existen para que las pruebas apunten a un directorio temporal;
+ * en producción nadie los pasa.
+ *
+ * @return int Cuántos archivos se borraron.
+ */
+function purgarLogsAntiguos(?string $directorio = null, ?int $dias = null): int {
+    $directorio = $directorio ?? LOG_PATH;
+    $dias       = $dias ?? LOG_RETENCION_DIAS;
+    $limite     = time() - ($dias * 86400);
+    $borrados   = 0;
+
+    foreach (['app-*.log', 'php-error-*.log'] as $patron) {
+        $archivos = glob($directorio . '/' . $patron);
+        if ($archivos === false) {
+            continue;
+        }
+        foreach ($archivos as $archivo) {
+            // El .htaccess que bloquea el acceso web no encaja con los patrones,
+            // pero se comprueba que sea archivo por si acaso.
+            if (is_file($archivo) && @filemtime($archivo) < $limite && @unlink($archivo)) {
+                $borrados++;
+            }
+        }
+    }
+
+    return $borrados;
+}
+
 function log_error(mixed $error): void {
     $date = date('Y-m-d H:i:s');
     $logFile = LOG_PATH . '/app-' . date('Y-m-d') . '.log';
-    
+
+    // Primera anotación del día: momento de limpiar lo viejo.
+    if (!file_exists($logFile)) {
+        purgarLogsAntiguos();
+    }
+
     $message = "[$date] ";
     if ($error instanceof Exception || $error instanceof Error) {
         $message .= get_class($error) . ": " . $error->getMessage() . " en " . $error->getFile() . " en la línea " . $error->getLine() . "\n";

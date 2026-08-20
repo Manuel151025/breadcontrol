@@ -24,6 +24,17 @@ COPY . /var/www/html/
 
 RUN chown -R www-data:www-data /var/www/html
 
+# Directorio de registros FUERA de la carpeta pública, para montarlo como volumen
+# y que sobrevivan al despliegue (hoy el contenedor se reemplaza y se los lleva).
+#
+# Se crea aquí, con dueño www-data, a propósito: cuando Docker monta un volumen
+# vacío sobre un directorio que ya existe en la imagen, hereda su propietario. Si
+# no existiera, el volumen nacería de root y Apache no podría escribir en él — un
+# fallo que además sería mudo, porque lo que no se puede registrar es el error.
+#
+# Se activa poniendo APP_LOG_PATH=/var/log/breadcontrol en el entorno.
+RUN mkdir -p /var/log/breadcontrol && chown www-data:www-data /var/log/breadcontrol
+
 # OPcache guarda el bytecode compilado de PHP en memoria. Estaba DESACTIVADO,
 # de modo que el servidor volvía a leer y compilar cada archivo del proyecto en
 # cada petición — con el coste repetido en todas las páginas.
