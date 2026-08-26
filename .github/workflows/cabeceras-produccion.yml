@@ -1,0 +1,49 @@
+# ============================================================
+#  Cabeceras de seguridad en PRODUCCIÓN — BreadControl
+#
+#  El CI comprueba lo que la imagen de la aplicación aporta por sí sola. Pero
+#  HSTS (R-02) y ocultar la versión del servidor (R-05) NO viven en este
+#  repositorio: están en el bloque `server` del Nginx del VPS, escritos a mano
+#  el 2026-08-14. Nada en el repositorio los protege, y un cambio en ese
+#  servidor —que aloja 24 sitios— puede borrarlos sin dejar rastro aquí.
+#
+#  Este flujo cierra ese hueco: interroga al sitio publicado y falla si alguna
+#  de las correcciones del informe técnico del 2026-08-12 dejó de aplicarse.
+#
+#  Se ejecuta a diario y también a mano (workflow_dispatch), que es lo que
+#  conviene lanzar después de tocar Nginx, Traefik o Dokploy.
+# ============================================================
+name: Cabeceras en producción
+
+on:
+  schedule:
+    # 06:17 UTC ≈ 01:17 en Colombia. Minuto no redondo a propósito: GitHub
+    # encola muchísimos flujos en los minutos exactos y los retrasa.
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  verificar:
+    name: Verificar el sitio publicado
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verificar cabeceras
+        env:
+          # Configurable en Settings > Secrets and variables > Actions > Variables.
+          # Si no se define, se usa el dominio actual.
+          URL: ${{ vars.PROD_URL || 'https://breadcontrol.manuelcardenas.online/' }}
+        run: |
+          # Un corte de red no es una regresión de seguridad. Se reintenta antes
+          # de dar la alarma: una alerta que salta sola acaba ignorándose, y
+          # entonces deja de servir el día que el fallo es real.
+          for intento in 1 2 3; do
+            if bash scripts/verificar_cabeceras.sh "$URL" --perfil produccion; then
+              exit 0
+            fi
+            echo "Intento $intento sin éxito; se reintenta en 15 segundos..."
+            sleep 15
+          done
+          echo "::error::Producción ya no cumple las cabeceras verificadas en la v1.8.0 (informe R-01 a R-05)"
+          exit 1

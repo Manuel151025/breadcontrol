@@ -4,6 +4,46 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Añadido
+
+- **Las cabeceras de seguridad ya no dependen de que nadie las borre.**
+  `scripts/verificar_cabeceras.sh` interroga una respuesta HTTP y comprueba, una
+  por una, las correcciones R-01 a R-05 del informe técnico del 2026-08-12: la
+  cookie de sesión con `Secure`, `HttpOnly` y `SameSite`; la CSP y sus
+  directivas que de verdad cierran algo (`frame-ancestors`, `base-uri`,
+  `object-src 'none'`, `form-action`); las cuatro cabeceras defensivas; la
+  ausencia de `X-Powered-By`; HSTS de al menos un año; y que el servidor no
+  publique su versión.
+
+  El motivo es que hasta ahora esas once correcciones vivían en archivos de
+  configuración —`.htaccess`, `Dockerfile` y el bloque `server` del Nginx del
+  VPS— y **nada** impedía revertirlas por descuido. El `.htaccess` se edita por
+  motivos de caché y compresión, no de seguridad, y una llave mal puesta
+  desactiva el bloque entero sin que falle nada visible. Ya ocurrió algo de esa
+  familia: la cookie salía sin `Secure` porque Traefik descartaba
+  `X-Forwarded-Proto`, y se descubrió mirando la respuesta a mano.
+
+  Se ejecuta en dos sitios, porque las correcciones viven en dos capas:
+
+  - **En cada push** (job `cabeceras` del CI). Construye la imagen real,
+    la levanta contra MySQL y verifica lo que aporta la aplicación. Corre con
+    `APP_ENV=production` sobre HTTP plano a propósito: así comprueba que el
+    atributo `Secure` lo sigue decidiendo el entorno y no la petición, que es
+    exactamente la corrección de R-01 y lo que un cambio futuro podría deshacer
+    sin querer.
+  - **A diario y a mano** (flujo `Cabeceras en producción`). HSTS y
+    `server_tokens off` no están en este repositorio: se escribieron a mano en
+    el Nginx del VPS, que aloja 24 sitios. Este flujo es lo único que se daría
+    cuenta si desaparecieran. Conviene lanzarlo tras tocar Nginx, Traefik o
+    Dokploy.
+
+  El `'unsafe-inline'` de la CSP se reporta como **aviso, no como fallo**: es el
+  punto 22 de LIMITACIONES, una deuda ya decidida y documentada. Que aparezca en
+  cada ejecución la mantiene a la vista sin romper el CI por algo que no es una
+  regresión.
+
 ## [1.10.0] — 2026-08-20
 
 ### Añadido
