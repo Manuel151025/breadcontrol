@@ -44,6 +44,30 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
   cada ejecución la mantiene a la vista sin romper el CI por algo que no es una
   regresión.
 
+### Corregido
+
+- **El CI llevaba rojo desde el 2026-08-12 y nadie lo veía.** La suite de
+  integración fallaba en todas las ramas por `ReportePortalTest`, y la última
+  ejecución en verde databa del 11 de agosto: catorce días en los que el CI
+  seguía ahí, seguía ejecutándose y ya no informaba de nada.
+
+  `setUp()` tomaba la categoría de precio con un `SELECT ... LIMIT 1`. En
+  desarrollo funciona porque la base local tiene datos reales; en el CI la base
+  nace del esquema más `90_semilla_ci.sql`, que solo siembra un insumo y un
+  producto. `categoria_precio` está vacía, la consulta devolvía `false`, se
+  insertaba como `0` y la clave foránea lo rechazaba con el error 1452.
+
+  Lo grave no era la prueba caída, sino cuál: existe para vigilar el fallo de
+  `only_full_group_by` que ya rompió el detalle de pedido en producción con
+  MySQL 8. Reventaba en `setUp()`, antes de ninguna aserción, así que en esos
+  catorce días no llegó a comprobarlo ni una vez. Un guardia que no vigila es
+  peor que ninguno: ocupa el sitio del que sí lo haría.
+
+  Ahora la prueba crea su propia categoría, como ya hacían `VentaModelTest` y
+  `ProduccionRegistroTest`, y la transacción la revierte al terminar.
+
+---
+
 ## [1.10.0] — 2026-08-20
 
 ### Añadido
