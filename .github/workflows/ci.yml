@@ -160,3 +160,73 @@ jobs:
       - name: Análisis estático de seguridad (SAST)
         if: env.SNYK_TOKEN != ''
         run: snyk code test --severity-threshold=high
+
+  cabeceras:
+    name: Cabeceras de seguridad (contenedor)
+    runs-on: ubuntu-latest
+    # Levanta la imagen real de la aplicación y comprueba que sigue emitiendo
+    # las cabeceras del informe técnico del 2026-08-12 (R-01, R-03, R-04, R-05).
+    #
+    # Hasta ahora esas correcciones vivían solo en .htaccess y en el Dockerfile,
+    # sin nada que impidiera revertirlas por descuido: se editan por motivos de
+    # caché o rendimiento, no de seguridad, y una llave de más las desactiva sin
+    # que falle nada visible. Aquí sí falla.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: panaderia_bd
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Importar esquema y semilla de pruebas
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot panaderia_bd < sql/init/01_esquema_base.sql
+          mysql -h 127.0.0.1 -uroot -proot panaderia_bd < sql/init/90_semilla_ci.sql
+
+      - name: Construir la imagen de la aplicación
+        run: docker build -t breadcontrol:ci .
+
+      # --network host para que el contenedor alcance el MySQL de servicio en
+      # 127.0.0.1:3306, que es donde Actions lo publica. APP_ENV=production es
+      # deliberado: es lo que hace que la cookie salga con Secure aunque aquí se
+      # sirva por HTTP plano, y comprobarlo en esas condiciones es justo lo que
+      # blinda la corrección de R-01.
+      - name: Levantar el contenedor
+        run: |
+          docker run -d --name breadcontrol --network host \
+            -e APP_ENV=production \
+            -e APP_URL=http://127.0.0.1 \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_USER=root \
+            -e DB_PASS=root \
+            -e DB_NAME=panaderia_bd \
+            breadcontrol:ci
+
+      - name: Esperar a que la aplicación responda
+        run: |
+          for intento in $(seq 1 30); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1/)" = "200" ]; then
+              echo "La aplicación responde."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::La aplicación no respondió con 200 en 60 segundos"
+          docker logs breadcontrol
+          exit 1
+
+      - name: Verificar cabeceras de seguridad
+        run: bash scripts/verificar_cabeceras.sh http://127.0.0.1/ --perfil contenedor
+
+      - name: Registro del contenedor si algo falló
+        if: failure()
+        run: docker logs breadcontrol
