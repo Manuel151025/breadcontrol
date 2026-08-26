@@ -33,7 +33,18 @@ final class ReportePortalTest extends BaseDatosTestCase
         $stmt->execute(['Aprendiz reporte ' . $sufijo]);
         $this->id_aprendiz = (int) $this->pdo->lastInsertId();
 
-        $cat = $this->pdo->query("SELECT id_categoria FROM categoria_precio LIMIT 1")->fetchColumn();
+        // categoria_precio esta VACIA en la base del CI: 90_semilla_ci.sql solo
+        // siembra un insumo y un producto, y su cabecera deja dicho que los demas
+        // datos los crea cada prueba. La consulta devolvia false, se insertaba como 0
+        // y la clave foranea fk_variedad_categoria lo rechazaba con el error 1452, de
+        // modo que esta prueba nunca llego a ejecutarse en CI. Como ya hacen
+        // VentaModelTest y ProduccionRegistroTest, la categoria se crea aqui; la
+        // transaccion de BaseDatosTestCase la revierte al terminar.
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO categoria_precio (nombre, precio_unitario, activo) VALUES (?, 1000, 1)"
+        );
+        $stmt->execute(['Categoria reporte ' . $sufijo]);
+        $cat = (int) $this->pdo->lastInsertId();
         $stmt = $this->pdo->prepare(
             "INSERT INTO variedad_pan (nombre, id_categoria_precio, activo) VALUES (?, ?, 1)"
         );
