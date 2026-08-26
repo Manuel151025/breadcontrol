@@ -68,6 +68,31 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Mantenimiento
+
+- **`actions/checkout` sube de v4 a v7** en los siete pasos de los dos flujos.
+  GitHub avisaba en cada ejecución de que la acción apunta a Node.js 20, ya
+  retirado, y que la estaba forzando sobre Node.js 24. Hoy no rompía nada, pero
+  el día que retiren esa compatibilidad fallarían los siete jobs a la vez: el
+  `checkout` es el primer paso de todos, así que no habría ni uno que sobreviva.
+
+  Se saltan tres versiones mayores, y las tres traían cambios de ruptura que se
+  comprobaron uno a uno contra este repositorio antes de tocar nada:
+
+  - **v5** pasa a Node 24 y exige un runner ≥ 2.327.1. Los siete jobs corren en
+    `ubuntu-latest`, alojado por GitHub y siempre al día.
+  - **v6** deja de guardar las credenciales en `.git/config` y las mueve a un
+    archivo aparte. Ningún paso usa `GITHUB_TOKEN`, hace `push` ni lee esa
+    configuración, así que no hay nada que dependa de dónde estén.
+  - **v7** bloquea el checkout de una PR venida de un fork en
+    `pull_request_target` y `workflow_run`. Aquí solo se usan `push`,
+    `pull_request`, `schedule` y `workflow_dispatch`.
+
+  Tampoco hay submódulos, que es la otra vía por la que estos saltos suelen
+  doler.
+
+---
+
 ## [1.10.0] — 2026-08-20
 
 ### Añadido
