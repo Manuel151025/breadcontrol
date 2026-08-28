@@ -22,6 +22,41 @@
 
 declare(strict_types=1);
 
+/**
+ * Ruta del archivo relativa a la raiz del proyecto, con barras normales.
+ *
+ * Clover guarda rutas absolutas, y son distintas en cada sitio: en Windows
+ * `C:\xampp\htdocs\panaderia\models\X.php`, y en el runner de GitHub
+ * `/home/runner/work/breadcontrol/breadcontrol/models/X.php`. La primera
+ * version de este script recortaba buscando el literal `/panaderia/`, que en el
+ * runner no aparece por ningun lado: la ruta se quedaba absoluta y la capa
+ * acababa siendo la cadena vacia, de modo que el desglose salia en una sola
+ * fila sin nombre. El porcentaje global era correcto, pero el reparto —que es
+ * lo util— no decia nada.
+ *
+ * Se recorta por el directorio de trabajo, que es la raiz del proyecto tanto en
+ * local como en CI. Si aun asi no casara, se busca la primera carpeta conocida
+ * del proyecto como respaldo.
+ */
+function rutaRelativa(string $absoluta): string
+{
+    $nombre = str_replace('\\', '/', $absoluta);
+    $raiz   = str_replace('\\', '/', (string) getcwd());
+
+    if ($raiz !== '' && str_starts_with($nombre, $raiz . '/')) {
+        return substr($nombre, strlen($raiz) + 1);
+    }
+
+    foreach (['models', 'controllers', 'helpers', 'includes', 'config'] as $capa) {
+        $pos = strpos($nombre, '/' . $capa . '/');
+        if ($pos !== false) {
+            return substr($nombre, $pos + 1);
+        }
+    }
+
+    return $nombre;
+}
+
 $ruta   = $argv[1] ?? '';
 $minimo = isset($argv[2]) ? (float) $argv[2] : null;
 
@@ -54,15 +89,7 @@ foreach ($xml->xpath('//file') ?: [] as $archivo) {
     $total     = (int) $m['statements'];
     $cubiertas = (int) $m['coveredstatements'];
 
-    // Ruta relativa y con barras normales, para que el informe se lea igual
-    // en Windows y en el runner de Linux.
-    $nombre = str_replace('\\', '/', $nombre);
-    $pos    = strpos($nombre, '/panaderia/');
-    if ($pos !== false) {
-        $nombre = substr($nombre, $pos + strlen('/panaderia/'));
-    }
-
-    $porArchivo[$nombre] = ['total' => $total, 'cubiertas' => $cubiertas];
+    $porArchivo[rutaRelativa($nombre)] = ['total' => $total, 'cubiertas' => $cubiertas];
 }
 
 if ($porArchivo === []) {
@@ -87,6 +114,17 @@ foreach ($porArchivo as $nombre => $datos) {
 
     $totalGlobal     += $datos['total'];
     $cubiertasGlobal += $datos['cubiertas'];
+}
+
+// Si el recorte de rutas vuelve a fallar, la capa saldria vacia o absoluta y el
+// desglose seria una sola fila sin nombre: informacion inutil presentada como
+// si fuera buena. Mejor caer aqui y decir por que.
+foreach (array_keys($porCapa) as $capa) {
+    if ($capa === '' || str_starts_with((string) $capa, '/') || str_contains((string) $capa, ':')) {
+        fwrite(STDERR, "No se pudo deducir la capa de las rutas del informe (salio: '{$capa}').\n");
+        fwrite(STDERR, "Revisa rutaRelativa(): el clover trae rutas absolutas distintas segun el entorno.\n");
+        exit(2);
+    }
 }
 
 $pct = static fn (int $cubiertas, int $total): float => $total === 0 ? 100.0 : ($cubiertas / $total) * 100;
