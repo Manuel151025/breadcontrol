@@ -40,6 +40,9 @@ error_log
 vendor/
 .phpunit.cache/
 
+# Informes de cobertura (se generan; en CI viajan como artefacto)
+cobertura/
+
 # SQL (dumps ignorados, pero las migraciones y scripts de init SI se versionan)
 *.sql
 !sql/migraciones/*.sql

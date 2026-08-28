@@ -161,6 +161,76 @@ jobs:
         if: env.SNYK_TOKEN != ''
         run: snyk code test --severity-threshold=high
 
+  cobertura:
+    name: Cobertura de pruebas (PCOV)
+    runs-on: ubuntu-latest
+    # Mide que parte del codigo ejecutan de verdad las 204 pruebas.
+    #
+    # Hasta ahora el proyecto tenia muchas pruebas y ninguna medida de que
+    # cubren, asi que decidir donde escribir la siguiente era ir a ciegas. Corre
+    # las DOS suites juntas —unitarias e integracion— porque la cobertura solo
+    # significa algo sumada: un modelo puede estar sin tocar por las unitarias y
+    # cubierto de sobra por las de integracion.
+    #
+    # PCOV en vez de Xdebug: hace una sola cosa, medir lineas ejecutadas, y es
+    # varias veces mas rapido. No sirve para depurar, que aqui no hace falta.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: panaderia_bd
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USER: root
+      DB_PASS: root
+      DB_NAME: panaderia_bd
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Instalar PHP 8.2 con PCOV
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql
+          coverage: pcov
+
+      - name: Instalar dependencias
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Importar esquema y semilla de pruebas
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot panaderia_bd < sql/init/01_esquema_base.sql
+          mysql -h 127.0.0.1 -uroot -proot panaderia_bd < sql/init/90_semilla_ci.sql
+
+      - name: Ejecutar las pruebas con cobertura
+        run: |
+          vendor/bin/phpunit \
+            --coverage-clover cobertura/clover.xml \
+            --coverage-html cobertura/html
+
+      # Sin minimo todavia: esta es la primera medicion del proyecto y no habia
+      # forma honesta de fijar un corte antes de conocer el numero. En cuanto se
+      # sepa, se anade como segundo argumento y el job pasa a bloquear.
+      - name: Desglose por capa y verificacion del minimo
+        run: php scripts/verificar_cobertura.php cobertura/clover.xml
+
+      - name: Publicar el informe navegable
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cobertura-html
+          path: cobertura/html
+          retention-days: 14
+
   cabeceras:
     name: Cabeceras de seguridad (contenedor)
     runs-on: ubuntu-latest
