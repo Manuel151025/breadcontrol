@@ -93,6 +93,42 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Pruebas
+
+- **Inventario ejecutable de la autorización de los controladores**
+  (`tests/Unit/AutorizacionControladoresTest.php`). Recorre con `token_get_all`
+  los 53 métodos públicos de `controllers/` y `controllers/portal/` y exige que
+  cada uno llame a una guarda —`requerirPropietario`, `requerirLogin` o
+  `requireCliente`— o esté declarado público a propósito **con su motivo
+  escrito**.
+
+  Es una prueba estructural, no funcional, y conviene saber por qué: las
+  guardas terminan en `exit`, así que invocarlas desde PHPUnit mataría el
+  proceso de pruebas. Pero el riesgo real nunca fue que una guarda existente
+  dejara de funcionar: es que alguien añada un endpoint y se olvide de ponerla.
+  Eso es justo lo que ahora rompe el CI.
+
+  El recuento de partida, medido y no supuesto: **53 métodos públicos, 49 con
+  guarda y 4 públicos a propósito** (`landing`, `login`, `recuperarPin` y
+  `logout`). No había ningún endpoint desprotegido.
+
+- **Queda fijado qué alcanza el rol `empleado`**: tres endpoints de los 33 del
+  back-office (`CompraController::proveedores`, `InventarioController::ajuste`
+  y `ProduccionController::detalle`); los otros 30 exigen propietario. No se
+  cambia nada de ese reparto, solo se deja escrito: el `enum` de `usuario` pone
+  `empleado` por omisión, así que hoy un usuario nuevo nace sin acceso a casi
+  nada, y hay que decidir si el rol se implementa o se retira. Con la prueba
+  puesta, esa decisión aparecerá en el diff en vez de ocurrir sin que nadie la
+  vea.
+
+- Las cinco pruebas se comprobaron **por su capacidad de fallar**, no solo de
+  pasar: un endpoint sin guarda, una guarda degradada de propietario a login y
+  una entrada muerta en la lista de excepciones. Las tres se detectan. Es la
+  lección del `ReportePortalTest` de esta misma tanda, que llevaba catorce días
+  sin poder fallar y por eso no vigilaba nada.
+
+---
+
 ## [1.10.0] — 2026-08-20
 
 ### Añadido
