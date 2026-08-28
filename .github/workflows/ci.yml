@@ -19,7 +19,7 @@ jobs:
     name: Sintaxis PHP (php -l)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Instalar PHP 8.2
         uses: shivammathur/setup-php@v2
@@ -41,7 +41,7 @@ jobs:
     name: Análisis estático (PHPStan)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Instalar PHP 8.2
         uses: shivammathur/setup-php@v2
@@ -59,7 +59,7 @@ jobs:
     name: Pruebas unitarias (PHPUnit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Instalar PHP 8.2
         uses: shivammathur/setup-php@v2
@@ -97,7 +97,7 @@ jobs:
       DB_NAME: panaderia_bd
       APP_ENV: production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Instalar PHP 8.2
         uses: shivammathur/setup-php@v2
@@ -124,7 +124,7 @@ jobs:
       # Configurar en: Settings > Secrets and variables > Actions > New repository secret
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Avisar si no hay token
         if: env.SNYK_TOKEN == ''
@@ -185,7 +185,7 @@ jobs:
           --health-timeout=5s
           --health-retries=10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Importar esquema y semilla de pruebas
         run: |
