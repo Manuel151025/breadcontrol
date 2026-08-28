@@ -139,6 +139,23 @@ foreach ($candidatos as $nombre => $d) {
 }
 echo "\n";
 
+// ── Resumen como anotacion de GitHub Actions ─────────────────
+//
+// No es adorno. La salida normal de un paso vive en el registro de la
+// ejecucion, que solo se puede leer con credenciales del repositorio; una
+// anotacion, en cambio, aparece en el resumen de la ejecucion y en la pestana
+// de la PR, y se puede consultar sin credenciales. Asi el numero queda a la
+// vista sin tener que abrir el registro y desplegar el paso.
+if (getenv('GITHUB_ACTIONS') === 'true') {
+    $resumen = sprintf('Cobertura global: %.2f%% (%d de %d sentencias)', $global, $cubiertasGlobal, $totalGlobal);
+    $partes  = [];
+    foreach ($porCapa as $capa => $d) {
+        $partes[] = sprintf('%s %.1f%%', $capa, $pct($d['cubiertas'], $d['total']));
+    }
+    // Los saltos de linea reales romperian la anotacion: Actions espera una sola linea.
+    echo '::notice title=Cobertura::' . $resumen . ' | ' . implode(' · ', $partes) . "\n";
+}
+
 // ── Corte ────────────────────────────────────────────────────
 if ($minimo === null) {
     printf("Cobertura global: %.2f%% (solo informativo: no se paso un minimo)\n", $global);
