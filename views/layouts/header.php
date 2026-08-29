@@ -4,10 +4,35 @@ require_once __DIR__ . '/../../includes/sesion.php';
 require_once __DIR__ . '/../../includes/boton_eliminar.php';
 $user = usuarioActual();
 
-$current = $_SERVER['REQUEST_URI'];
-function navActive($path) {
-    global $current;
-    return strpos($current, $path) !== false ? 'on' : '';
+/**
+ * Devuelve 'on' si la peticion actual pertenece a la seccion indicada, para
+ * marcar el elemento activo del menu.
+ *
+ * Antes leia una variable con `global $current`, y NUNCA funcionaba. El motivo
+ * es sutil: `$current = $_SERVER['REQUEST_URI']` se asignaba en el cuerpo de
+ * este archivo, pero los controladores lo incluyen desde DENTRO de un metodo
+ * (por ejemplo TableroController::index() hace require_once de esta plantilla).
+ * En ese caso la asignacion crea una variable local de ese metodo, no una
+ * global, asi que el `global $current` de aqui no encontraba nada y recibia
+ * null.
+ *
+ * Las consecuencias eran dos, y ninguna saltaba a la vista:
+ *
+ *   1. Ningun elemento del menu recibia la clase 'on': el resaltado de la
+ *      seccion activa no ha funcionado nunca.
+ *   2. strpos(null, ...) emite un aviso de obsolescencia en PHP 8.1+, y como
+ *      esta llamada esta dentro de un atributo class="", el aviso se imprimia
+ *      DENTRO del HTML. En produccion no se ve porque display_errors esta
+ *      apagado, pero se registraba en cada carga de pagina y filtraba la ruta
+ *      absoluta del servidor.
+ *
+ * Se lee $_SERVER directamente en vez de reintroducir una global: una funcion
+ * que depende de una variable que alguien debe recordar definir en el ambito
+ * correcto es precisamente lo que fallo.
+ */
+function navActive(string $path): string {
+    $actual = $_SERVER['REQUEST_URI'] ?? '';
+    return is_string($actual) && str_contains($actual, $path) ? 'on' : '';
 }
 ?>
 <!DOCTYPE html>
