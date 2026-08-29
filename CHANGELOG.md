@@ -367,6 +367,43 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Corregido (interfaz)
+
+- **El resaltado de la sección activa del menú no ha funcionado nunca.**
+  `navActive()` leía una variable con `global $current`, pero la asignación
+  `$current = $_SERVER['REQUEST_URI']` ocurre en el cuerpo de
+  `views/layouts/header.php`, y los controladores incluyen esa plantilla **desde
+  dentro de un método**. En ese caso la asignación crea una variable local de ese
+  método, no una global, así que la función recibía `null`.
+
+  Dos consecuencias, y ninguna saltaba a la vista:
+
+  1. Ningún elemento del menú recibía la clase `on`.
+  2. `strpos(null, ...)` emite un aviso de obsolescencia en PHP 8.1+, y como la
+     llamada está dentro de un atributo `class=""`, **el aviso se imprimía dentro
+     del HTML**, con la ruta absoluta del servidor incluida. En producción no se
+     ve porque `display_errors` está apagado, pero se registraba en cada carga.
+
+  Se lee `$_SERVER` directamente en vez de reintroducir una global: una función
+  que depende de una variable que alguien debe recordar definir en el ámbito
+  correcto es precisamente lo que falló.
+
+- **Dos recorridos de Playwright lo protegen.** Uno exige que cada sección
+  resalte su propio elemento **y solo el suyo**; el otro, que ningún atributo del
+  menú contenga avisos de PHP. Los dos se comprobaron contra el código defectuoso
+  antes de dar el arreglo por bueno: fallan.
+
+  El «y solo el suyo» no es un adorno. Con el fallo presente, la palabra `on` de
+  «*on line 10*» —parte del aviso incrustado— convertía los **diez** elementos
+  del menú en coincidencias. Una prueba que solo comprobara «hay alguno activo»
+  habría pasado con el defecto delante.
+
+  Es la clase de fallo que ninguna otra herramienta del proyecto podía ver:
+  PHPStan no analiza las vistas, PHPUnit no renderiza plantillas, y a simple
+  vista la página se ve bien.
+
+---
+
 ## [1.10.0] — 2026-08-20
 
 ### Añadido
