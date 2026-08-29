@@ -31,8 +31,12 @@ module.exports = defineConfig({
   // de espera agotado en un runner cargado.
   retries: process.env.CI ? 1 : 0,
 
+  // El reportero 'github' no es adorno: publica cada fallo como anotacion de
+  // Actions, y una anotacion se puede consultar sin credenciales del
+  // repositorio, mientras que el registro de la ejecucion no. Sin el, saber que
+  // recorrido fallo obliga a abrir el registro a mano o a descargar el informe.
   reporter: process.env.CI
-    ? [['list'], ['html', { outputFolder: 'informe', open: 'never' }]]
+    ? [['list'], ['github'], ['html', { outputFolder: 'informe', open: 'never' }]]
     : [['list']],
 
   use: {

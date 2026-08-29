@@ -348,6 +348,23 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 - **Nunca contra producción.** Estas pruebas crean y modifican datos; corren
   contra una instancia efímera levantada en el runner.
 
+- **La semilla fija su propia zona horaria.** `config/db.php` ejecuta
+  `SET time_zone = '-05:00'` en cada conexión, así que para la aplicación
+  `CURDATE()` es la fecha de Colombia; la semilla, en cambio, la carga el cliente
+  `mysql`, que usa la del servidor —UTC en el runner de GitHub—.
+
+  Entre las 00:00 y las 05:00 UTC, esas dos fechas no coinciden: la producción se
+  sembraba con la fecha del día siguiente y la consulta de stock del punto de
+  venta no la encontraba, de modo que el recorrido fallaba por falta de datos y
+  no por un defecto. Ocurrió en la primera ejecución en CI, a las 03:17 UTC; en
+  local no se veía porque el servidor de desarrollo ya está en la zona de
+  Colombia.
+
+- **Los fallos se publican como anotaciones** (reportero `github` de Playwright).
+  El registro de una ejecución solo se lee con credenciales del repositorio; una
+  anotación, no. Sin eso, saber qué recorrido falló obliga a abrir el registro a
+  mano.
+
 ---
 
 ## [1.10.0] — 2026-08-20

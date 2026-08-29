@@ -17,6 +17,25 @@
 -- deterministe y no depende de quien ejecute la semilla.
 -- ============================================================
 
+-- ── Zona horaria: la MISMA que usa la aplicacion ────────────
+--
+-- config/db.php ejecuta `SET time_zone = '-05:00'` en cada conexion, asi que
+-- para la aplicacion CURDATE() es la fecha de Colombia. Esta semilla, en cambio,
+-- la carga el cliente `mysql`, que usa la zona del servidor: en el runner de
+-- GitHub eso es UTC.
+--
+-- Sin esta linea, entre las 00:00 y las 05:00 UTC —es decir, entre las 19:00 y
+-- la medianoche en Colombia— el NOW() de mas abajo escribe la produccion con la
+-- fecha del dia SIGUIENTE, y la consulta de stock del punto de venta
+-- (`DATE(p.fecha_produccion) = CURDATE()`) no la encuentra: la categoria sale
+-- con "0 disp." y el recorrido de venta falla por falta de datos, no por un
+-- defecto del codigo.
+--
+-- Paso exactamente eso la primera vez que este flujo corrio en CI, a las 03:17
+-- UTC. En local no se veia porque el servidor de desarrollo ya esta en la zona
+-- de Colombia y las dos fechas coincidian.
+SET time_zone = '-05:00';
+
 -- ── Cuenta del back-office (rol propietario) ────────────────
 INSERT INTO usuario (nombre_usuario, nombre_completo, contrasena_hash, rol, activo)
 VALUES (
