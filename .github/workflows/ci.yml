@@ -217,11 +217,17 @@ jobs:
             --coverage-clover cobertura/clover.xml \
             --coverage-html cobertura/html
 
-      # Sin minimo todavia: esta es la primera medicion del proyecto y no habia
-      # forma honesta de fijar un corte antes de conocer el numero. En cuanto se
-      # sepa, se anade como segundo argumento y el job pasa a bloquear.
+      # El minimo es 12.0 porque la primera medicion real dio 12.07% (607 de
+      # 5030 sentencias). No es una meta, es un suelo: existe para que la
+      # cobertura no BAJE sin que nadie se entere, no para dar por buena la
+      # cifra. Subirlo a medida que se escriban pruebas es parte del trabajo.
+      #
+      # Que sea tan bajo tiene una explicacion concreta y no un descuido: las
+      # 204 pruebas son de modelos y helpers, y el <source> de phpunit.xml
+      # incluye tambien controllers/, que ninguna prueba toca. El desglose por
+      # capa que imprime el script lo deja a la vista.
       - name: Desglose por capa y verificacion del minimo
-        run: php scripts/verificar_cobertura.php cobertura/clover.xml
+        run: php scripts/verificar_cobertura.php cobertura/clover.xml 12.0
 
       - name: Publicar el informe navegable
         if: always()

@@ -129,6 +129,40 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Medición
+
+- **Primera medición de cobertura del proyecto: 12,07 %** (607 de 5030
+  sentencias). Nuevo job `cobertura` con PCOV que corre las dos suites juntas
+  contra MySQL, publica el informe HTML como artefacto y falla si la cobertura
+  baja del 12 %.
+
+  El número es bajo y conviene decir por qué sin adornarlo: las 204 pruebas son
+  de modelos y helpers, y el `<source>` de `phpunit.xml` incluye también
+  `controllers/`, que ninguna prueba toca. El desglose por capa que imprime
+  `scripts/verificar_cobertura.php` lo deja a la vista, junto con los diez
+  archivos peor cubiertos, que es la lista por la que hay que empezar.
+
+  El 12 % es un **suelo, no una meta**: existe para que la cobertura no baje sin
+  que nadie se entere. Subirlo conforme se escriban pruebas es parte del
+  trabajo, no una promesa vaga.
+
+- El porcentaje se publica además como **anotación de GitHub Actions**. La
+  salida de un paso solo se lee abriendo el registro y con credenciales del
+  repositorio; una anotación aparece en el resumen de la ejecución y en la
+  pestaña de la PR, y se consulta sin ellas.
+
+- Durante esa primera medición se descubrió y corrigió un fallo del propio
+  script: recortaba las rutas del informe buscando el literal `/panaderia/`, que
+  en el runner de GitHub —donde el repositorio se clona en
+  `/home/runner/work/breadcontrol/breadcontrol/`— no aparece. La ruta quedaba
+  absoluta, la capa salía como cadena vacía y el desglose se reducía a una fila
+  sin nombre: el global era correcto, pero el reparto no decía nada. Ahora se
+  recorta por el directorio de trabajo y **el script se niega a imprimir un
+  desglose cuyas capas no haya sabido deducir**, en vez de presentar como buena
+  una tabla vacía.
+
+---
+
 ## [1.10.0] — 2026-08-20
 
 ### Añadido
