@@ -161,6 +161,93 @@ jobs:
         if: env.SNYK_TOKEN != ''
         run: snyk code test --severity-threshold=high
 
+  mutacion:
+    name: Pruebas de mutacion (Infection)
+    runs-on: ubuntu-latest
+    # La cobertura dice que lineas EJECUTA una prueba; no dice si la prueba se
+    # enteraria de que esa linea cambio. Infection lo comprueba: altera el codigo
+    # (un > por un >=, una condicion invertida, una linea borrada) y mira si
+    # alguna prueba falla. Si nadie protesta, ahi hay una prueba que ejecuta
+    # codigo sin verificarlo.
+    #
+    # Primera medicion: 639 mutantes, 421 muertos, 218 escapados. MSI del codigo
+    # cubierto 65%. Es decir que de las mutaciones sobre codigo que las pruebas
+    # SI ejecutan, un 35% pasa inadvertido.
+    #
+    # Solo helpers/ y models/ (ver infection.json5): controllers/ esta al 0.0% de
+    # cobertura y mutarlo produciria mutantes vivos por definicion.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: panaderia_bd
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USER: root
+      DB_PASS: root
+      DB_NAME: panaderia_bd
+      APP_ENV: production
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Instalar PHP 8.2 con PCOV
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql
+          coverage: pcov
+
+      - name: Instalar dependencias
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Importar esquema y semilla de pruebas
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot panaderia_bd < sql/init/01_esquema_base.sql
+          mysql -h 127.0.0.1 -uroot -proot panaderia_bd < sql/init/90_semilla_ci.sql
+
+      # --min-covered-msi y no --min-msi: la cobertura global es del 12%, asi que
+      # el MSI global mediria sobre todo lo que NO esta probado, que ya lo dice
+      # el job de cobertura. Lo que aporta aqui es la calidad de las pruebas que
+      # existen, y eso es el MSI del codigo cubierto.
+      #
+      # 65 es un suelo, no una meta: impide que la calidad de las pruebas baje.
+      - name: Ejecutar Infection
+        run: |
+          vendor/bin/infection \
+            --threads=4 \
+            --min-covered-msi=65 \
+            --no-progress \
+            --no-interaction
+
+      - name: Publicar el MSI como anotacion
+        if: always()
+        run: |
+          if [ -f infection/resumen.txt ]; then
+            total=$(grep -oP 'Total: \K[0-9]+' infection/resumen.txt || echo 0)
+            muertos=$(grep -oP 'Killed by Test Framework: \K[0-9]+' infection/resumen.txt || echo 0)
+            escapados=$(grep -oP 'Escaped: \K[0-9]+' infection/resumen.txt || echo 0)
+            if [ "$total" -gt 0 ]; then
+              msi=$(awk "BEGIN{printf \"%.1f\", ($muertos/$total)*100}")
+              echo "::notice title=Mutacion::MSI del codigo cubierto: ${msi}% | ${muertos} muertos, ${escapados} escapados de ${total} mutantes"
+            fi
+          fi
+
+      - name: Publicar el informe de mutantes
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: infection-informe
+          path: infection/informe.txt
+          retention-days: 14
+
   calidad:
     name: Calidad de codigo (PHPMD + PHPMetrics)
     runs-on: ubuntu-latest
