@@ -201,6 +201,66 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Calidad
+
+- **PHPMD con línea base, igual que PHPStan.** PHPStan comprueba que los tipos
+  cuadren; no ve que un método de 400 líneas con complejidad ciclomática 145 sea
+  imposible de mantener. El nuevo job `calidad` mide eso y **falla solo ante
+  hallazgos nuevos**: los 109 actuales quedan registrados en
+  `phpmd.baseline.xml`. Arreglarlos exige partir los controladores, que es un
+  refactor con su propio riesgo; lo que no puede pasar es que la deuda siga
+  creciendo mientras tanto.
+
+- **El conjunto de reglas es propio, y cada exclusión está comprobada contra el
+  código.** Ejecutar `codesize`, `design`, `unusedcode` y `naming` enteros da
+  **573 hallazgos, de los que 464 son ruido** para esta arquitectura. Un informe
+  con esa proporción de falsos positivos no se lee: se ignora, y entonces
+  tampoco se ven los 109 que sí importan.
+
+  - `UnusedLocalVariable` (304) — **no** es código muerto: los controladores
+    asignan variables y luego hacen `require` de la vista, que es donde se usan.
+    PHPMD no sigue los `include`. Verificado con `$total_insumos`,
+    `$insumos_bajos` y `$prod_hoy` de `AuthController:41-43`, que aparecen en
+    tres vistas distintas.
+  - `ExitExpression` (71) — es el patrón deliberado del proyecto: las guardas de
+    autorización terminan en `header()` + `exit`.
+  - `UnusedPrivateMethod` (1) — falso positivo: `ExportadorCsv::formatear` se
+    invoca con `array_map([self::class, 'formatear'])`, que PHPMD no reconoce.
+  - `DevelopmentCodeFragment` (1) — falso positivo: es
+    `print_r($error, true)`, que **devuelve** la cadena para el registro en vez
+    de imprimirla.
+  - `ShortVariable` / `LongVariable` (87) — estilo, no defectos.
+
+- **PHPMetrics publica el mapa de mantenibilidad** como artefacto. No bloquea: no
+  hay umbral honesto que poner al índice de un proyecto que ya existe. Lo que
+  aporta es decidir **qué** refactorizar primero, y eso se mira.
+
+  El diagnóstico es inequívoco. Las diez clases peor puntuadas son **todas
+  controladores**, y por debajo de 65 se considera difícil de mantener:
+
+  | Clase | MI | Complejidad | Líneas lógicas | Métodos |
+  |---|---|---|---|---|
+  | `VentaController` | 24,2 | 145 | 403 | 5 |
+  | `PortalAuthController` | 25,5 | 159 | 500 | 7 |
+  | `PortalPedidoController` | 27,6 | 133 | 386 | 4 |
+  | `RecetaController` | 27,8 | 105 | 304 | 6 |
+
+  El patrón se repite: de cuatro a siete métodos cargando entre 300 y 500 líneas
+  lógicas cada uno. Cada método enruta, valida, atiende AJAX, persiste y
+  renderiza. Es responsabilidad única rota de manual, y ahora está medido en vez
+  de intuido.
+
+- **Anotado, sin cambiar:** `PagosPortalTrait::iniciarPagoConsolidado` recibe
+  `$cliente_id` y **no lo usa**. No es un fallo de seguridad —se comprobó: el
+  controlador obtiene los pedidos con `getPedidosPendientesPago($cliente_id)`,
+  que filtra por `id_cliente`, así que la propiedad se garantiza aguas arriba—,
+  pero la firma promete un acotamiento que el método no hace, y eso puede
+  engañar a quien la lea.
+
+- `composer calidad` y `composer metricas` para ejecutarlo en local.
+
+---
+
 ## [1.10.0] — 2026-08-20
 
 ### Añadido
