@@ -161,6 +161,90 @@ jobs:
         if: env.SNYK_TOKEN != ''
         run: snyk code test --severity-threshold=high
 
+  auditoria-seguridad:
+    name: Auditoria de seguridad (sin token)
+    runs-on: ubuntu-latest
+    # Tres comprobaciones de seguridad que NO dependen de ningun token.
+    #
+    # El job "seguridad" (Snyk) se salta entero si SNYK_TOKEN no esta
+    # configurado, asi que hasta ahora el CI podia pasar sin haber mirado ni una
+    # vez las dependencias, los secretos o el codigo. Estas tres corren siempre.
+    #
+    # Las tres se midieron contra el repositorio ANTES de ponerlas a bloquear:
+    # composer audit limpio, gitleaks limpio sobre los 140 commits del
+    # historial, y semgrep con 5 hallazgos ERROR que se revisaron uno a uno y
+    # son falsos positivos (ver el paso de semgrep).
+    steps:
+      # fetch-depth: 0 no es opcional aqui: gitleaks recorre el historial
+      # completo, y semgrep necesita el commit base para comparar.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Instalar PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      # --locked lee composer.lock directamente: no hace falta instalar vendor
+      # para saber si alguna version tiene un aviso de seguridad publicado.
+      - name: Vulnerabilidades conocidas en dependencias
+        run: composer audit --locked
+
+      - name: Instalar Gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+        run: |
+          curl -sSL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo mv gitleaks /usr/local/bin/
+          gitleaks version
+
+      # Sobre el historial COMPLETO, no solo sobre el arbol actual: un secreto
+      # borrado en un commit posterior sigue estando publicado y sigue siendo
+      # valido hasta que se rote. --redact evita que el propio registro del CI
+      # se convierta en el sitio donde queda expuesto.
+      - name: Secretos en el historial
+        run: gitleaks git . --no-banner --redact --exit-code 1
+
+      - name: Instalar Semgrep
+        run: pip install --quiet semgrep
+
+      # Sobre los hallazgos NUEVOS, no sobre todos. El repositorio arrastra 5
+      # hallazgos ERROR que se revisaron a mano y son falsos positivos:
+      #
+      #   - 4 x echoed-request sobre `echo json_encode(...)` en endpoints AJAX
+      #     (ProduccionController, VentaController x2, PortalPedidoController).
+      #     La regla asume salida HTML; aplicar htmlentities ahi CORROMPERIA el
+      #     JSON que espera el navegador.
+      #   - 1 x echoed-request sobre `<?= (int)($_POST['num_tandas'] ?? 1) ?>`
+      #     en views/produccion/nueva_produccion.php. Un entero no transporta XSS.
+      #
+      # Silenciar la regla entera para que dejaran de salir habria apagado
+      # tambien los XSS de verdad. Comparar contra la rama base deja la regla
+      # activa y solo bloquea lo que se anada a partir de ahora. Verificado
+      # inyectando un `echo $_GET['x']`: lo detecta y sale con codigo 2.
+      - name: Analisis estatico de seguridad (nuevos hallazgos)
+        if: github.event_name == 'pull_request'
+        run: |
+          semgrep scan \
+            --config p/php --config p/owasp-top-ten \
+            --exclude vendor --exclude backups \
+            --baseline-commit "${{ github.event.pull_request.base.sha }}" \
+            --severity ERROR --error --metrics=off
+
+      # En main no hay con que comparar, asi que se informa del total sin
+      # bloquear: el corte ya lo hizo la PR antes de llegar aqui.
+      - name: Analisis estatico de seguridad (informe completo)
+        if: github.event_name != 'pull_request'
+        run: |
+          semgrep scan \
+            --config p/php --config p/owasp-top-ten \
+            --exclude vendor --exclude backups \
+            --severity ERROR --metrics=off
+
   cobertura:
     name: Cobertura de pruebas (PCOV)
     runs-on: ubuntu-latest

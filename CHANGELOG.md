@@ -163,6 +163,44 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Seguridad
+
+- **Tres comprobaciones de seguridad que ya no dependen de un token.** El job de
+  Snyk se salta entero si `SNYK_TOKEN` no está configurado, así que hasta ahora
+  el CI podía pasar en verde sin haber mirado ni una sola vez las dependencias,
+  los secretos ni el código. El nuevo job `auditoria-seguridad` corre siempre:
+
+  - `composer audit --locked` — avisos publicados sobre las versiones del
+    `composer.lock`, sin necesidad de instalar `vendor/`.
+  - **Gitleaks** sobre el **historial completo**, no solo sobre el árbol: un
+    secreto borrado en un commit posterior sigue publicado y sigue siendo válido
+    hasta que se rote.
+  - **Semgrep** (`p/php` + `p/owasp-top-ten`), que cubre lo mismo que el
+    `snyk code` opcional.
+
+  Las tres se midieron contra el repositorio **antes** de ponerlas a bloquear,
+  para no estrenar el job en rojo: `composer audit` limpio, Gitleaks limpio
+  sobre los 140 commits del historial, y Semgrep con 5 hallazgos de severidad
+  ERROR.
+
+- **Los 5 hallazgos de Semgrep se revisaron uno a uno y son falsos positivos.**
+  Cuatro son `echo json_encode(...)` en endpoints AJAX: la regla asume salida
+  HTML y aplicar `htmlentities` ahí **corrompería** el JSON que espera el
+  navegador. El quinto es `<?= (int)($_POST['num_tandas'] ?? 1) ?>`, y un entero
+  no transporta XSS.
+
+  Por eso Semgrep compara contra la rama base en vez de silenciar la regla:
+  apagarla habría apagado también los XSS de verdad. Verificado inyectando un
+  `echo $_GET['x']` — lo detecta y sale con código 2.
+
+- **Anotado, sin cambiar:** `config/app.php` construye `APP_URL` desde
+  `$_SERVER['HTTP_HOST']` cuando falta `APP_URL` en el entorno. En producción
+  está definida, así que esa rama está muerta y el propio comentario del archivo
+  ya lo advierte. Queda como riesgo latente: si algún día faltara esa variable,
+  el sistema construiría URLs a partir de una cabecera que controla el cliente.
+
+---
+
 ## [1.10.0] — 2026-08-20
 
 ### Añadido
