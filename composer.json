@@ -3,7 +3,13 @@
     "description": "BreadControl — Sistema web de gestión para panaderías: inventario, recetas, producción, ventas, finanzas y portal de clientes.",
     "type": "project",
     "license": "MIT",
-    "keywords": ["panaderia", "inventario", "ventas", "php", "mysql"],
+    "keywords": [
+        "panaderia",
+        "inventario",
+        "ventas",
+        "php",
+        "mysql"
+    ],
     "authors": [
         {
             "name": "Manuel Cárdenas Suárez",
@@ -17,6 +23,8 @@
         "ext-pdo_mysql": "*"
     },
     "require-dev": {
+        "phpmd/phpmd": "^2.15",
+        "phpmetrics/phpmetrics": "^2.11",
         "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^11.5"
     },
@@ -34,7 +42,10 @@
     "scripts": {
         "test": "phpunit --colors=always",
         "test:unit": "phpunit --testsuite Unitarias --colors=always",
-        "test:integracion": "phpunit --testsuite Integracion --colors=always"
+        "test:integracion": "phpunit --testsuite Integracion --colors=always",
+        "calidad": "phpmd models,controllers,helpers,includes,config text phpmd.xml --baseline-file phpmd.baseline.xml",
+        "calidad:base": "phpmd models,controllers,helpers,includes,config text phpmd.xml --update-baseline",
+        "metricas": "phpmetrics --report-html=metricas \"models,controllers,helpers,includes,config\""
     },
     "config": {
         "sort-packages": true

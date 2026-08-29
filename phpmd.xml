@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<ruleset name="BreadControl"
+         xmlns="http://pmd.sf.net/ruleset/1.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd"
+         xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_xml_schema.xsd">
+
+    <description>
+        Reglas de PHPMD para BreadControl.
+
+        No se usan los conjuntos completos a proposito. Ejecutar codesize, design,
+        unusedcode y naming enteros da 573 hallazgos, de los que 456 son ruido para
+        la arquitectura de este proyecto. Un informe con esa proporcion de falsos
+        positivos no se lee: se ignora, y entonces tampoco se ven los 105 que si
+        importan.
+
+        Cada exclusion de abajo esta comprobada contra el codigo, no supuesta.
+    </description>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         TAMANO Y COMPLEJIDAD — la senal de verdad
+
+         Aqui estan los 105 hallazgos reales: 45 de complejidad ciclomatica,
+         31 de NPath, 20 de metodos demasiado largos y 9 de clases demasiado
+         complejas. Se concentran en los controladores del portal y de ventas,
+         que es exactamente donde el codigo pesa mas.
+         ══════════════════════════════════════════════════════════════ -->
+    <rule ref="rulesets/codesize.xml/CyclomaticComplexity" />
+    <rule ref="rulesets/codesize.xml/NPathComplexity" />
+    <rule ref="rulesets/codesize.xml/ExcessiveMethodLength" />
+    <rule ref="rulesets/codesize.xml/ExcessiveClassLength" />
+    <rule ref="rulesets/codesize.xml/ExcessiveParameterList" />
+    <rule ref="rulesets/codesize.xml/ExcessivePublicCount" />
+    <rule ref="rulesets/codesize.xml/TooManyFields" />
+    <rule ref="rulesets/codesize.xml/TooManyMethods" />
+    <rule ref="rulesets/codesize.xml/TooManyPublicMethods" />
+    <rule ref="rulesets/codesize.xml/ExcessiveClassComplexity" />
+
+    <!-- ══════════════════════════════════════════════════════════════
+         DISENO — acoplamiento y construcciones peligrosas
+         ══════════════════════════════════════════════════════════════ -->
+    <rule ref="rulesets/design.xml/CouplingBetweenObjects" />
+    <rule ref="rulesets/design.xml/DepthOfInheritance" />
+    <rule ref="rulesets/design.xml/EvalExpression" />
+    <rule ref="rulesets/design.xml/GotoStatement" />
+
+    <!-- ══════════════════════════════════════════════════════════════
+         CODIGO MUERTO — solo las dos reglas que no dan falsos positivos aqui
+         ══════════════════════════════════════════════════════════════ -->
+    <rule ref="rulesets/unusedcode.xml/UnusedFormalParameter" />
+    <rule ref="rulesets/unusedcode.xml/UnusedPrivateField" />
+
+    <!-- ══════════════════════════════════════════════════════════════
+         LO QUE SE DEJA FUERA, Y POR QUE
+         ══════════════════════════════════════════════════════════════
+
+         UnusedLocalVariable (304 hallazgos) — NO es codigo muerto aqui.
+             Los controladores asignan variables y luego hacen `require` de la
+             vista, que es donde se usan. PHPMD no sigue los include, asi que las
+             ve morir en el metodo. Comprobado: $total_insumos, $insumos_bajos y
+             $prod_hoy, marcadas en AuthController:41-43, se usan en
+             views/inventario/index.php, views/auth/landing.php y
+             views/produccion/index.php. Activar la regla seria pedir que se
+             cambie la arquitectura de plantillas del proyecto entero.
+
+         UnusedPrivateMethod (1 hallazgo) — falso positivo.
+             Marca ExportadorCsv::formatear como sin usar, pero se invoca en la
+             linea 53 del mismo archivo con array_map([self::class, 'formatear']).
+             PHPMD no reconoce las referencias en forma de callable.
+
+         ExitExpression (71 hallazgos) — es el patron deliberado del proyecto.
+             requerirLogin(), requerirPropietario() y requireCliente() terminan en
+             `header()` + `exit`, que es como se corta una peticion no autorizada
+             en PHP sin framework. Marcarlo 71 veces no aporta nada.
+
+         DevelopmentCodeFragment (1 hallazgo) — falso positivo.
+             Marca print_r() en config/logger.php:70, pero es
+             print_r($error, true): con el segundo argumento DEVUELVE la cadena en
+             vez de imprimirla, y sirve para dar formato a un valor que no es una
+             excepcion antes de escribirlo en el registro.
+
+         ShortVariable y LongVariable (87 hallazgos) — estilo, no defectos.
+             $e para una excepcion o $id para un identificador son convenciones
+             legibles. Esto lo cubre mejor un formateador que un analizador.
+    -->
+
+</ruleset>

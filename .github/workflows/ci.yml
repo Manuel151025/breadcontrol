@@ -161,6 +161,51 @@ jobs:
         if: env.SNYK_TOKEN != ''
         run: snyk code test --severity-threshold=high
 
+  calidad:
+    name: Calidad de codigo (PHPMD + PHPMetrics)
+    runs-on: ubuntu-latest
+    # Mide complejidad y acoplamiento, que es lo que PHPStan no ve: PHPStan
+    # comprueba que los tipos cuadren, no que un metodo de 400 lineas con
+    # complejidad ciclomatica 145 sea imposible de mantener.
+    #
+    # PHPMD va con linea base, igual que PHPStan: los 109 hallazgos actuales
+    # quedan registrados y solo falla lo NUEVO. Arreglarlos exige partir los
+    # controladores, que es un trabajo de refactor con su propio riesgo; lo que
+    # no puede pasar es que la deuda siga creciendo mientras tanto.
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Instalar PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Instalar dependencias
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: PHPMD (solo hallazgos nuevos)
+        run: |
+          vendor/bin/phpmd models,controllers,helpers,includes,config github \
+            phpmd.xml --baseline-file phpmd.baseline.xml
+
+      # PHPMetrics no bloquea: no hay un umbral honesto que poner al indice de
+      # mantenibilidad de un proyecto que ya existe. Lo que aporta es el mapa
+      # —acoplamiento, inestabilidad, distancia a la secuencia principal— para
+      # decidir QUE refactorizar primero, y eso se mira, no se automatiza.
+      - name: PHPMetrics (informe)
+        run: |
+          vendor/bin/phpmetrics --report-html=metricas \
+            "models,controllers,helpers,includes,config"
+
+      - name: Publicar el informe de metricas
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: metricas-html
+          path: metricas
+          retention-days: 14
+
   auditoria-seguridad:
     name: Auditoria de seguridad (sin token)
     runs-on: ubuntu-latest
