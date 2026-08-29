@@ -161,6 +161,97 @@ jobs:
         if: env.SNYK_TOKEN != ''
         run: snyk code test --severity-threshold=high
 
+  e2e:
+    name: Extremo a extremo (Playwright)
+    runs-on: ubuntu-latest
+    # Solo en PRs hacia main: anade unos minutos y su valor esta en frenar algo
+    # ANTES de que entre, no en repetirlo en cada push a una rama de trabajo.
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    # Cubre el hueco que ninguna otra herramienta alcanza: controllers/ esta al
+    # 0,0 % de cobertura y views/ tiene 12.346 lineas que jamas ejecuta una
+    # prueba. Un controlador hace header(), exit y renderiza una plantilla; eso
+    # solo se comprueba de verdad con un navegador.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: panaderia_bd
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Instalar PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql
+          coverage: none
+
+      - name: Importar esquema y semillas
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot panaderia_bd < sql/init/01_esquema_base.sql
+          mysql -h 127.0.0.1 -uroot -proot panaderia_bd < sql/init/90_semilla_ci.sql
+          mysql -h 127.0.0.1 -uroot -proot panaderia_bd < sql/init/95_semilla_e2e.sql
+
+      # El servidor embebido de PHP y no Apache: las pruebas ejercitan
+      # formularios y redirecciones, no reescritura de URL ni cabeceras, y
+      # levantarlo es inmediato. Las cabeceras ya las cubre el job "cabeceras"
+      # contra la imagen real.
+      - name: Levantar la aplicacion
+        env:
+          DB_HOST: 127.0.0.1
+          DB_USER: root
+          DB_PASS: root
+          DB_NAME: panaderia_bd
+          APP_ENV: local
+          APP_URL: http://127.0.0.1:8099
+        run: |
+          php -S 127.0.0.1:8099 -t . > servidor.log 2>&1 &
+          for intento in $(seq 1 30); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8099/login.php)" = "200" ]; then
+              echo "La aplicacion responde."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::La aplicacion no respondio en 30 segundos"
+          cat servidor.log
+          exit 1
+
+      - name: Instalar Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Instalar Playwright
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install chromium --with-deps
+
+      - name: Ejecutar los recorridos
+        working-directory: e2e
+        env:
+          E2E_BASE_URL: http://127.0.0.1:8099
+        run: npx playwright test
+
+      - name: Publicar el informe si algo fallo
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-informe
+          path: |
+            e2e/informe
+            e2e/test-results
+          retention-days: 14
+
   mutacion:
     name: Pruebas de mutacion (Infection)
     runs-on: ubuntu-latest

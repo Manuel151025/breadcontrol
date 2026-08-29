@@ -305,6 +305,68 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Extremo a extremo
+
+- **14 recorridos con Playwright**, que ejecutan por primera vez el 60 % del
+  proyecto que ninguna prueba tocaba: `controllers/` estaba al 0,0 % de
+  cobertura y `views/` tiene 12.346 líneas que jamás pasaban por una prueba. Un
+  controlador hace `header()`, `exit` y renderiza una plantilla; eso solo se
+  comprueba de verdad con un navegador.
+
+  | Recorrido | Qué verifica |
+  |---|---|
+  | Acceso al back-office | Entrada válida, contraseña incorrecta, que el error no revele si la cuenta existe (C05 del informe) y que sin sesión no se entre a un módulo |
+  | Punto de venta | Registrar una venta **descuenta las unidades disponibles** |
+  | Cierre de caja | La transición de día abierto a `CERRADO` |
+  | Portal | Acceso, registro de cuenta nueva y entrada con ella |
+  | Pedido del portal | Pestaña de precio → catálogo por AJAX → carrito en JS → pedido creado |
+
+  Corren en PRs hacia `main` y tardan **25 segundos**.
+
+- **Las aserciones son sobre la lógica, no sobre el texto en pantalla.** La venta
+  no comprueba que aparezca un mensaje: comprueba que las unidades disponibles
+  bajen exactamente en lo vendido. Si la venta se pintara pero no descontara del
+  inventario, la prueba falla.
+
+  Esto salió de un error propio que conviene dejar escrito: la primera versión
+  de la prueba del pedido buscaba el nombre del producto en el tablero del
+  cliente. **Pasaba sin haber creado ningún pedido**, porque el tablero lista
+  también el catálogo disponible. Se comprobó contra una base recién sembrada y
+  se cambió por contar pedidos antes y después.
+
+- **Se usa la interfaz real, no los campos ocultos.** Tanto el POS como el
+  pedido del portal construyen el carrito en JavaScript y lo envían en un
+  `carrito_json`. Rellenar ese campo a mano habría saltado justo el JavaScript
+  que no tiene ninguna prueba.
+
+- **Nueva semilla `sql/init/95_semilla_e2e.sql`**: cuentas de propietario,
+  empleado y cliente del portal, más el catálogo y la producción del día que el
+  POS necesita para tener stock. La producción se fecha con `NOW()` y no con una
+  constante: una semilla con la fecha fijada funcionaría el día que se escribe y
+  se rompería sola al siguiente.
+
+- **Nunca contra producción.** Estas pruebas crean y modifican datos; corren
+  contra una instancia efímera levantada en el runner.
+
+- **La semilla fija su propia zona horaria.** `config/db.php` ejecuta
+  `SET time_zone = '-05:00'` en cada conexión, así que para la aplicación
+  `CURDATE()` es la fecha de Colombia; la semilla, en cambio, la carga el cliente
+  `mysql`, que usa la del servidor —UTC en el runner de GitHub—.
+
+  Entre las 00:00 y las 05:00 UTC, esas dos fechas no coinciden: la producción se
+  sembraba con la fecha del día siguiente y la consulta de stock del punto de
+  venta no la encontraba, de modo que el recorrido fallaba por falta de datos y
+  no por un defecto. Ocurrió en la primera ejecución en CI, a las 03:17 UTC; en
+  local no se veía porque el servidor de desarrollo ya está en la zona de
+  Colombia.
+
+- **Los fallos se publican como anotaciones** (reportero `github` de Playwright).
+  El registro de una ejecución solo se lee con credenciales del repositorio; una
+  anotación, no. Sin eso, saber qué recorrido falló obliga a abrir el registro a
+  mano.
+
+---
+
 ## [1.10.0] — 2026-08-20
 
 ### Añadido

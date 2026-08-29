@@ -1,0 +1,13 @@
+{
+  "name": "breadcontrol-e2e",
+  "private": true,
+  "description": "Pruebas de extremo a extremo de BreadControl con Playwright.",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "informe": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0"
+  }
+}
