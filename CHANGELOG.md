@@ -261,6 +261,50 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Mutación
+
+- **Primera medición de la calidad de las pruebas: MSI del código cubierto
+  65 %.** La cobertura dice qué líneas *ejecuta* una prueba; no dice si la prueba
+  se enteraría de que esa línea cambió. Infection lo comprueba alterando el
+  código —un `>` por un `>=`, una condición invertida, una línea borrada— y
+  mirando si alguna prueba falla.
+
+  **639 mutantes generados, 421 muertos, 218 escapados.** De las mutaciones sobre
+  código que las pruebas **sí ejecutan**, un 35 % pasa inadvertido: son pruebas
+  que recorren la lógica sin verificarla.
+
+- **Dónde está concentrado**, que es lo accionable:
+
+  | Archivo | Mutantes escapados |
+  |---|---|
+  | `ProduccionModel.php` | 106 |
+  | `InstructorPortalTrait.php` | 40 |
+  | `CompraModel.php` | 21 |
+  | `IntentoLoginModel.php` | 17 |
+
+  `ProduccionModel` concentra casi la mitad él solo. Es el archivo por el que
+  empezar a reforzar aserciones.
+
+- **Se limita a `helpers/` y `models/` a propósito.** Ahí vive la lógica que hace
+  perder dinero si falla —FIFO de lotes, cuadre de caja, saldos del instructor—
+  y es lo único con cobertura suficiente para que el resultado signifique algo.
+  `controllers/` está al 0,0 %: mutarlo produciría mutantes vivos por definición
+  y no informaría de nada. El problema allí no es la calidad de las pruebas, es
+  que no hay.
+
+- Se usa `--min-covered-msi` y no `--min-msi`: con un 12 % de cobertura global,
+  el MSI global mediría sobre todo lo que **no** está probado, y eso ya lo dice
+  el job de cobertura. Lo que aporta aquí es la calidad de las pruebas que
+  existen. El 65 % es un suelo, no una meta.
+
+- Tarda **1 m 37 s** con 4 hilos, así que cabe en cada push sin volver lento el
+  CI. Verificado que el umbral bloquea: con `--min-covered-msi=70` sale 1, con
+  65 sale 0.
+
+- `composer mutacion` para ejecutarlo en local.
+
+---
+
 ## [1.10.0] — 2026-08-20
 
 ### Añadido

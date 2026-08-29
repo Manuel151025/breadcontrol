@@ -1,0 +1,48 @@
+{
+    // ════════════════════════════════════════════════════════════
+    //  Infection — pruebas de mutacion para BreadControl
+    //
+    //  La cobertura dice que lineas EJECUTA una prueba; no dice si la prueba
+    //  se enteraria de que esa linea cambio. Infection lo comprueba: altera el
+    //  codigo (cambia un > por un >=, invierte una condicion, borra una linea)
+    //  y mira si alguna prueba falla. Si nadie protesta, el mutante "sobrevive"
+    //  y ahi hay una prueba que ejecuta codigo sin verificarlo.
+    //
+    //  Se limita a helpers/ y models/ A PROPOSITO:
+    //
+    //  - Ahi vive la logica de negocio que de verdad importa —FIFO de lotes,
+    //    cuadre de caja, saldos del instructor, reglas del portal— y es donde
+    //    una condicion mal puesta hace perder dinero en vez de romper una
+    //    pantalla.
+    //  - Es lo unico con cobertura suficiente para que el resultado signifique
+    //    algo: models 23.9% y helpers 68.9%.
+    //  - controllers/ esta al 0.0%. Mutar codigo que ninguna prueba ejecuta
+    //    solo produciria mutantes vivos por definicion, tardaria muchisimo y no
+    //    informaria de nada: el problema alli no es la calidad de las pruebas,
+    //    es que no hay.
+    // ════════════════════════════════════════════════════════════
+
+    "$schema": "vendor/infection/infection/resources/schema.json",
+
+    "source": {
+        "directories": [
+            "helpers",
+            "models"
+        ]
+    },
+
+    "logs": {
+        // El informe legible: que mutantes sobrevivieron y donde.
+        "text": "infection/informe.txt",
+        // Resumen para leerlo desde el CI sin abrir el registro.
+        "summary": "infection/resumen.txt"
+    },
+
+    "tmpDir": "infection/tmp",
+
+    "mutators": {
+        "@default": true
+    },
+
+    "testFramework": "phpunit"
+}
