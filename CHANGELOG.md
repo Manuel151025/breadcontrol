@@ -404,6 +404,37 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Pruebas reforzadas
+
+- **`ProduccionModel` pasa de 45 % a 56 % de MSI**, y el global del proyecto de
+  **65,9 % a 69,5 %**. El suelo del CI sube de 65 a 69 en consecuencia. Nueve
+  pruebas nuevas, 22 mutantes muertos.
+
+- **La causa era que todos los datos de prueba eran números redondos.** Las
+  pruebas usaban precios de $100 y $200 con cantidades de 10 y 20, de modo que
+  `round()`, `floor()` y `ceil()` daban idéntico resultado y cambiar los
+  decimales de precisión tampoco alteraba nada: la lógica de redondeo del costeo
+  **no llegaba a ejercerse nunca**. Con un precio de $33,333 sí decide el valor.
+
+- **Lo que ahora queda verificado y antes no:**
+
+  | Comportamiento | Por qué importa |
+  |---|---|
+  | El costo por lote se redondea a 2 decimales | Es el valor que alimenta los informes de finanzas |
+  | El costo unitario se redondea a 4 | Arrastraría toda la cola decimal sin él |
+  | Forzar deja constancia en las observaciones | Distingue un costeo fiable de uno estimado |
+  | Sin nota propia, el aviso no lleva separador colgando | — |
+  | El lote sintético se nombra `EST-{producción}-{insumo}` | Ese formato es lo que evita colisiones en una columna con clave única |
+  | El aviso de descuadre entre `stock_actual` y la suma de lotes | Es el **punto 7 de este anexo**: un problema conocido cuyo detector no probaba nadie |
+  | Un descuadre por debajo de la milésima **no** se reporta | Los decimales de coma flotante no deben producir avisos falsos |
+  | El plan FIFO redondea `a_consumir` a 4 decimales | Con cantidades enteras nunca se ejercía |
+
+- La prueba del descuadre viene acompañada de su negativa —cuando stock y lotes
+  cuadran, no hay aviso—, porque sin ella un detector que avisara **siempre**
+  habría pasado igual.
+
+---
+
 ## [1.10.0] — 2026-08-20
 
 ### Añadido

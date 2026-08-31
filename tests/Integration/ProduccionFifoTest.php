@@ -133,4 +133,70 @@ final class ProduccionFifoTest extends BaseDatosTestCase
         $this->assertSame(15.0, (float) $r['avisos'][0]['stock_actual']);
         $this->assertSame(10.0, (float) $r['avisos'][0]['disponible_lotes']);
     }
+
+    // ------------------------------------------------------------
+    // Aviso de descuadre entre el stock del insumo y sus lotes
+    //
+    // Es el punto 7 del anexo de limitaciones: insumo.stock_actual puede
+    // desincronizarse de la suma real de lote.cantidad_disponible. El modelo ya
+    // detecta ese descuadre y lo reporta en 'avisos', pero ninguna prueba lo
+    // ejercia: las dos existentes solo miraban 'errores'. Las pruebas de
+    // mutacion lo destaparon —ocho mutantes escapaban en esa comparacion— y sin
+    // esto el detector de un problema conocido podia dejar de funcionar sin que
+    // nadie se enterara.
+    // ------------------------------------------------------------
+
+    public function testAvisaCuandoElStockDelInsumoNoCuadraConSusLotes(): void
+    {
+        // El insumo dice 30 kg pero sus lotes solo suman 25: hay 5 kg que el
+        // inventario cree tener y que ningun lote respalda.
+        $id_insumo = $this->crearInsumo(30);
+        $this->crearLote($id_insumo, date('Y-m-d H:i:s', strtotime('-10 days')), 25, 100);
+
+        $r = $this->model->verificarStockIngredientes([$this->ingrediente($id_insumo, 1, 30)], 1);
+
+        $this->assertCount(1, $r['avisos'], 'El descuadre debe reportarse');
+        $this->assertSame(30.0, (float) $r['avisos'][0]['stock_actual']);
+        $this->assertSame(25.0, (float) $r['avisos'][0]['disponible_lotes']);
+    }
+
+    public function testNoAvisaCuandoElStockCuadraConSusLotes(): void
+    {
+        // Mismo escenario, ya cuadrado: sin aviso. Sin esta comprobacion, un
+        // detector que avisara SIEMPRE pasaria la prueba de arriba igual.
+        $id_insumo = $this->crearInsumo(25);
+        $this->crearLote($id_insumo, date('Y-m-d H:i:s', strtotime('-10 days')), 25, 100);
+
+        $r = $this->model->verificarStockIngredientes([$this->ingrediente($id_insumo, 1, 25)], 1);
+
+        $this->assertSame([], $r['avisos']);
+    }
+
+    public function testUnDescuadreMenorAlaMilesimaNoSeReporta(): void
+    {
+        // La comparacion redondea a tres decimales a proposito: los decimales
+        // de coma flotante de MySQL no deben producir avisos falsos. Un descuadre
+        // de una diezmilesima no es un descuadre, es ruido del tipo de dato.
+        $id_insumo = $this->crearInsumo(25.0001);
+        $this->crearLote($id_insumo, date('Y-m-d H:i:s', strtotime('-10 days')), 25, 100);
+
+        $r = $this->model->verificarStockIngredientes([$this->ingrediente($id_insumo, 1, 25.0001)], 1);
+
+        $this->assertSame([], $r['avisos'], 'Una diferencia por debajo de la milesima es ruido, no descuadre');
+    }
+
+    public function testElPlanFifoRedondeaLasCantidadesACuatroDecimales(): void
+    {
+        // Las otras pruebas usan cantidades enteras (10, 2, 20), de modo que el
+        // round(..., 4) de 'a_consumir' nunca llegaba a hacer nada. Con una
+        // receta de 1/3 por unidad la cantidad es periodica y el redondeo si
+        // decide el valor.
+        $id_insumo = $this->crearInsumo(10);
+        $this->crearLote($id_insumo, date('Y-m-d H:i:s', strtotime('-10 days')), 10, 100);
+
+        // 0,33333 x 1 tanda = 0,33333 -> 0,3333 con cuatro decimales
+        $r = $this->model->calcularLotesFIFO($this->ingrediente($id_insumo, 0.33333, 10), 1);
+
+        $this->assertSame(0.3333, $r['lotes_a_usar'][0]['a_consumir']);
+    }
 }
