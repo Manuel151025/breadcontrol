@@ -5,6 +5,11 @@
 #  CAPACIDAD DE FALLAR antes de ponerla a bloquear: un verificador que no puede
 #  fallar no verifica nada, solo ocupa el sitio del que sí lo haría.
 #
+#  Tres de ellas —compilación, unitarias e integración— corren sobre una MATRIZ
+#  de PHP 8.2 y 8.3. La rama 8.3 es informativa y no bloquea todavía: PHP 8.2
+#  deja de recibir parches el 31 de diciembre de 2026, y ver qué se rompe hoy
+#  convierte esa fecha en información en vez de en un susto de diciembre.
+#
 #    compilación         → sintaxis de todos los archivos PHP (php -l)
 #    analisis-estatico   → PHPStan nivel 10 (con phpstan-baseline.neon)
 #    pruebas-unitarias   → PHPUnit, suite "Unitarias" (sin base de datos)
@@ -33,15 +38,34 @@ on:
 
 jobs:
   compilacion:
-    name: Sintaxis PHP (php -l)
+    name: Sintaxis PHP (php -l) · PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.2'
+            experimental: false
+          # 8.3 se anade en modo INFORMATIVO, no bloqueante. PHP 8.2 deja de
+          # recibir parches de seguridad el 31 de diciembre de 2026, asi que la
+          # migracion no es opcional; lo que si es una decision es cuando. Ver
+          # que se rompe HOY convierte esa fecha en informacion en vez de en un
+          # susto de diciembre.
+          #
+          # No bloquea todavia a proposito: si 8.3 fallara, un CI en rojo
+          # permanente ensena a ignorarlo —ya paso en este proyecto, quince
+          # dias—. En cuanto pase limpio se cambia experimental a false y a
+          # partir de ahi si bloquea.
+          - php: '8.3'
+            experimental: true
+    continue-on-error: ${{ matrix.experimental }}
     steps:
       - uses: actions/checkout@v7
 
-      - name: Instalar PHP 8.2
+      - name: Instalar PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: ${{ matrix.php }}
           coverage: none
 
       - name: Verificar sintaxis de todos los archivos PHP
@@ -73,15 +97,34 @@ jobs:
         run: vendor/bin/phpstan analyse --no-progress --error-format=github
 
   pruebas-unitarias:
-    name: Pruebas unitarias (PHPUnit)
+    name: Pruebas unitarias (PHPUnit) · PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.2'
+            experimental: false
+          # 8.3 se anade en modo INFORMATIVO, no bloqueante. PHP 8.2 deja de
+          # recibir parches de seguridad el 31 de diciembre de 2026, asi que la
+          # migracion no es opcional; lo que si es una decision es cuando. Ver
+          # que se rompe HOY convierte esa fecha en informacion en vez de en un
+          # susto de diciembre.
+          #
+          # No bloquea todavia a proposito: si 8.3 fallara, un CI en rojo
+          # permanente ensena a ignorarlo —ya paso en este proyecto, quince
+          # dias—. En cuanto pase limpio se cambia experimental a false y a
+          # partir de ahi si bloquea.
+          - php: '8.3'
+            experimental: true
+    continue-on-error: ${{ matrix.experimental }}
     steps:
       - uses: actions/checkout@v7
 
-      - name: Instalar PHP 8.2
+      - name: Instalar PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: ${{ matrix.php }}
           extensions: pdo, pdo_mysql
           coverage: none
 
@@ -92,8 +135,27 @@ jobs:
         run: vendor/bin/phpunit --testsuite Unitarias
 
   pruebas-integracion:
-    name: Pruebas de integración (PHPUnit + MySQL)
+    name: Pruebas de integración (PHPUnit + MySQL) · PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.2'
+            experimental: false
+          # 8.3 se anade en modo INFORMATIVO, no bloqueante. PHP 8.2 deja de
+          # recibir parches de seguridad el 31 de diciembre de 2026, asi que la
+          # migracion no es opcional; lo que si es una decision es cuando. Ver
+          # que se rompe HOY convierte esa fecha en informacion en vez de en un
+          # susto de diciembre.
+          #
+          # No bloquea todavia a proposito: si 8.3 fallara, un CI en rojo
+          # permanente ensena a ignorarlo —ya paso en este proyecto, quince
+          # dias—. En cuanto pase limpio se cambia experimental a false y a
+          # partir de ahi si bloquea.
+          - php: '8.3'
+            experimental: true
+    continue-on-error: ${{ matrix.experimental }}
     services:
       mysql:
         image: mysql:8.0
@@ -116,10 +178,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Instalar PHP 8.2
+      - name: Instalar PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: ${{ matrix.php }}
           extensions: pdo, pdo_mysql
           coverage: none
 

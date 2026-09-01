@@ -117,9 +117,11 @@ Decirlo importa tanto como decir lo que sí:
 - **El pago consolidado del portal**, que es el único recorrido de los
   planificados que quedó fuera: necesita configuración de Nequi y un pedido
   aprobado por instructor.
-- **Compatibilidad entre versiones de PHP.** El CI corre solo 8.2. Con el fin de
-  soporte el 31 de diciembre de 2026, añadir 8.3 a la matriz es el primer paso
-  de esa migración.
+- **Compatibilidad con PHP más allá de 8.3.** La compilación, las unitarias y
+  las de integración ya corren sobre una matriz de **8.2 y 8.3**, pero la rama
+  8.3 es **informativa y no bloquea**: sirve para saber qué se rompería, no para
+  frenar el trabajo. Los otros ocho jobs siguen fijos en 8.2, porque matrizarlos
+  todos doblaría el tiempo del CI sin aportar señal nueva.
 
 ---
 

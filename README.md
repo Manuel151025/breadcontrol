@@ -473,10 +473,10 @@ verifica nada.
 
 | # | Verificación | Qué exige |
 |---|--------------|-----------|
-| 1 | **Sintaxis PHP** | `php -l` sobre todos los archivos del proyecto |
+| 1 | **Sintaxis PHP** | `php -l` sobre todos los archivos, en **PHP 8.2 y 8.3** |
 | 2 | **Análisis estático** | PHPStan nivel 10 sobre `config/`, `controllers/`, `helpers/`, `includes/` y `models/`. Los niveles 1-8 pasan limpios; 9-10 se exigen a todo código nuevo y las ocurrencias heredadas quedan en `phpstan-baseline.neon` |
-| 3 | **Pruebas unitarias** | Suite `Unitarias` (sin base de datos) |
-| 4 | **Pruebas de integración** | Suite `Integracion` contra MySQL 8.0 real, creado desde `sql/init/01_esquema_base.sql` más `90_semilla_ci.sql` |
+| 3 | **Pruebas unitarias** | Suite `Unitarias` (sin base de datos), en **PHP 8.2 y 8.3** |
+| 4 | **Pruebas de integración** | Suite `Integracion` contra MySQL 8.0 real, creado desde `sql/init/01_esquema_base.sql` más `90_semilla_ci.sql`, en **PHP 8.2 y 8.3** |
 | 5 | **Cobertura** | PCOV sobre las dos suites juntas. Falla si baja del **12 %**, publica el desglose por capa y el informe HTML como artefacto |
 | 6 | **Mutación** | Infection sobre `helpers/` y `models/`. Falla si el MSI del código cubierto baja del **69 %** |
 | 7 | **Calidad de código** | PHPMD contra su línea base (complejidad, métodos largos, clases sobrecargadas) más el informe de PHPMetrics como artefacto |
