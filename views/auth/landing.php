@@ -384,49 +384,9 @@
   </div>
 </footer>
 
-<script>
-// Nav scroll
-const nav = document.getElementById('mainNav');
-window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 40));
 
-// Mobile menu
-const ham = document.getElementById('navHam');
-const mob = document.getElementById('navMobile');
-const ico = document.getElementById('hamIco');
-ham.addEventListener('click', () => {
-  const open = mob.classList.toggle('open');
-  ico.className = open ? 'bi bi-x-lg' : 'bi bi-list';
-});
-mob.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
-  mob.classList.remove('open');
-  ico.className = 'bi bi-list';
-}));
 
-// Scroll reveal
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-}, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
-document.querySelectorAll('.reveal, .reveal-x').forEach(el => observer.observe(el));
 
-// Hero instant
-setTimeout(() => {
-  document.querySelectorAll('.hero .reveal, .hero .reveal-x').forEach(el => el.classList.add('visible'));
-}, 150);
-</script>
-
-<script>
-// Al abrir un enlace con ancla (/#modulos), el navegador salta ANTES de que las
-// imágenes y las animaciones terminen de asentar la página, así que el destino
-// acaba fuera de la vista. Se recoloca una vez que todo cargó.
-window.addEventListener('load', function () {
-  if (!location.hash) return;
-  var destino = document.querySelector(location.hash);
-  if (!destino) return;
-  setTimeout(function () {
-    destino.scrollIntoView({ block: 'start', behavior: 'auto' });
-  }, 150);
-});
-</script>
 
 <!-- Manual de Usuario -->
 <a href="<?= APP_URL ?>/assets/docs/Manual_BreadControl.pdf" target="_blank" rel="noopener noreferrer" class="btn-manual" title="Manual de Usuario" aria-label="Abrir el manual de usuario en una pestaña nueva">
@@ -434,5 +394,6 @@ window.addEventListener('load', function () {
   <span class="manual-tooltip">Manual de Usuario</span>
 </a>
 
+<script src="<?= APP_URL ?>/assets/js/landing.js?v=<?= APP_VERSION ?>"></script>
 </body>
 </html>

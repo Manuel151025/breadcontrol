@@ -33,7 +33,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 19 | Columna huérfana `pedido_cliente.id_tienda_destino` | Arquitectura | Bajo | ✅ **Resuelto** (2026-08-06) |
 | 20 | Los mensajes de confirmación nunca se muestran | Usabilidad | Bajo-Medio | ✅ **Resuelto** (2026-08-15) |
 | 21 | HSTS, versión de Nginx y cabeceras de proxy | Seguridad | Medio | ✅ **Resuelto** (2026-08-14/15) |
-| 22 | `unsafe-inline` en la CSP: 164 manejadores en línea | Seguridad | Medio | 🟡 **Fase 1a** (2026-09-01) — bloques de configuración fuera (31→26); faltan los manejadores |
+| 22 | `unsafe-inline` en la CSP: 164 manejadores en línea | Seguridad | Medio | 🟡 **Fases 1a-1b** (2026-09-01) — bloques 31→21; faltan los manejadores |
 | 23 | Respaldos: probados, pero en el mismo servidor | Continuidad | Medio | 🟡 Parcial — falta copia externa |
 | 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
 | 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Bajo | 🟡 **Desriesgado** (2026-09-01) — 8.3 verificado y bloqueando en CI; falta cambiar el `Dockerfile` |
@@ -344,6 +344,14 @@ Cinco bloques `<script>` incrustados solo existían para pasar valores de PHP a 
 - **Un bloque de tipo `application/json`** para los datos del carrito del portal. El navegador no lo ejecuta: es un contenedor. Se serializa con `JSON_HEX_TAG` para que un dato que contenga el cierre de la etiqueta no pueda cortarla antes de tiempo.
 
 **Medido:** de **31 a 26** bloques ejecutables, 20 líneas menos. Los 164 manejadores en línea siguen intactos.
+
+**🟡 Fase 1b, primera parte (2026-09-01): fuera cinco bloques más, a archivos externos.**
+
+Los bloques de la portada, del acceso al back-office, del acceso al portal y del registro pasan a `assets/js/`: `landing.js`, `login.js`, `portal_login.js` y `portal_registro.js`. La lógica se mueve **sin cambiar una línea**; lo único que se transforma son las interpolaciones de PHP, que pasan a atributos `data-*` del `<body>` (la URL del clima y el nombre del saludo).
+
+**Medido: de 26 a 21 bloques ejecutables**, y de 631 a 434 líneas de JavaScript incrustado. Verificado en el navegador: esas cuatro pantallas ya no sirven **ningún** bloque de script ejecutable, y no dan un solo error de JavaScript.
+
+**Duplicación detectada de paso, sin corregir:** los bloques de `login.php`, `portal/login.php` y `portal/registro.php` traían cada uno su propia copia del reloj y del widget de clima. Ahora están en tres archivos separados, así que la duplicación es más visible que antes. Unificarlos es un cambio distinto y mezclarlo aquí habría enturbiado la revisión.
 
 **⬜ Lo que falta, y el orden está forzado:**
 

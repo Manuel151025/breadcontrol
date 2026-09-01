@@ -123,7 +123,7 @@
     @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
   </style>
 </head>
-<body>
+<body data-weather-url="<?= htmlspecialchars((string) get_env('API_OPEN_METEO_URL', 'https://api.open-meteo.com/v1/forecast'), ENT_QUOTES) ?>">
 
 <img src="<?= APP_URL ?>/assets/img/bakery-bg.jpg" alt="" class="bg-img">
 <div class="bg-overlay"></div>
@@ -224,65 +224,7 @@
   </div>
 </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const telInput = document.querySelector('input[name="telefono"]');
-        if (telInput) {
-            telInput.addEventListener('keypress', function(e) {
-                if (!/[0-9]/.test(e.key)) e.preventDefault();
-            });
-            telInput.addEventListener('input', function(e) {
-                this.value = this.value.replace(/[^0-9]/g, '');
-                if (this.value.length > 15) this.value = this.value.slice(0, 15);
-            });
-        }
-        
-        const nomInput = document.querySelector('input[name="nombre"]');
-        if (nomInput) {
-            nomInput.addEventListener('input', function(e) {
-                this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\.,-]/g, '');
-            });
-        }
-        
-        const userInput = document.querySelector('input[name="usuario"]');
-        if (userInput) {
-            userInput.addEventListener('input', function(e) {
-                this.value = this.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-            });
-        }
 
-    });
-
-// ── Clock ──
-(function(){
-  function tick(){
-    var n = new Date();
-    var timeEl = document.getElementById('hdr-time');
-    var dateEl = document.getElementById('hdr-date');
-    if(timeEl) timeEl.textContent = n.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
-    if(dateEl) dateEl.textContent = n.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  }
-  tick();
-  setInterval(tick, 1000);
-})();
-
-// ── Weather (Open-Meteo) ──
-(function(){
-  var WMO = {0:'bi-sun',1:'bi-cloud-sun',2:'bi-cloud-sun',3:'bi-clouds',
-    45:'bi-cloud-fog',48:'bi-cloud-fog',51:'bi-cloud-drizzle',53:'bi-cloud-drizzle',
-    55:'bi-cloud-drizzle',61:'bi-cloud-rain',63:'bi-cloud-rain-heavy',65:'bi-cloud-rain-heavy',
-    80:'bi-cloud-rain',81:'bi-cloud-rain-heavy',95:'bi-cloud-lightning-rain'};
-  fetch('<?= get_env("API_OPEN_METEO_URL", "https://api.open-meteo.com/v1/forecast") ?>?latitude=1.6144&longitude=-75.6062&current_weather=true&timezone=America/Bogota')
-    .then(function(r){return r.json()})
-    .then(function(d){
-      var cw = d.current_weather;
-      var wTemp = document.getElementById('w-temp');
-      var wIcon = document.getElementById('w-icon');
-      if(wTemp) wTemp.textContent = Math.round(cw.temperature) + '°C';
-      var ico = WMO[cw.weathercode] || 'bi-thermometer-half';
-      if(wIcon) wIcon.className = 'bi ' + ico + ' weather-icon';
-    }).catch(function(){});
-})();
-</script>
+<script src="<?= APP_URL ?>/assets/js/portal_registro.js?v=<?= APP_VERSION ?>"></script>
 </body>
 </html>

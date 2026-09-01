@@ -179,8 +179,24 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
     serializa con `JSON_HEX_TAG` para que un dato que contenga el cierre de la
     etiqueta no pueda cortarla antes de tiempo.
 
-  **De 31 a 26 bloques ejecutables**, 20 líneas menos. Los 164 manejadores en
-  línea siguen intactos: son la siguiente fase.
+  **De 31 a 26 bloques ejecutables**, 20 líneas menos.
+
+- **Y cinco bloques más a archivos externos.** La portada, el acceso al
+  back-office, el acceso al portal y el registro pasan a `assets/js/`:
+  `landing.js`, `login.js`, `portal_login.js` y `portal_registro.js`. La lógica
+  se mueve **sin cambiar una línea**; lo único que se transforma son las
+  interpolaciones de PHP —la URL del clima y el nombre del saludo—, que pasan a
+  atributos `data-*`.
+
+  **De 26 a 21 bloques**, y de 631 a 434 líneas de JavaScript incrustado.
+  Verificado en el navegador: esas cuatro pantallas ya no sirven **ningún**
+  bloque de script ejecutable y no dan un solo error de JavaScript.
+
+  Los 164 manejadores en línea siguen intactos: son la siguiente fase.
+
+- **Duplicación detectada de paso, sin corregir:** los tres bloques de acceso y
+  registro traían cada uno su copia del reloj y del widget de clima. Ahora que
+  están en archivos separados se ve mejor. Unificarlos es un cambio distinto.
 
 - **Por qué esto es solo el principio, y en qué orden va lo demás.** Un nonce no
   sirve para un `onclick`: los manejadores en línea solo se pueden autorizar con
