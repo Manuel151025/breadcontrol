@@ -27,8 +27,19 @@ class ReglasPortal {
      */
     public const ANIO_SIN_DEFINIR = 1970;
 
-    /** Cupo semanal máximo de un aprendiz (COP). */
-    public const CUPO_MAXIMO = 100000;
+    /**
+     * Cupo semanal máximo que un instructor puede asignar a un aprendiz (COP).
+     *
+     * Coincide a propósito con el cupo con el que arranca todo aprendiz
+     * (`cupo_semanal DEFAULT 20000.00` en el esquema, y el mismo valor al
+     * canjear el código): el cupo es un tope fijo, no un punto de partida
+     * ajustable hacia arriba. Estuvo en 100.000 hasta el 2026-09-01.
+     *
+     * Este es el ÚNICO sitio donde vive el número. El mensaje de error y el
+     * atributo `max` de los dos formularios se derivan de aquí: antes cada uno
+     * lo repetía a mano, que es como acaban desincronizándose.
+     */
+    public const CUPO_MAXIMO = 20000;
 
     /** El cupo semanal debe ser múltiplo de este valor (COP). */
     public const CUPO_MULTIPLO = 500;
@@ -142,7 +153,8 @@ class ReglasPortal {
      */
     public static function validarCupoSemanal(float $cupo): ?string {
         if ($cupo < 0 || $cupo > self::CUPO_MAXIMO) {
-            return 'El cupo semanal debe estar entre $0 y $100.000 COP.';
+            return 'El cupo semanal debe estar entre $0 y $'
+                . number_format(self::CUPO_MAXIMO, 0, ',', '.') . ' COP.';
         }
         $cupo_int = (int) $cupo;
         if ($cupo_int % self::CUPO_MULTIPLO !== 0 || $cupo != $cupo_int) {

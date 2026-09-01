@@ -214,7 +214,7 @@
                                 <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                                 <input type="hidden" name="aprendiz_id" value="<?= (int)$a['id_cliente'] ?>">
                                 <span class="cupo-lbl">Cupo $</span>
-                                <input type="number" name="cupo_semanal" value="<?= (int)$a['cupo_semanal'] ?>" min="0" max="100000" step="500">
+                                <input type="number" name="cupo_semanal" value="<?= (int)$a['cupo_semanal'] ?>" min="0" max="<?= ReglasPortal::CUPO_MAXIMO ?>" step="<?= ReglasPortal::CUPO_MULTIPLO ?>">
                                 <button type="submit" name="actualizar_cupo" class="btn btn-ghost btn-sm" title="Guardar cupo" aria-label="Guardar cupo">
                                     <i class="bi bi-check-lg"></i>
                                 </button>
