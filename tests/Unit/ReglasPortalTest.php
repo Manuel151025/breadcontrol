@@ -222,6 +222,57 @@ final class ReglasPortalTest extends TestCase
         ];
     }
 
+    // ============ Cancelar un pedido vencido ============
+
+    public function testUnPedidoVencidoSePuedeCancelarPeroNoEditar(): void
+    {
+        // El caso que motivo la regla: un pedido cuya fecha de entrega ya paso y
+        // que nadie atendio. Hasta ahora el cliente quedaba atrapado con el —no
+        // podia retirarlo— y el pedido seguia contando como saldo si su
+        // instructor lo habia aprobado.
+        $ahora   = new DateTimeImmutable('2026-08-10 12:00:00');
+        $vencido = '2026-08-03 09:00:00';
+
+        $this->assertTrue(
+            ReglasPortal::puedeCancelarPedido('pendiente', $vencido, $ahora),
+            'Un pedido vencido debe poder retirarse'
+        );
+        $this->assertFalse(
+            ReglasPortal::puedeGestionarPedido('pendiente', $vencido, $ahora),
+            'Un pedido vencido NO debe poder editarse: la fecha ya paso'
+        );
+    }
+
+    public function testLas48HorasPreviasSiguenBloqueandoLaCancelacion(): void
+    {
+        // El bloqueo original no se toca: a menos de 48 horas el pan puede estar
+        // ya en produccion. Si esta prueba pasara, la regla nueva habria abierto
+        // de mas.
+        $ahora = new DateTimeImmutable('2026-08-10 12:00:00');
+
+        $this->assertFalse(
+            ReglasPortal::puedeCancelarPedido('pendiente', '2026-08-11 12:00:00', $ahora),
+            'A 24 horas de la entrega no se puede cancelar'
+        );
+        $this->assertTrue(
+            ReglasPortal::puedeCancelarPedido('pendiente', '2026-08-20 12:00:00', $ahora),
+            'A diez dias vista si se puede cancelar'
+        );
+    }
+
+    public function testSoloSeCancelaLoQueSiguePendiente(): void
+    {
+        $ahora   = new DateTimeImmutable('2026-08-10 12:00:00');
+        $vencido = '2026-08-03 09:00:00';
+
+        foreach (['confirmado', 'rechazado', 'cancelado'] as $estado) {
+            $this->assertFalse(
+                ReglasPortal::puedeCancelarPedido($estado, $vencido, $ahora),
+                "Un pedido '$estado' no se cancela por estar vencido"
+            );
+        }
+    }
+
     public function testElTopeDelCupoSemanalEsVeinteMil(): void
     {
         // Ancla deliberada del valor, y la unica del archivo. Todo lo demas se

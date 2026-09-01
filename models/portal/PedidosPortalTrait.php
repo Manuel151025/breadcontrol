@@ -276,8 +276,11 @@ trait PedidosPortalTrait {
             }
         }
 
-        // Validar restricción de 48 horas
-        if (ReglasPortal::fueraDeLimiteGestion($pedido['fecha_entrega'])) {
+        // Bloqueo solo en las 48 horas PREVIAS a la entrega: a esas alturas el
+        // pan puede estar ya en produccion. Pasada la fecha ese motivo
+        // desaparece y el pedido vuelve a ser cancelable, para que un pedido
+        // vencido y sin atender no deje al cliente atrapado con el.
+        if (!ReglasPortal::puedeCancelarPedido($pedido['estado'], $pedido['fecha_entrega'])) {
             throw new Exception("No es posible cancelar este pedido (menos de 48 horas para la entrega).");
         }
 

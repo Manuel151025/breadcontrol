@@ -74,6 +74,47 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Corregido
+
+- **Un pedido vencido dejaba al cliente atrapado con él.** Si la fecha de entrega
+  pasaba sin que nadie confirmara ni rechazara el pedido, el aprendiz **no podía
+  retirarlo**: `puedeGestionarPedido()` exigía que faltaran 48 horas para la
+  entrega, y esa misma regla gobernaba editar **y** cancelar.
+
+  Ahora son dos reglas, porque no tienen el mismo límite:
+
+  - **Editar** sigue exigiendo 48 horas de margen. Un pedido para una fecha que
+    ya pasó no se edita: se cierra.
+  - **Cancelar** se bloquea solo en las 48 horas **previas** a la entrega, cuando
+    el pan puede estar ya en producción. Pasada la fecha ese motivo desaparece.
+
+  La nueva `puedeCancelarPedido()` reutiliza `dentroDeLimite48h()`, que describe
+  exactamente la ventana que debe bloquear: no vencido y a menos de 48 horas.
+
+- Las tres pruebas se comprobaron contra la regla anterior antes de dar el
+  cambio por bueno: la del pedido vencido falla con ella.
+
+### Documentación
+
+- **Nuevo punto 30 del anexo de limitaciones**, con el análisis completo del
+  ciclo de vida de los pedidos. Lo que se resolvió, lo que sigue abierto —falta
+  un estado que describa «se acabó el plazo sin que nadie decidiera»— y las dos
+  consecuencias medidas por separado:
+
+  - El **cupo semanal no se ve afectado**: el consumo filtra por
+    `fecha_solicitud` dentro de la semana en curso, así que un pedido viejo no
+    bloquea cupo futuro.
+  - El **saldo pendiente sí**: `calcularSaldoPendiente()` filtra por
+    `aprobado_instructor = 1` **sin ninguna condición de fecha**, de modo que un
+    pedido aprobado y nunca entregado contaría como deuda indefinidamente.
+
+  La consulta contra producción devolvió **cero filas**, y conviene ser preciso
+  sobre qué prueba eso: que hoy no hay ningún caso, no que no pueda haberlo.
+  Funciona porque la gente atiende los pedidos a tiempo, no porque el sistema lo
+  garantice.
+
+---
+
 ## [1.11.0] — 2026-09-01
 
 Dos días dedicados a que el proyecto pueda demostrar lo que afirma. El CI pasó

@@ -58,10 +58,12 @@
                     <div class="ped-title">Pedido #<?= str_pad($pedido['id_pedido'], 4, '0', STR_PAD_LEFT) ?></div>
                     <div style="display:flex; align-items:center; gap: 0.8rem; margin-top:0.6rem; flex-wrap:wrap;">
                         <span class="estado e-<?= $pedido['estado'] ?>"><?= $pedido['estado'] ?></span>
-                        <?php if($puede_gestionar): ?>
+                        <?php if($puede_editar): ?>
                             <a href="nuevo_pedido.php?edit_id=<?= $pedido['id_pedido'] ?>" class="btn-edit" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">
                                 <i class="bi bi-pencil-square"></i> Editar
                             </a>
+                        <?php endif; ?>
+                        <?php if($puede_cancelar): ?>
                             <?php // Cancelar es una acción destructiva, así que va por POST con
                                   // token. Antes era un enlace GET: bastaba con que el cliente
                                   // abriera una URL preparada por un tercero para perder su pedido. ?>
