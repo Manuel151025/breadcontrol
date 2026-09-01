@@ -36,11 +36,12 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 22 | `unsafe-inline` en la CSP: 157 manejadores en línea | Seguridad | Medio | ⬜ Abierto — L |
 | 23 | Respaldos: probados, pero en el mismo servidor | Continuidad | Medio | 🟡 Parcial — falta copia externa |
 | 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
-| 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Medio | ⬜ Abierto — S-M (antes de nov 2026) |
+| 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Bajo | 🟡 **Desriesgado** (2026-09-01) — 8.3 verificado y bloqueando en CI; falta cambiar el `Dockerfile` |
 | 26 | La fecha «sin definir» es un valor mágico (`1000-01-01`) | Diseño de datos | Bajo | ⬜ Abierto — M |
 | 27 | Controles hechos con `<div onclick>`: inalcanzables con teclado | Accesibilidad | Medio | 🟡 Parcial — faltan los modales |
 | 28 | El tablero del instructor no cuadraba consigo mismo | Integridad de datos | Medio | ✅ **Resuelto** (2026-08-15) |
 | 29 | No se sabía qué migraciones tenía aplicada una base | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
+| 30 | Un pedido vencido se queda en «pendiente» para siempre | Ciclo de vida | Bajo | 🟡 **Parcial** (2026-09-01) — ya se puede cancelar; falta el estado |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -367,15 +368,23 @@ Se declaran las tres **puertas de enlace del propio host** y no rangos amplios: 
 
 ---
 
-### 25. ⬜ PHP 8.2 deja de recibir parches de seguridad el 31 de diciembre de 2026
+### 25. 🟡 PHP 8.2 deja de recibir parches de seguridad el 31 de diciembre de 2026 — DESRIESGADO (2026-09-01)
 
 **Detectado el 2026-08-15** al elaborar el calendario de mantenimiento (`docs/mantenimiento.md`, punto C13 del informe).
 
 **Descripción:** el `Dockerfile` fija `php:8.2-apache`. PHP 8.2 sale de soporte de seguridad al terminar 2026: a partir de esa fecha, una vulnerabilidad descubierta en el intérprete **no recibe corrección**, y nada en el sistema avisa de ello.
 
-**Impacto:** faltan unos cuatro meses. No es urgente hoy, pero sí tiene fecha, y es de los problemas que se descubren tarde porque no producen ningún síntoma visible.
+**✅ Lo que cambió el 2026-09-01: ya sabemos que el código corre en 8.3.**
 
-**Severidad:** Media (creciente con el tiempo). **Esfuerzo:** S-M — cambiar el `FROM` del `Dockerfile` a `php:8.3-apache` o `php:8.4-apache`, correr las 154 pruebas y PHPStan en nivel 10 con la nueva imagen, y verificar en local antes de publicar. Esa red de pruebas es justamente lo que permite hacer el salto con confianza en vez de a ciegas.
+La compilación, las pruebas unitarias y las de integración corren sobre una **matriz de PHP 8.2 y 8.3**, y **ambas bloquean**. Entró en modo informativo por la mañana, pasó limpio a la primera en las tres ramas, y se puso a bloquear el mismo día.
+
+Eso convierte la migración de un riesgo en un trámite: **cambiar el `FROM` del `Dockerfile`**, con 217 pruebas y 16 recorridos de navegador vigilando que siga funcionando. La incógnita —«¿qué se rompe?»— ya está respondida: nada.
+
+**⬜ Lo que sigue pendiente:** el cambio en sí. Producción sigue en `php:8.2-apache`, y los otros ocho jobs del CI siguen fijos en 8.2 a propósito, porque es la versión que corre en el servidor. El día que se cambie el `Dockerfile`, esos ocho deberían moverse con él.
+
+Nada verifica todavía 8.4, que es la siguiente decisión: saltar a 8.3 (soportado hasta finales de 2027) o directamente a 8.4.
+
+**Severidad:** Baja desde que 8.3 está verificado. **Esfuerzo:** S — cambiar una línea del `Dockerfile`, publicar y comprobar.
 
 **Relacionado:** `MySQL 8.0` alcanzó su fin de vida en abril de 2026 según el calendario de Oracle. Conviene **verificarlo** —esa fecha está en el límite de lo comprobable desde aquí— y evaluar el paso a MySQL 8.4 LTS, con respaldo previo y probando el esquema: la diferencia de `only_full_group_by` entre motores ya rompió una pantalla en producción una vez.
 

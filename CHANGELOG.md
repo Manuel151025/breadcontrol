@@ -115,6 +115,24 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Documentación
+
+- **El punto 25 del anexo decía algo que dejó de ser cierto el mismo día.** Seguía
+  marcado como abierto —«PHP 8.2 deja de recibir parches el 31 de diciembre»—
+  cuando esa misma mañana 8.3 entró en la matriz del CI y pasó a bloquear. Ahora
+  figura como **desriesgado**: la incógnita («¿qué se rompe?») está respondida y
+  lo que queda es cambiar una línea del `Dockerfile`.
+
+- **La fila 30 faltaba en la tabla resumen.** El punto se añadió al cuerpo del
+  documento pero no al índice, así que quien leyera solo el resumen no se
+  enteraba de que existía. Un inventario al que se le escapa una entrada deja de
+  ser un inventario.
+
+  Se comprueba además que el estado de cada fila coincida con el del punto que
+  resume: **30 filas, 30 puntos, cero desajustes**.
+
+---
+
 ## [1.11.0] — 2026-09-01
 
 Dos días dedicados a que el proyecto pueda demostrar lo que afirma. El CI pasó
