@@ -33,7 +33,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 19 | Columna huérfana `pedido_cliente.id_tienda_destino` | Arquitectura | Bajo | ✅ **Resuelto** (2026-08-06) |
 | 20 | Los mensajes de confirmación nunca se muestran | Usabilidad | Bajo-Medio | ✅ **Resuelto** (2026-08-15) |
 | 21 | HSTS, versión de Nginx y cabeceras de proxy | Seguridad | Medio | ✅ **Resuelto** (2026-08-14/15) |
-| 22 | `unsafe-inline` en la CSP: 157 manejadores en línea | Seguridad | Medio | ⬜ Abierto — L |
+| 22 | `unsafe-inline` en la CSP: 164 manejadores en línea | Seguridad | Medio | 🟡 **Fase 1a** (2026-09-01) — bloques de configuración fuera (31→26); faltan los manejadores |
 | 23 | Respaldos: probados, pero en el mismo servidor | Continuidad | Medio | 🟡 Parcial — falta copia externa |
 | 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
 | 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Bajo | 🟡 **Desriesgado** (2026-09-01) — 8.3 verificado y bloqueando en CI; falta cambiar el `Dockerfile` |
@@ -322,7 +322,7 @@ Se declaran las tres **puertas de enlace del propio host** y no rangos amplios: 
 
 ---
 
-### 22. ⬜ `unsafe-inline` en la política de seguridad de contenido
+### 22. 🟡 `unsafe-inline` en la política de seguridad de contenido — FASE 1a COMPLETADA (2026-09-01)
 
 **Descubierto al implementar R-03 (v1.8.0).**
 
@@ -335,6 +335,28 @@ Se declaran las tres **puertas de enlace del propio host** y no rangos amplios: 
 **Severidad:** Media. **Esfuerzo:** L — extraer 157 manejadores a archivos `.js` con `addEventListener`, mover los 31 bloques a archivos externos y sustituir los `style` en línea por clases. Alternativamente, firmar cada bloque con un `nonce` por petición, que es menos trabajo pero obliga a tocar todas las vistas igual.
 
 **Por qué se pospuso:** quitarlo sin hacer ese trabajo rompería la interfaz por completo. Se prefirió una CSP activa e imperfecta —que ya bloquea el origen externo— sobre no tener ninguna.
+
+**🟡 Fase 1a completada (2026-09-01): fuera los bloques de configuración.**
+
+Cinco bloques `<script>` incrustados solo existían para pasar valores de PHP a JavaScript (`appUrl`, la URL del clima, la de cierre de sesión, y los datos iniciales del carrito del portal). Ahora esa información viaja por dos vías que **la CSP no restringe**, porque ninguna es código ejecutable:
+
+- **Atributos `data-*` en `<body>`** para los valores sueltos. El `<body>` de `views/layouts/header.php` lo comparten todas las pantallas del back-office, así que basta declararlo una vez.
+- **Un bloque de tipo `application/json`** para los datos del carrito del portal. El navegador no lo ejecuta: es un contenedor. Se serializa con `JSON_HEX_TAG` para que un dato que contenga el cierre de la etiqueta no pueda cortarla antes de tiempo.
+
+**Medido:** de **31 a 26** bloques ejecutables, 20 líneas menos. Los 164 manejadores en línea siguen intactos.
+
+**⬜ Lo que falta, y el orden está forzado:**
+
+| Fase | Trabajo | Verificable hoy |
+|---|---|---|
+| 1b | 56 manejadores y 9 bloques de las pantallas que cubre el E2E | Sí |
+| 2 | Ampliar el E2E a compras, pedidos, recetas, gastos y configuración | — |
+| 3 | Los 108 manejadores restantes | Solo tras la fase 2 |
+| 4 | Nonce por petición y retirar `'unsafe-inline'` | Al final |
+
+La fase 4 **no se puede adelantar**: en cuanto existe un nonce, el navegador ignora `'unsafe-inline'` por especificación, así que cualquier manejador que quede dejaría de funcionar. Es todo o nada.
+
+Y un detalle que condiciona la fase 1b: los 19 recorridos cubren **9 pantallas**, pero no cada botón. Convertir un `onclick` de un control que ninguna prueba pulsa sigue siendo trabajo sin red.
 
 ---
 

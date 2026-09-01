@@ -1,5 +1,28 @@
 // assets/js/portal_nuevo_pedido.js — logica del carrito de nuevo pedido del portal.
-// Requiere: utils.js y las variables de configuracion definidas inline por la vista.
+// Requiere: utils.js (que define appUrl desde <body data-app-url>).
+//
+// Los datos que antes llegaban en un bloque <script> incrustado ahora vienen de
+// un <script type="application/json">, que el navegador no ejecuta. Ese cambio
+// es lo que permitira quitar 'unsafe-inline' de la CSP (punto 22 del anexo).
+
+var __datosPedido = (function () {
+    var el = document.getElementById('datos-pedido');
+    try { return el ? JSON.parse(el.textContent) : {}; } catch (e) { return {}; }
+}());
+
+// Datos que vienen del servidor.
+var cart         = __datosPedido.cart || [];
+var bonifPreload = __datosPedido.bonifPreload || [];
+var esAprendiz   = !!__datosPedido.esAprendiz;
+var esTienda     = !!__datosPedido.esTienda;
+
+// Estado propio del navegador: no lo aporta PHP, se inicializa aqui.
+var catalogVars   = [];
+var currentPrice  = 0;
+var currentCatId  = 0;
+var bonifCredito  = 0;
+var bonifLoaded   = false;
+var allVarieties  = [];
 
     function setPedidoPara(val) {
         document.getElementById('pedido_para_input').value = val;

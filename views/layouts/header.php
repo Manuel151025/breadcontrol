@@ -47,7 +47,19 @@ function navActive(string $path): string {
 <link href="<?= APP_URL ?>/assets/css/responsive.css?v=<?= APP_VERSION ?>" rel="stylesheet">
   <link href="<?= APP_URL ?>/assets/css/main.css?v=<?= APP_VERSION ?>" rel="stylesheet">
 </head>
-<body>
+<?php
+// La configuracion que necesita el JavaScript viaja en atributos data-* del
+// <body>, no en un bloque de script incrustado. El motivo es la CSP: mientras
+// exista un solo bloque de script sin src, script-src necesita 'unsafe-inline', y eso
+// deja abierta la via mas comun de XSS (ver punto 22 del anexo). Un atributo
+// data-* no es codigo, asi que ninguna politica tiene que permitirlo.
+//
+// Este <body> lo comparten TODAS las pantallas del back-office, asi que basta
+// declararlo una vez aqui.
+?>
+<body data-app-url="<?= htmlspecialchars(APP_URL, ENT_QUOTES) ?>"
+      data-logout-url="<?= htmlspecialchars(APP_URL . '/logout.php', ENT_QUOTES) ?>"
+      data-weather-url="<?= htmlspecialchars((string) get_env('API_OPEN_METEO_URL', 'https://api.open-meteo.com/v1/forecast'), ENT_QUOTES) ?>">
 
 <nav id="main-nav">
   <!-- LOGO -->
@@ -150,10 +162,4 @@ if (function_exists('mostrarMensaje')) {
   </div>
 </div>
 
-  <script>
-    window.BREADCONTROL_CONFIG = {
-      appUrl: '<?= APP_URL ?>',
-      logoutUrl: '<?= APP_URL ?>/logout.php'
-    };
-  </script>
   <script src="<?= APP_URL ?>/assets/js/main.js?v=<?= APP_VERSION ?>" defer></script>

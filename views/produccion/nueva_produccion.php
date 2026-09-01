@@ -206,7 +206,6 @@
   </div>
 </div>
 
-<script>var appUrl = '<?= APP_URL ?>';</script>
 <script src="<?= APP_URL ?>/assets/js/utils.js?v=<?= APP_VERSION ?>"></script>
 <script src="<?= APP_URL ?>/assets/js/produccion.js?v=<?= APP_VERSION ?>"></script>
 
