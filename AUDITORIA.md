@@ -1,5 +1,26 @@
 # Auditoría de BreadControl
 
+> ## ⏱ Este documento es una fotografía del 8 de julio de 2026
+>
+> **No refleja el estado actual del proyecto y no debe leerse como tal.** Se
+> conserva sin modificar porque es el punto de partida contra el que se mide
+> todo lo demás: reescribirlo borraría la evidencia de dónde estaba el sistema.
+>
+> Buena parte de sus 62 hallazgos ya está resuelta —entre otros C1, C2, C9 y
+> C13—, y algunos se cerraron como **decisión de no corregir**, que también es
+> una respuesta legítima.
+>
+> **Para saber qué sigue abierto hoy, consulta
+> [`LIMITACIONES_Y_TRABAJO_FUTURO.md`](LIMITACIONES_Y_TRABAJO_FUTURO.md)**, que
+> es el documento vivo: lleva el estado de cada punto (✅ resuelto, 🟡 parcial,
+> ⬜ abierto) con la fecha y el porqué de cada decisión. El
+> [`CHANGELOG.md`](CHANGELOG.md) registra qué versión cerró cada uno.
+>
+> No se marcan estados dentro de este archivo a propósito: mantener dos
+> inventarios vivos garantiza que acaben contradiciéndose, y entonces ninguno de
+> los dos sirve.
+
+
 **Alcance:** los 148 archivos PHP del proyecto (config, includes, helpers, controllers, models, modules, views, portal, sql) — no se modificó ningún archivo, solo lectura y análisis.
 **Metodología:** revisión manual completa de cada controlador y modelo, lectura íntegra de las vistas, verificación cruzada contra el esquema real en `sql/panaderia_bd.sql` y las migraciones sueltas de `sql/`, y pruebas de consistencia entre pantallas que muestran los mismos datos (utilidad, stock, ventas).
 

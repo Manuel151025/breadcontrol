@@ -4,7 +4,17 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
-## [Sin publicar]
+## [1.11.0] — 2026-09-01
+
+Dos días dedicados a que el proyecto pueda demostrar lo que afirma. El CI pasó
+de cinco verificaciones —y quince días en rojo sin que nadie lo notara— a once,
+cada una comprobada por su capacidad de fallar antes de ponerla a bloquear.
+
+Por el camino aparecieron tres defectos que ninguna herramienta anterior podía
+ver: una prueba que llevaba catorce días sin poder ejecutarse, el resaltado del
+menú que no ha funcionado nunca, y el redondeo del costeo sin verificar porque
+todos los datos de prueba eran números redondos.
+
 
 ### Añadido
 
@@ -432,6 +442,35 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 - La prueba del descuadre viene acompañada de su negativa —cuando stock y lotes
   cuadran, no hay aviso—, porque sin ella un detector que avisara **siempre**
   habría pasado igual.
+
+---
+
+### Documentación
+
+- **La documentación decía cifras que ya no eran ciertas.** El README declaraba
+  «151 pruebas, 291 aserciones» y «5 verificaciones» de CI; la realidad son
+  **213 pruebas, 397 aserciones y 16 recorridos de navegador**, con **11
+  verificaciones**. También decía 834 ocurrencias en el baseline de PHPStan
+  cuando son 474, y la cabecera de `ci.yml` describía cuatro jobs y «PHPStan
+  nivel 3» —es nivel 10—.
+
+  Para un proyecto que se entrega, esto pesa más que la deuda técnica: quien lo
+  evalúa abre el README antes que el código.
+
+- **Nuevo [`docs/estrategia_pruebas.md`](docs/estrategia_pruebas.md).** Qué ve
+  cada capa y qué no, por qué el suelo de cobertura es 12 y el de mutación 69,
+  qué mirar cuando cada verificación falla, y —explícitamente— **lo que estas
+  pruebas no cubren**: carga, restauración de respaldos, accesibilidad, el pago
+  consolidado y la compatibilidad con otras versiones de PHP.
+
+- **`CONTRIBUTING.md`** incorpora `composer mutacion`, `composer calidad` y el
+  procedimiento completo de Playwright, con el aviso de apuntar siempre a una
+  base desechable: esas pruebas crean y modifican datos.
+
+- **`AUDITORIA.md` queda marcada como fotografía histórica** del 8 de julio y
+  remite al anexo de limitaciones para el estado vivo. No se marcan estados
+  dentro de ella a propósito: mantener dos inventarios vivos garantiza que
+  acaben contradiciéndose, y entonces ninguno sirve.
 
 ---
 
