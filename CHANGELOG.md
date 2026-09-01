@@ -17,10 +17,17 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
   un susto de diciembre — y ahora hay con qué verlo: 213 pruebas, 16 recorridos
   de navegador y mutación midiendo si esas pruebas verifican de verdad.
 
-- **La rama 8.3 no bloquea todavía, a propósito** (`continue-on-error`). Si
-  fallara, un CI en rojo permanente enseña a ignorarlo: este proyecto ya pasó
-  quince días así y nadie lo miró. En cuanto pase limpio se cambia
-  `experimental` a `false` y desde ese momento sí bloquea.
+- **Y bloquea desde el mismo día.** Entró en modo informativo y **pasó limpio a
+  la primera** en las tres ramas, así que no había motivo para dejarlo de
+  adorno: a partir de aquí, una regresión que rompa 8.3 no entra.
+
+  El plan era mantenerlo informativo mientras hiciera falta —un CI en rojo
+  permanente enseña a ignorarlo, y este proyecto ya pasó quince días así—, pero
+  no hizo falta ni una ejecución.
+
+  **Con esto, el único punto pendiente que tenía fecha deja de ser un riesgo**:
+  migrar a 8.3 pasa a ser un cambio de versión en el `Dockerfile` cuando se
+  decida, con 213 pruebas y 16 recorridos vigilando que siga funcionando.
 
   `fail-fast: false` para ver siempre las dos ramas: saber que 8.3 falla no debe
   costar el resultado de 8.2, ni al revés.
