@@ -40,6 +40,40 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Cambiado
+
+- **El cupo semanal de un aprendiz pasa de un tope de $100.000 a $20.000.**
+
+  Los $20.000 eran hasta ahora el valor **inicial** —`cupo_semanal DEFAULT
+  20000.00` en el esquema, y el mismo importe al canjear el código de
+  aprendiz—, mientras que el tope real era `ReglasPortal::CUPO_MAXIMO = 100000`.
+  Un instructor podía subir el cupo hasta cinco veces el valor de partida. Ahora
+  el cupo es un tope fijo, no un punto de partida ajustable hacia arriba.
+
+- **El número vive en un solo sitio.** Antes se repetía a mano en cuatro:
+  la constante, el mensaje de error (`'... entre $0 y $100.000 COP.'`) y el
+  `max` de los dos formularios —incluido un recorte en JavaScript que lo
+  mencionaba dos veces más—. Todos derivan ya de `ReglasPortal::CUPO_MAXIMO`,
+  que es como se evita que vuelvan a decir cosas distintas.
+
+- Los casos límite de la prueba se calculan también desde la constante, **con
+  una excepción deliberada**: una aserción ancla el valor en 20.000. Si todo se
+  derivara, devolver el tope a $100.000 no rompería ninguna prueba y el cambio
+  de regla pasaría inadvertido.
+
+- **Nota de operación:** bajar el tope no reescribe los datos existentes. Si
+  algún aprendiz ya tenía un cupo por encima de $20.000, lo conserva —la
+  validación solo actúa al guardar— pero su instructor no podrá volver a
+  guardarlo. Para saber si hay alguno:
+
+  ```sql
+  SELECT id_cliente, nombre, cupo_semanal
+  FROM cliente
+  WHERE es_aprendiz = 1 AND cupo_semanal > 20000;
+  ```
+
+---
+
 ## [1.11.0] — 2026-09-01
 
 Dos días dedicados a que el proyecto pueda demostrar lo que afirma. El CI pasó

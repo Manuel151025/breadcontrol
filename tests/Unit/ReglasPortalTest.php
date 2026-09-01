@@ -205,23 +205,46 @@ final class ReglasPortalTest extends TestCase
 
     public static function provideBordesCupo(): array
     {
+        // Los bordes se calculan desde la constante y no se escriben a mano: si
+        // el tope vuelve a cambiar, estos casos siguen probando el borde de
+        // verdad en vez de un numero que quedo obsoleto.
+        $tope = ReglasPortal::CUPO_MAXIMO;
+
         return [
             'cero'                    => [0.0, true],
             'mínimo múltiplo'         => [500.0, true],
-            'intermedio'              => [50000.0, true],
-            'máximo permitido'        => [100000.0, true],
-            'mayor al máximo'         => [100500.0, false],
+            'intermedio'              => [(float) ($tope / 2), true],
+            'máximo permitido'        => [(float) $tope, true],
+            'un múltiplo por encima'  => [(float) ($tope + 500), false],
             'negativo'                => [-500.0, false],
             'no múltiplo de 500'      => [450.0, false],
-            'con decimales'           => [100000.5, false],
+            'con decimales'           => [(float) $tope + 0.5, false],
         ];
+    }
+
+    public function testElTopeDelCupoSemanalEsVeinteMil(): void
+    {
+        // Ancla deliberada del valor, y la unica del archivo. Todo lo demas se
+        // deriva de la constante —para que no se desincronice—, pero si TODO se
+        // derivara, devolver el tope a 100.000 no rompería ninguna prueba y el
+        // cambio de regla pasaria inadvertido.
+        //
+        // 20.000 coincide con el cupo con el que arranca cada aprendiz
+        // (cupo_semanal DEFAULT 20000.00): el cupo es un tope fijo, no un punto
+        // de partida ajustable hacia arriba.
+        $this->assertSame(20000, ReglasPortal::CUPO_MAXIMO);
+
+        $this->assertNull(ReglasPortal::validarCupoSemanal(20000.0), '20.000 debe aceptarse');
+        $this->assertNotNull(ReglasPortal::validarCupoSemanal(20500.0), '20.500 debe rechazarse');
     }
 
     public function testMensajesDeErrorDelCupo(): void
     {
+        // El mensaje se deriva de la constante: se comprueba que la refleje, no
+        // que diga una cifra concreta escrita a mano en dos sitios.
         $this->assertSame(
-            'El cupo semanal debe estar entre $0 y $100.000 COP.',
-            ReglasPortal::validarCupoSemanal(150000.0)
+            'El cupo semanal debe estar entre $0 y $20.000 COP.',
+            ReglasPortal::validarCupoSemanal(ReglasPortal::CUPO_MAXIMO + 1000.0)
         );
         $this->assertSame(
             'El cupo semanal debe ser múltiplo de $500 COP.',
