@@ -273,7 +273,9 @@
       </div>
     </div>
   </div>
-  <a href="#acerca" class="scroll-arrow"><i class="bi bi-chevron-double-down"></i></a>
+  <?php // El icono no es texto para un lector de pantalla: sin aria-label este
+        // enlace se anuncia como "enlace" a secas y no hay forma de saber a donde va. ?>
+  <a href="#acerca" class="scroll-arrow" aria-label="Ir a la sección Acerca de"><i class="bi bi-chevron-double-down" aria-hidden="true"></i></a>
 </section>
 
 <!-- ═══ ABOUT ═══ -->

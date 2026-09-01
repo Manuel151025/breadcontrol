@@ -133,6 +133,37 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Accesibilidad
+
+- **axe-core entra en la suite de navegador: tres recorridos sobre nueve
+  pantallas**, con los criterios WCAG 2.0 y 2.1 en niveles A y AA. El punto 27
+  del anexo llevaba desde agosto en «parcialmente resuelto» sin nada que lo
+  midiera; ahora hay número.
+
+- **El resultado dice bastante del trabajo previo: solo dos reglas incumplidas
+  en las nueve pantallas.** Ni una violación de `button-name`, `label`, `aria-*`
+  ni orden de encabezados.
+
+  - `link-name` × 1 → **corregido**: la flecha de la portada era un enlace con
+    solo un icono, sin nombre accesible. Se le añade `aria-label` y el icono
+    pasa a `aria-hidden`.
+  - `color-contrast` × 75 → tolerado y documentado.
+
+- **El contraste se tolera pero no se oculta.** Los 75 nodos se reducen a **17
+  combinaciones de color** repartidas por todo el sistema, algunas de 1,02:1
+  —texto prácticamente invisible—. Eso no son parches sueltos: es revisar la
+  paleta, y es una decisión de diseño con dueño. El desglose completo, con las
+  cinco peores combinaciones y sus ratios, está en el punto 27.
+
+  Cualquier regla **nueva** sí rompe el CI. Verificado inyectando un botón sin
+  nombre accesible en el menú: lo detecta como `[critical] button-name` y falla.
+
+- **Lo que axe no comprueba, dicho explícitamente:** una página puede pasar axe
+  entera y seguir siendo inservible sin ratón. La comprobación con teclado y
+  lector de pantalla sigue siendo manual y sigue pendiente.
+
+---
+
 ## [1.11.0] — 2026-09-01
 
 Dos días dedicados a que el proyecto pueda demostrar lo que afirma. El CI pasó

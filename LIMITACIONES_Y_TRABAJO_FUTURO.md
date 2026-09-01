@@ -38,7 +38,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
 | 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Bajo | 🟡 **Desriesgado** (2026-09-01) — 8.3 verificado y bloqueando en CI; falta cambiar el `Dockerfile` |
 | 26 | La fecha «sin definir» es un valor mágico (`1000-01-01`) | Diseño de datos | Bajo | ⬜ Abierto — M |
-| 27 | Controles hechos con `<div onclick>`: inalcanzables con teclado | Accesibilidad | Medio | 🟡 Parcial — faltan los modales |
+| 27 | Controles con `<div onclick>` y contraste de color | Accesibilidad | Medio | 🟡 Parcial — medido con axe (2026-09-01); queda el contraste (17 combinaciones) |
 | 28 | El tablero del instructor no cuadraba consigo mismo | Integridad de datos | Medio | ✅ **Resuelto** (2026-08-15) |
 | 29 | No se sabía qué migraciones tenía aplicada una base | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
 | 30 | Un pedido vencido se queda en «pendiente» para siempre | Ciclo de vida | Bajo | 🟡 **Parcial** (2026-09-01) — ya se puede cancelar; falta el estado |
@@ -415,7 +415,7 @@ Nada verifica todavía 8.4, que es la siguiente decisión: saltar a 8.3 (soporta
 
 ## ACCESIBILIDAD
 
-### 27. 🟡 Controles hechos con `<div onclick>` — PARCIALMENTE RESUELTO (2026-08-15)
+### 27. 🟡 Controles con `<div onclick>` y contraste de color — PARCIALMENTE RESUELTO (2026-08-15), MEDIDO CON axe (2026-09-01)
 
 **Era:** varios controles centrales eran `<div>` con un `onclick`. Un `<div>` no recibe foco ni responde a Enter, así que **con el teclado no había forma de usarlos**. En la pantalla de ventas eso significaba que no se podía registrar una venta sin ratón: ni elegir el precio, ni «Otro precio», ni cambiar entre Venta y Consumo interno. En compras, ni elegir insumo ni proveedor.
 
@@ -430,6 +430,37 @@ Nada verifica todavía 8.4, que es la siguiente decisión: saltar a 8.3 (soporta
 2. **La clase `.active` es puramente visual**, y un lector de pantalla no la ve: no anunciaba cuál precio o tipo estaba elegido. Se añadió `aria-pressed`, que `marcarActivo()` mueve junto con la clase para que no se separen.
 
 **Rótulos:** cuatro `<label>` encabezaban un grupo de campos o un dato fijo, no un control único al que saltar. Pasaron a `<span class="fl-rotulo">` con `role="group"` + `aria-labelledby` (mismo aspecto, sin prometer un control que no existe), y los dos selectores de compras usan `aria-labelledby` porque `<label for>` no funciona sobre un `<button>`.
+
+**✅ Ahora hay una medición, no una impresión (2026-09-01).**
+
+Tres recorridos de Playwright ejecutan **axe-core** sobre nueve pantallas —portada, acceso, portal (acceso, registro, tablero, nuevo pedido) y back-office (tablero, punto de venta, cierre)— con los criterios WCAG 2.0 y 2.1, niveles A y AA.
+
+El resultado dice bastante del trabajo de arriba: **solo dos reglas incumplidas en las nueve pantallas**. Ni una violación de `button-name`, `label`, `aria-*` ni orden de encabezados.
+
+| Regla | Nodos | Estado |
+|---|---|---|
+| `link-name` | 1 | ✅ Corregido: la flecha de la portada era un enlace con solo un icono, sin nombre accesible |
+| `color-contrast` | 75 | ⬜ Abierto — ver abajo |
+
+A partir de ahora **cualquier regla nueva rompe el CI**. `color-contrast` está tolerado y documentado, no oculto.
+
+**⬜ Lo que queda: el contraste, que es un problema de PALETA y no de marcado.**
+
+Los 75 nodos se reducen a **17 combinaciones de color distintas**, repartidas por todo el sistema. Las peores:
+
+| Combinación | Contraste | Nodos |
+|---|---|---|
+| `#e9d3c0` sobre `#fbf6ef` | 1,34:1 | 9 |
+| `#c67124` sobre `#ffffff` | 3,62:1 | 8 |
+| `#b87a4a` sobre `#fdf6ee` | 3,30:1 | 7 |
+| `#cda280` sobre `#ffffff` | 2,31:1 | 6 |
+| `#c3b9af` sobre `#fbf4eb` | 1,76:1 | 5 |
+
+El mínimo que exige WCAG AA para texto normal es **4,5:1**. Algunas combinaciones bajan a 1,02:1, que es texto prácticamente invisible —probablemente decorativo, pero axe no puede saberlo—.
+
+Arreglarlo no son parches sueltos: es **revisar la paleta del sistema**, y eso es una decisión de diseño con dueño. **Severidad:** Media. **Esfuerzo:** M.
+
+**Lo que axe NO comprueba, y conviene no confundir:** una página puede pasar axe entera y seguir siendo inservible sin ratón. La comprobación con teclado y lector de pantalla sigue siendo manual y sigue pendiente.
 
 **Abierto:** los cinco `modal-overlay`/`modal-backdrop` conservan su `onclick` de «clic fuera para cerrar». No es un defecto equivalente —todos tienen su botón de cierre real, alcanzable con teclado— pero falta soporte de `Escape`. **Severidad:** Bajo. **Esfuerzo:** S.
 
