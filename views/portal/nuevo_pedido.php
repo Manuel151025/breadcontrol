@@ -9,7 +9,8 @@
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">
 <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/portal_nuevo_pedido.css?v=<?= APP_VERSION ?>">
 </head>
-<body>
+<?php // La CSP no restringe los atributos data-*: no son codigo. Ver punto 22. ?>
+<body data-app-url="<?= htmlspecialchars(APP_URL, ENT_QUOTES) ?>">
     <nav>
         <a href="dashboard.php" class="n-logo">
             <img src="<?= APP_URL ?>/assets/img/logo.png" alt="BreadControl" class="n-logo-img">
@@ -154,20 +155,21 @@
     </div>
     
     <script src="<?= APP_URL ?>/assets/js/utils.js?v=<?= APP_VERSION ?>"></script>
-    <script>
-    // Configuración generada por PHP para portal_nuevo_pedido.js
-    var appUrl = '<?= APP_URL ?>';
-    var cart = <?= json_encode($cart_preload) ?>;
-    var bonifPreload = <?= json_encode($bonif_preload) ?>;
-    var catalogVars = [];
-    var currentPrice = 0;
-    var currentCatId = 0;
-    var esAprendiz = <?= $es_aprendiz ? 'true' : 'false' ?>;
-    var esTienda = <?= ($es_tienda && !$es_aprendiz) ? 'true' : 'false' ?>;
-    var bonifCredito = 0;
-    var bonifLoaded = false;
-    var allVarieties = [];
-    </script>
+    <?php
+    // Los datos del pedido viajan en un bloque script de tipo application/json,
+    // que el navegador NO ejecuta: es un contenedor de datos. (Se evita escribir
+    // la etiqueta literal aqui para no confundir a los contadores del proyecto.) La CSP solo restringe los
+    // scripts ejecutables, asi que este bloque no obliga a 'unsafe-inline'.
+    //
+    // JSON_HEX_TAG escapa < y >, de modo que un dato que contenga "</script>"
+    // no pueda cerrar la etiqueta antes de tiempo.
+    ?>
+    <script type="application/json" id="datos-pedido"><?= json_encode([
+        'cart'         => $cart_preload,
+        'bonifPreload' => $bonif_preload,
+        'esAprendiz'   => (bool) $es_aprendiz,
+        'esTienda'     => (bool) ($es_tienda && !$es_aprendiz),
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
     <script src="<?= APP_URL ?>/assets/js/portal_nuevo_pedido.js?v=<?= APP_VERSION ?>"></script>
 </body>
 </html>

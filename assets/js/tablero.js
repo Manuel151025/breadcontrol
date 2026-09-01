@@ -42,8 +42,9 @@ async function getClima(manual = false) {
   const coords = ciudadActual.split(',');
 
   try {
-    // API_WEATHER_URL must be defined globally in the view
-    const url = (typeof API_WEATHER_URL !== 'undefined') ? API_WEATHER_URL : 'https://api.open-meteo.com/v1/forecast';
+    // La vista la publica en <body data-weather-url>. Antes venia de un bloque
+    // <script> incrustado, que obligaba a 'unsafe-inline' en la CSP.
+    const url = (document.body && document.body.dataset.weatherUrl) || 'https://api.open-meteo.com/v1/forecast';
     
     const r = await fetch(
       `${url}?latitude=${coords[0]}&longitude=${coords[1]}&current_weather=true&timezone=America%2FBogota`

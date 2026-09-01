@@ -137,10 +137,9 @@ document.addEventListener('DOMContentLoaded', function() {
   function resetTimer(){
     clearTimeout(timeout);
     timeout = setTimeout(function(){
-      var logoutUrl = '/logout.php';
-      if (window.BREADCONTROL_CONFIG && window.BREADCONTROL_CONFIG.logoutUrl) {
-        logoutUrl = window.BREADCONTROL_CONFIG.logoutUrl;
-      }
+      // La vista lo publica en <body data-logout-url>. Antes venia de un
+      // bloque de script incrustado, que obligaba a 'unsafe-inline' en la CSP.
+      var logoutUrl = (document.body && document.body.dataset.logoutUrl) || '/logout.php';
       window.location.href = logoutUrl;
     }, LIMIT * 1000);
   }

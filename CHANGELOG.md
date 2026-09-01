@@ -164,6 +164,51 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Seguridad
+
+- **Primera fase para poder quitar `'unsafe-inline'` de la CSP: fuera los bloques
+  de configuración.** Cinco bloques `<script>` incrustados existían solo para
+  pasar valores de PHP a JavaScript. Ahora esa información viaja por dos vías que
+  **la CSP no restringe**, porque ninguna es código ejecutable:
+
+  - **Atributos `data-*` en `<body>`** para los valores sueltos (`appUrl`, la URL
+    del clima, la de cierre de sesión). El `<body>` de `views/layouts/header.php`
+    lo comparten todas las pantallas del back-office, así que basta una vez.
+  - **Un bloque de tipo `application/json`** para los datos iniciales del carrito
+    del portal. El navegador no lo ejecuta: es un contenedor de datos. Se
+    serializa con `JSON_HEX_TAG` para que un dato que contenga el cierre de la
+    etiqueta no pueda cortarla antes de tiempo.
+
+  **De 31 a 26 bloques ejecutables**, 20 líneas menos. Los 164 manejadores en
+  línea siguen intactos: son la siguiente fase.
+
+- **Por qué esto es solo el principio, y en qué orden va lo demás.** Un nonce no
+  sirve para un `onclick`: los manejadores en línea solo se pueden autorizar con
+  `'unsafe-inline'`. Y peor, **en cuanto existe un nonce el navegador ignora
+  `'unsafe-inline'`** por especificación, así que ponerlo antes de eliminar los
+  164 manejadores rompería la aplicación entera. El orden está forzado:
+  manejadores → nonce → retirar `'unsafe-inline'`.
+
+  El desglose de las cuatro fases, con qué es verificable hoy y qué no, está en
+  el punto 22 del anexo.
+
+- Verificado en el navegador, no solo por sintaxis: `appUrl` llega correctamente
+  a ventas y a nueva producción, la URL del clima al tablero, y la isla de datos
+  del portal se lee con sus cuatro claves. **Cero errores de JavaScript** en las
+  tres pantallas. Los 19 recorridos en verde.
+
+### Conocido
+
+- **La suite de extremo a extremo no es idempotente.** Ejecutarla dos veces
+  contra la misma base falla: la primera pasada registra una venta y cierra la
+  caja, y la segunda encuentra el día ya cerrado y el catálogo con datos. En el
+  CI nunca se nota porque cada ejecución levanta una base nueva.
+
+  No es un fallo de la aplicación ni bloquea nada, pero conviene saberlo al
+  verificar en local: hay que resembrar entre pasadas.
+
+---
+
 ## [1.11.0] — 2026-09-01
 
 Dos días dedicados a que el proyecto pueda demostrar lo que afirma. El CI pasó

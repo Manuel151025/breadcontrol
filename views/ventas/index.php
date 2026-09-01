@@ -476,7 +476,6 @@
 </div>
 
 <script src="<?= APP_URL ?>/assets/js/utils.js?v=<?= APP_VERSION ?>"></script>
-<script>var appUrl = '<?= APP_URL ?>';</script>
 <script src="<?= APP_URL ?>/assets/js/ventas.js?v=<?= APP_VERSION ?>"></script>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>
