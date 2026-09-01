@@ -47,7 +47,7 @@
         "calidad": "phpmd models,controllers,helpers,includes,config text phpmd.xml --baseline-file phpmd.baseline.xml",
         "calidad:base": "phpmd models,controllers,helpers,includes,config text phpmd.xml --update-baseline",
         "metricas": "phpmetrics --report-html=metricas \"models,controllers,helpers,includes,config\"",
-        "mutacion": "infection --threads=4 --min-covered-msi=65 --no-interaction"
+        "mutacion": "infection --threads=4 --min-covered-msi=69 --no-interaction"
     },
     "config": {
         "sort-packages": true,

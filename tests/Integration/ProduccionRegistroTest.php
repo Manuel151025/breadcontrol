@@ -158,4 +158,119 @@ final class ProduccionRegistroTest extends TestCase
         $this->assertSame(3, (int) $n->fetchColumn());
         $this->assertSame(0.0, $this->model->getInsumoStockActual($this->id_insumo));
     }
+
+    // ------------------------------------------------------------
+    // Precision del costeo
+    //
+    // Las pruebas de arriba usan precios redondos ($100 y $200) y cantidades
+    // enteras, de modo que round(), floor() y ceil() dan todos el mismo
+    // resultado: la logica de redondeo del costeo no llegaba a ejercerse nunca.
+    // Las pruebas de mutacion lo destaparon —18 mutantes de la familia de
+    // redondeo sobrevivian en este archivo— y estas dos lo cierran con valores
+    // que SI obligan a redondear.
+    // ------------------------------------------------------------
+
+    public function testElCostoPorLoteSeRedondeaADosDecimales(): void
+    {
+        // Precio con tres decimales: 2 kg x $33,333 = $66,666, que redondeado a
+        // dos decimales es 66,67. Con floor daria 66 y con ceil 67, asi que la
+        // asercion distingue las tres.
+        $this->pdo->prepare("UPDATE lote SET precio_unitario = 33.333 WHERE id_insumo = ? AND numero_lote LIKE 'TSTA-%'")
+            ->execute([$this->id_insumo]);
+
+        $r = $this->model->registrarProduccionConConsumos(
+            $this->id_producto, $this->id_receta, $this->id_usuario,
+            1, 10, date('Y-m-d H:i:s'), 'PHPUnit',
+            $this->ingredientes(), [$this->id_cat => 10]
+        );
+        $this->ids_produccion[] = (int) $r['id_produccion'];
+
+        $this->assertTrue($r['ok']);
+        $this->assertSame(66.67, $r['costo_total'], '2 kg x $33,333 = $66,666 -> $66,67');
+
+        // Y el costo queda igual de redondeado en la fila de consumo_lote, que
+        // es lo que despues alimenta los informes de finanzas.
+        $c = $this->pdo->prepare("SELECT costo_consumo FROM consumo_lote WHERE id_produccion = ?");
+        $c->execute([$r['id_produccion']]);
+        $this->assertSame(66.67, (float) $c->fetchColumn());
+    }
+
+    public function testElCostoUnitarioSeRedondeaACuatroDecimales(): void
+    {
+        // $66,67 entre 3 unidades = 22,223333..., que a cuatro decimales es
+        // 22,2233. Sin el redondeo a 4 el valor arrastraria toda la cola.
+        $this->pdo->prepare("UPDATE lote SET precio_unitario = 33.333 WHERE id_insumo = ? AND numero_lote LIKE 'TSTA-%'")
+            ->execute([$this->id_insumo]);
+
+        $r = $this->model->registrarProduccionConConsumos(
+            $this->id_producto, $this->id_receta, $this->id_usuario,
+            1, 3, date('Y-m-d H:i:s'), 'PHPUnit',
+            $this->ingredientes(), [$this->id_cat => 3]
+        );
+        $this->ids_produccion[] = (int) $r['id_produccion'];
+
+        $this->assertSame(22.2233, $r['costo_unitario'], '$66,67 / 3 unidades');
+    }
+
+    // ------------------------------------------------------------
+    // Rastro de una produccion forzada
+    // ------------------------------------------------------------
+
+    public function testForzarDejaConstanciaEnLasObservaciones(): void
+    {
+        // Registrar con stock insuficiente es una decision deliberada del
+        // propietario, y la produccion tiene que quedar marcada: si no, mas
+        // tarde nadie puede distinguir un costeo fiable de uno estimado.
+        $r = $this->model->registrarProduccionConConsumos(
+            $this->id_producto, $this->id_receta, $this->id_usuario,
+            20, 200, date('Y-m-d H:i:s'), 'Nota del operario',
+            $this->ingredientes(), [$this->id_cat => 200], true
+        );
+        $this->ids_produccion[] = (int) $r['id_produccion'];
+
+        $obs = $this->pdo->prepare("SELECT observaciones FROM produccion WHERE id_produccion = ?");
+        $obs->execute([$r['id_produccion']]);
+        $texto = (string) $obs->fetchColumn();
+
+        $this->assertStringContainsString('Nota del operario', $texto, 'No debe perderse la nota original');
+        $this->assertStringContainsString('Registrado con stock insuficiente', $texto);
+        $this->assertStringContainsString(' | ', $texto, 'Las dos partes van separadas');
+    }
+
+    public function testSinObservacionPropiaElAvisoNoLlevaSeparador(): void
+    {
+        // Con la nota vacia no debe quedar un " | " colgando al principio.
+        $r = $this->model->registrarProduccionConConsumos(
+            $this->id_producto, $this->id_receta, $this->id_usuario,
+            20, 200, date('Y-m-d H:i:s'), '',
+            $this->ingredientes(), [$this->id_cat => 200], true
+        );
+        $this->ids_produccion[] = (int) $r['id_produccion'];
+
+        $obs = $this->pdo->prepare("SELECT observaciones FROM produccion WHERE id_produccion = ?");
+        $obs->execute([$r['id_produccion']]);
+        $texto = (string) $obs->fetchColumn();
+
+        $this->assertStringNotContainsString('|', $texto);
+        $this->assertStringContainsString('Registrado con stock insuficiente', $texto);
+    }
+
+    public function testElLoteSinteticoSeNombraConLaProduccionYElInsumo(): void
+    {
+        // El formato EST-{produccion}-{insumo} es lo que garantiza que dos
+        // producciones distintas no colisionen en numero_lote, que tiene clave
+        // unica. Comprobarlo evita que un cambio de formato rompa esa garantia
+        // en silencio.
+        $r = $this->model->registrarProduccionConConsumos(
+            $this->id_producto, $this->id_receta, $this->id_usuario,
+            20, 200, date('Y-m-d H:i:s'), 'PHPUnit',
+            $this->ingredientes(), [$this->id_cat => 200], true
+        );
+        $this->ids_produccion[] = (int) $r['id_produccion'];
+
+        $esperado = 'EST-' . $r['id_produccion'] . '-' . $this->id_insumo;
+        $est = $this->pdo->prepare("SELECT numero_lote FROM lote WHERE id_insumo = ? AND numero_lote LIKE 'EST-%'");
+        $est->execute([$this->id_insumo]);
+        $this->assertSame($esperado, (string) $est->fetchColumn());
+    }
 }

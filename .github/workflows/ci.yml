@@ -309,12 +309,14 @@ jobs:
       # el job de cobertura. Lo que aporta aqui es la calidad de las pruebas que
       # existen, y eso es el MSI del codigo cubierto.
       #
-      # 65 es un suelo, no una meta: impide que la calidad de las pruebas baje.
+      # 69 es un suelo, no una meta: impide que la calidad de las pruebas baje.
+      # Empezo en 65 y sube conforme se refuerzan aserciones; ese es el trabajo,
+      # no dejarlo quieto. Ultima subida: 65 -> 69 al reforzar ProduccionModel.
       - name: Ejecutar Infection
         run: |
           vendor/bin/infection \
             --threads=4 \
-            --min-covered-msi=65 \
+            --min-covered-msi=69 \
             --no-progress \
             --no-interaction
 
