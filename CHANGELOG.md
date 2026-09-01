@@ -4,6 +4,35 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es/1.1.0/)
 y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Añadido
+
+- **PHP 8.3 entra en la matriz del CI, en modo informativo.** La compilación,
+  las pruebas unitarias y las de integración corren ahora sobre **8.2 y 8.3**.
+
+  El motivo tiene fecha: **PHP 8.2 deja de recibir parches de seguridad el 31 de
+  diciembre de 2026**. La migración no es opcional; lo que sí es una decisión es
+  cuándo. Ver qué se rompe hoy convierte esa fecha en información en lugar de en
+  un susto de diciembre — y ahora hay con qué verlo: 213 pruebas, 16 recorridos
+  de navegador y mutación midiendo si esas pruebas verifican de verdad.
+
+- **La rama 8.3 no bloquea todavía, a propósito** (`continue-on-error`). Si
+  fallara, un CI en rojo permanente enseña a ignorarlo: este proyecto ya pasó
+  quince días así y nadie lo miró. En cuanto pase limpio se cambia
+  `experimental` a `false` y desde ese momento sí bloquea.
+
+  `fail-fast: false` para ver siempre las dos ramas: saber que 8.3 falla no debe
+  costar el resultado de 8.2, ni al revés.
+
+- **Solo tres de los once jobs llevan matriz.** Matrizarlos todos doblaría el
+  tiempo del CI sin aportar señal nueva: lo que se quiere saber es si el código
+  *corre* en 8.3, y eso lo dicen la sintaxis y las dos suites. La cobertura, la
+  mutación o el análisis de seguridad no cambian de respuesta por la versión del
+  intérprete.
+
+---
+
 ## [1.11.0] — 2026-09-01
 
 Dos días dedicados a que el proyecto pueda demostrar lo que afirma. El CI pasó
