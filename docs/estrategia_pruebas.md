@@ -118,10 +118,11 @@ Decirlo importa tanto como decir lo que sí:
   planificados que quedó fuera: necesita configuración de Nequi y un pedido
   aprobado por instructor.
 - **Compatibilidad con PHP más allá de 8.3.** La compilación, las unitarias y
-  las de integración ya corren sobre una matriz de **8.2 y 8.3**, pero la rama
-  8.3 es **informativa y no bloquea**: sirve para saber qué se rompería, no para
-  frenar el trabajo. Los otros ocho jobs siguen fijos en 8.2, porque matrizarlos
-  todos doblaría el tiempo del CI sin aportar señal nueva.
+  las de integración corren sobre una matriz de **8.2 y 8.3**, y **ambas
+  bloquean**: el código ya está verificado en las dos. Los otros ocho jobs
+  siguen fijos en 8.2 a propósito —es la versión que corre en producción— y
+  matrizarlos todos doblaría el tiempo del CI sin aportar señal nueva. Nada
+  comprueba 8.4 todavía.
 
 ---
 

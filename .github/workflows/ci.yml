@@ -6,9 +6,9 @@
 #  fallar no verifica nada, solo ocupa el sitio del que sí lo haría.
 #
 #  Tres de ellas —compilación, unitarias e integración— corren sobre una MATRIZ
-#  de PHP 8.2 y 8.3. La rama 8.3 es informativa y no bloquea todavía: PHP 8.2
-#  deja de recibir parches el 31 de diciembre de 2026, y ver qué se rompe hoy
-#  convierte esa fecha en información en vez de en un susto de diciembre.
+#  de PHP 8.2 y 8.3, y ambas bloquean. PHP 8.2 deja de recibir parches el 31 de
+#  diciembre de 2026; con 8.3 verde y vigilado, esa migración pasa de ser un
+#  riesgo a ser un cambio de versión en el Dockerfile cuando se decida.
 #
 #    compilación         → sintaxis de todos los archivos PHP (php -l)
 #    analisis-estatico   → PHPStan nivel 10 (con phpstan-baseline.neon)
@@ -46,18 +46,20 @@ jobs:
         include:
           - php: '8.2'
             experimental: false
-          # 8.3 se anade en modo INFORMATIVO, no bloqueante. PHP 8.2 deja de
-          # recibir parches de seguridad el 31 de diciembre de 2026, asi que la
-          # migracion no es opcional; lo que si es una decision es cuando. Ver
-          # que se rompe HOY convierte esa fecha en informacion en vez de en un
-          # susto de diciembre.
+          # 8.3 BLOQUEA desde el 2026-09-01. Entro en modo informativo ese
+          # mismo dia y paso limpio a la primera en las tres ramas, asi que no
+          # habia motivo para dejarlo de adorno: a partir de aqui, una regresion
+          # que rompa 8.3 no entra.
           #
-          # No bloquea todavia a proposito: si 8.3 fallara, un CI en rojo
-          # permanente ensena a ignorarlo —ya paso en este proyecto, quince
-          # dias—. En cuanto pase limpio se cambia experimental a false y a
-          # partir de ahi si bloquea.
+          # PHP 8.2 deja de recibir parches de seguridad el 31 de diciembre de
+          # 2026. Con esto la migracion deja de ser un riesgo y pasa a ser un
+          # cambio de version en el Dockerfile cuando se decida.
+          #
+          # Los otros ocho jobs siguen fijos en 8.2 a proposito: es la version
+          # que corre en produccion, y la cobertura, la mutacion o el analisis
+          # de seguridad no cambian de respuesta por el interprete.
           - php: '8.3'
-            experimental: true
+            experimental: false
     continue-on-error: ${{ matrix.experimental }}
     steps:
       - uses: actions/checkout@v7
@@ -105,18 +107,20 @@ jobs:
         include:
           - php: '8.2'
             experimental: false
-          # 8.3 se anade en modo INFORMATIVO, no bloqueante. PHP 8.2 deja de
-          # recibir parches de seguridad el 31 de diciembre de 2026, asi que la
-          # migracion no es opcional; lo que si es una decision es cuando. Ver
-          # que se rompe HOY convierte esa fecha en informacion en vez de en un
-          # susto de diciembre.
+          # 8.3 BLOQUEA desde el 2026-09-01. Entro en modo informativo ese
+          # mismo dia y paso limpio a la primera en las tres ramas, asi que no
+          # habia motivo para dejarlo de adorno: a partir de aqui, una regresion
+          # que rompa 8.3 no entra.
           #
-          # No bloquea todavia a proposito: si 8.3 fallara, un CI en rojo
-          # permanente ensena a ignorarlo —ya paso en este proyecto, quince
-          # dias—. En cuanto pase limpio se cambia experimental a false y a
-          # partir de ahi si bloquea.
+          # PHP 8.2 deja de recibir parches de seguridad el 31 de diciembre de
+          # 2026. Con esto la migracion deja de ser un riesgo y pasa a ser un
+          # cambio de version en el Dockerfile cuando se decida.
+          #
+          # Los otros ocho jobs siguen fijos en 8.2 a proposito: es la version
+          # que corre en produccion, y la cobertura, la mutacion o el analisis
+          # de seguridad no cambian de respuesta por el interprete.
           - php: '8.3'
-            experimental: true
+            experimental: false
     continue-on-error: ${{ matrix.experimental }}
     steps:
       - uses: actions/checkout@v7
@@ -143,18 +147,20 @@ jobs:
         include:
           - php: '8.2'
             experimental: false
-          # 8.3 se anade en modo INFORMATIVO, no bloqueante. PHP 8.2 deja de
-          # recibir parches de seguridad el 31 de diciembre de 2026, asi que la
-          # migracion no es opcional; lo que si es una decision es cuando. Ver
-          # que se rompe HOY convierte esa fecha en informacion en vez de en un
-          # susto de diciembre.
+          # 8.3 BLOQUEA desde el 2026-09-01. Entro en modo informativo ese
+          # mismo dia y paso limpio a la primera en las tres ramas, asi que no
+          # habia motivo para dejarlo de adorno: a partir de aqui, una regresion
+          # que rompa 8.3 no entra.
           #
-          # No bloquea todavia a proposito: si 8.3 fallara, un CI en rojo
-          # permanente ensena a ignorarlo —ya paso en este proyecto, quince
-          # dias—. En cuanto pase limpio se cambia experimental a false y a
-          # partir de ahi si bloquea.
+          # PHP 8.2 deja de recibir parches de seguridad el 31 de diciembre de
+          # 2026. Con esto la migracion deja de ser un riesgo y pasa a ser un
+          # cambio de version en el Dockerfile cuando se decida.
+          #
+          # Los otros ocho jobs siguen fijos en 8.2 a proposito: es la version
+          # que corre en produccion, y la cobertura, la mutacion o el analisis
+          # de seguridad no cambian de respuesta por el interprete.
           - php: '8.3'
-            experimental: true
+            experimental: false
     continue-on-error: ${{ matrix.experimental }}
     services:
       mysql:
