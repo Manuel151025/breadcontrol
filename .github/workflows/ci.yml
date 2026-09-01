@@ -1,11 +1,28 @@
 # ============================================================
 #  Integración Continua (CI) — BreadControl
-#  Corre en cada push y pull request:
-#    1. compilación  → sintaxis de todos los archivos PHP (php -l)
-#    2. análisis     → PHPStan (phpstan.neon.dist, nivel 3)
-#    3. unitarias    → PHPUnit suite "Unitarias" (sin base de datos)
-#    4. integración  → PHPUnit suite "Integracion" contra MySQL 8
-#                      (mismo motor que docker-compose.yml)
+#
+#  Once verificaciones por push y pull request. Cada una se comprobó POR SU
+#  CAPACIDAD DE FALLAR antes de ponerla a bloquear: un verificador que no puede
+#  fallar no verifica nada, solo ocupa el sitio del que sí lo haría.
+#
+#    compilación         → sintaxis de todos los archivos PHP (php -l)
+#    analisis-estatico   → PHPStan nivel 10 (con phpstan-baseline.neon)
+#    pruebas-unitarias   → PHPUnit, suite "Unitarias" (sin base de datos)
+#    pruebas-integracion → PHPUnit, suite "Integracion" contra MySQL 8
+#    cobertura           → PCOV; falla por debajo del 12 % global
+#    mutacion            → Infection; falla por debajo del 69 % de MSI cubierto
+#    calidad             → PHPMD contra línea base + informe de PHPMetrics
+#    auditoria-seguridad → composer audit, Gitleaks e historial, Semgrep
+#    cabeceras           → cabeceras de seguridad sobre la imagen real
+#    e2e                 → 16 recorridos de Playwright (solo en PRs hacia main)
+#    seguridad           → Snyk; se omite entero si no hay SNYK_TOKEN
+#
+#  Los umbrales son SUELOS, no metas: impiden que la calidad baje sin que nadie
+#  se entere. Subirlos conforme se escriben pruebas es parte del trabajo.
+#  El razonamiento de cada uno está en docs/estrategia_pruebas.md.
+#
+#  HSTS y ocultar la versión del servidor NO se comprueban aquí: viven en el
+#  Nginx del VPS y los vigila el flujo cabeceras-produccion.yml, a diario.
 # ============================================================
 name: CI
 

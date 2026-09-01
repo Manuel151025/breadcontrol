@@ -95,9 +95,11 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 | **Autenticación externa** | Google API Client (OAuth 2.0) |
 | **Hosting** | Hostinger (PHP + MySQL) |
 | **Dependencias** | Composer |
-| **Pruebas** | PHPUnit 11 (unitarias + integración) |
+| **Pruebas** | PHPUnit 11 (unitarias + integración), Infection (mutación), Playwright (extremo a extremo) |
 | **Análisis estático** | PHPStan **nivel 10** (niveles 1-8 corregidos; 9-10 con baseline) |
-| **CI** | GitHub Actions (5 verificaciones por push/PR) |
+| **Cobertura y calidad** | PCOV, PHPMD, PHPMetrics |
+| **Seguridad (CI)** | `composer audit`, Gitleaks, Semgrep, Snyk (opcional) |
+| **CI** | GitHub Actions (11 verificaciones por push/PR) |
 | **Gestión** | Jira (Scrum), GitHub |
 
 ---
@@ -170,7 +172,7 @@ flowchart TD
 | **Vistas** (`views/`) | Presentar datos ya calculados y escaparlos con `htmlspecialchars` | Calcular reglas de negocio |
 | **Infraestructura** (`config/`, `includes/`) | Sesión, guardián CSRF, conexión, registro de errores y correo | Conocer reglas del dominio |
 
-**Por qué las reglas viven aparte:** `ReglasPortal` es la fuente única del crédito/ñapa, el límite de 48 horas, el cupo semanal y el horario de entrega; `Seguridad` lo es de la política de contraseña y del tratamiento de los códigos de recuperación. Antes esas reglas estaban duplicadas —hasta en cinco sitios en el caso del portal, y en cuatro mínimos de contraseña distintos— con copias que se desviaban entre sí. Al ser funciones puras se prueban directamente, sin base de datos: son las que sostienen buena parte de las 151 pruebas.
+**Por qué las reglas viven aparte:** `ReglasPortal` es la fuente única del crédito/ñapa, el límite de 48 horas, el cupo semanal y el horario de entrega; `Seguridad` lo es de la política de contraseña y del tratamiento de los códigos de recuperación. Antes esas reglas estaban duplicadas —hasta en cinco sitios en el caso del portal, y en cuatro mínimos de contraseña distintos— con copias que se desviaban entre sí. Al ser funciones puras se prueban directamente, sin base de datos: son las que sostienen buena parte de las 213 pruebas.
 
 **Dónde vive la protección CSRF:** el guardián `requerir_csrf()` se invoca **una vez por método de controlador que procesa POST, antes de resolver qué acción se pidió**. Es una decisión de diseño, no un detalle: colocarlo dentro de cada rama `if (isset($_POST['accion']))` habría dejado la protección a merced de que quien añada una acción nueva se acuerde de repetirla.
 
@@ -184,7 +186,7 @@ flowchart LR
     APP --> GO["Google OAuth 2.0<br/>acceso de clientes"]
     APP --> OM["Open-Meteo<br/>clima"]
     APP --> NQ["Nequi Negocios<br/>enlace de pago"]
-    GH["GitHub Actions<br/>5 verificaciones"] -.->|"despliegue"| DK["Dokploy · VPS<br/>Docker"]
+    GH["GitHub Actions<br/>11 verificaciones"] -.->|"despliegue"| DK["Dokploy · VPS<br/>Docker"]
     DK -.-> APP
 ```
 
@@ -427,7 +429,7 @@ BreadControl/
 
 ## 🧪 Pruebas
 
-El proyecto usa **PHPUnit 11** con dos suites (151 pruebas, 291 aserciones):
+El proyecto usa **PHPUnit 11** con dos suites (213 pruebas, 397 aserciones), más **16 recorridos de navegador** con Playwright:
 
 | Suite | Qué cubre | Requiere BD |
 |-------|-----------|-------------|
@@ -439,8 +441,20 @@ composer install           # una sola vez
 composer test              # suite completa
 composer test:unit         # solo unitarias (no necesitan MySQL)
 composer test:integracion  # solo integración
+composer mutacion          # pruebas de mutación (Infection, mínimo 69 % de MSI)
+composer calidad           # complejidad y diseño (PHPMD, contra su línea base)
 vendor/bin/phpstan analyse # análisis estático (nivel 10)
 ```
+
+Recorridos de navegador (necesitan Node y una instancia levantada):
+
+```bash
+cd e2e && npm ci && npx playwright install chromium
+npx playwright test        # 16 recorridos sobre back-office y portal
+```
+
+La cobertura y la mutación necesitan un controlador de cobertura (PCOV o Xdebug).
+En el CI lo aporta el propio job; en local, sin él, PHPUnit avisa y sigue.
 
 - Las pruebas de integración corren dentro de una **transacción con rollback**:
   nunca dejan datos en la base.
@@ -453,22 +467,33 @@ vendor/bin/phpstan analyse # análisis estático (nivel 10)
 ## 🔁 Integración Continua
 
 Cada push y pull request dispara el workflow [`ci.yml`](.github/workflows/ci.yml)
-con 5 verificaciones independientes:
+con 11 verificaciones independientes. Cada una se comprobó **por su capacidad de
+fallar** antes de ponerla a bloquear: un verificador que no puede fallar no
+verifica nada.
 
-1. **Sintaxis PHP** — `php -l` sobre todos los archivos del proyecto.
-2. **Análisis estático** — PHPStan nivel 10 sobre `config/`, `controllers/`,
-   `helpers/`, `includes/` y `models/`. Los niveles 1-8 están corregidos en el
-   código; los niveles 9-10 se exigen a todo código nuevo, mientras las
-   ocurrencias heredadas quedan inventariadas en `phpstan-baseline.neon`
-   (834 y bajando; ver [CONTRIBUTING.md](CONTRIBUTING.md) para reducirlas).
-3. **Pruebas unitarias** — suite `Unitarias` de PHPUnit.
-4. **Pruebas de integración** — suite `Integracion` contra un servicio MySQL 8.0
-   real, creado desde el esquema versionado (`sql/init/01_esquema_base.sql`) más
-   la semilla mínima (`sql/init/90_semilla_ci.sql`).
-5. **Seguridad (Snyk)** — vulnerabilidades conocidas en las dependencias y
-   análisis estático de seguridad (SAST) del código. Requiere el secreto
-   `SNYK_TOKEN` en el repositorio; si no está configurado, el job se omite
-   sin romper el CI. Solo bloquea ante hallazgos de severidad *high*.
+| # | Verificación | Qué exige |
+|---|--------------|-----------|
+| 1 | **Sintaxis PHP** | `php -l` sobre todos los archivos del proyecto |
+| 2 | **Análisis estático** | PHPStan nivel 10 sobre `config/`, `controllers/`, `helpers/`, `includes/` y `models/`. Los niveles 1-8 pasan limpios; 9-10 se exigen a todo código nuevo y las ocurrencias heredadas quedan en `phpstan-baseline.neon` |
+| 3 | **Pruebas unitarias** | Suite `Unitarias` (sin base de datos) |
+| 4 | **Pruebas de integración** | Suite `Integracion` contra MySQL 8.0 real, creado desde `sql/init/01_esquema_base.sql` más `90_semilla_ci.sql` |
+| 5 | **Cobertura** | PCOV sobre las dos suites juntas. Falla si baja del **12 %**, publica el desglose por capa y el informe HTML como artefacto |
+| 6 | **Mutación** | Infection sobre `helpers/` y `models/`. Falla si el MSI del código cubierto baja del **69 %** |
+| 7 | **Calidad de código** | PHPMD contra su línea base (complejidad, métodos largos, clases sobrecargadas) más el informe de PHPMetrics como artefacto |
+| 8 | **Auditoría de seguridad** | `composer audit`, Gitleaks sobre el **historial completo** y Semgrep (`p/php` + `p/owasp-top-ten`) comparando contra la rama base. Sin tokens |
+| 9 | **Cabeceras de seguridad** | Levanta la imagen real y verifica las correcciones R-01, R-03, R-04 y R-05 del informe técnico |
+| 10 | **Extremo a extremo** | 16 recorridos de Playwright contra una instancia efímera. Solo en PRs hacia `main` |
+| 11 | **Seguridad (Snyk)** | Dependencias y SAST. Requiere el secreto `SNYK_TOKEN`; si no está, el job se omite sin romper el CI. Solo bloquea ante hallazgos *high* |
+
+Además, el flujo [`cabeceras-produccion.yml`](.github/workflows/cabeceras-produccion.yml)
+interroga **a diario** el sitio publicado y comprueba HSTS y que el servidor no
+anuncie su versión. Esas dos correcciones viven en el Nginx del VPS y no en este
+repositorio, así que es lo único que se daría cuenta si desaparecieran.
+
+Los umbrales son **suelos, no metas**: existen para que la calidad no baje sin
+que nadie se entere, y subirlos conforme se escriben pruebas es parte del
+trabajo. El razonamiento de cada uno está en
+[`docs/estrategia_pruebas.md`](docs/estrategia_pruebas.md).
 
 ---
 

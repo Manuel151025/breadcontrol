@@ -35,8 +35,34 @@ mysql -u root panaderia_bd < sql/init/90_semilla_ci.sql   # datos mínimos de pr
 composer test              # suite completa (unitarias + integración)
 composer test:unit         # solo unitarias (no requieren base de datos)
 composer test:integracion  # solo integración (requieren MySQL)
+composer mutacion          # pruebas de mutación (Infection, mínimo 69 % de MSI)
+composer calidad           # complejidad y diseño (PHPMD, contra su línea base)
 vendor/bin/phpstan analyse # análisis estático (nivel 10, debe pasar limpio)
 ```
+
+Recorridos de navegador (Playwright). Necesitan Node y una instancia levantada
+apuntando a una base **desechable**, nunca a tu base de desarrollo: estas
+pruebas crean y modifican datos.
+
+```bash
+# Base efímera con las cuentas de prueba
+mysql -uroot -e "CREATE DATABASE panaderia_e2e"
+mysql -uroot panaderia_e2e < sql/init/01_esquema_base.sql
+mysql -uroot panaderia_e2e < sql/init/90_semilla_ci.sql
+mysql -uroot panaderia_e2e < sql/init/95_semilla_e2e.sql
+
+# Instancia aislada
+DB_NAME=panaderia_e2e APP_ENV=local APP_URL=http://127.0.0.1:8099   php -S 127.0.0.1:8099 -t .
+
+# En otra terminal
+cd e2e && npm ci && npx playwright install chromium
+npx playwright test
+```
+
+Cobertura y mutación necesitan un controlador de cobertura (PCOV o Xdebug). Si
+no lo tienes instalado, PHPUnit avisa y continúa sin medir; en el CI lo aporta
+el propio job. Para cargarlo solo en una ejecución, sin tocar tu `php.ini`,
+apunta `PHP_INI_SCAN_DIR` a un directorio con un `.ini` que lo declare.
 
 Notas:
 - Las pruebas de integración corren cada caso dentro de una **transacción con
