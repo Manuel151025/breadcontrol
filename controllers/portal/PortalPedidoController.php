@@ -230,7 +230,10 @@ class PortalPedidoController extends PortalControllerBase {
         $detalles = $this->model->getDetallesPedido($id_pedido);
 
         $dentro_limite   = ReglasPortal::dentroDeLimite48h($pedido['fecha_entrega']);
-        $puede_gestionar = ReglasPortal::puedeGestionarPedido($pedido['estado'], $pedido['fecha_entrega']);
+        // Editar y cancelar dejaron de compartir regla: un pedido vencido ya no
+        // se puede editar —no tiene sentido— pero si retirar.
+        $puede_editar   = ReglasPortal::puedeGestionarPedido($pedido['estado'], $pedido['fecha_entrega']);
+        $puede_cancelar = ReglasPortal::puedeCancelarPedido($pedido['estado'], $pedido['fecha_entrega']);
 
         // Pago digital
         $estado_pago = $pedido['estado_pago'] ?? 'no_aplica';

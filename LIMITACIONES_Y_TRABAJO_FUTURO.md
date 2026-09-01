@@ -472,6 +472,49 @@ Las nueve anteriores se dan por aplicadas: lo están en todas las bases existent
 
 ---
 
+## CICLO DE VIDA DE LOS PEDIDOS
+
+### 30. 🟡 Un pedido cuya fecha de entrega pasa sin atenderse se queda en «pendiente» para siempre — PARCIALMENTE RESUELTO (2026-09-01)
+
+**Descripción:** los estados de `pedido_cliente` (`pendiente`, `confirmado`, `rechazado`, `cancelado`) describen **decisiones humanas**. Ninguno describe «se acabó el plazo sin que nadie decidiera». No hay tarea programada ni transición automática: un pedido para el 3 de agosto que nadie confirma ni rechaza sigue en `pendiente` indefinidamente.
+
+El sistema **sí sabe** que venció —`ReglasPortal::estadoTiempo()` calcula `vencido`— pero solo usa ese dato para decidir si el pedido se puede gestionar, nunca para reclasificarlo.
+
+**Las dos consecuencias, medidas por separado:**
+
+- **El cupo semanal NO se ve afectado.** El consumo se calcula filtrando por `fecha_solicitud >= [lunes de esta semana]` (`PedidosPortalTrait.php:371`), así que un pedido viejo cae fuera de la ventana y no bloquea cupo futuro.
+- **El saldo pendiente SÍ.** `calcularSaldoPendiente()` (`InstructorPortalTrait.php:58`) filtra por `estado != 'rechazado' AND aprobado_instructor = 1`, **sin ninguna condición de fecha**. Un pedido aprobado por el instructor y nunca entregado cuenta como deuda del aprendiz de forma indefinida: en el KPI del tablero, en la columna de la tabla y en el PDF de cartera.
+
+**✅ Lo que se resolvió (2026-09-01): el cliente ya puede retirar un pedido vencido.**
+
+Antes no podía. `puedeGestionarPedido()` exigía que faltaran 48 horas para la entrega, y esa misma regla gobernaba editar **y** cancelar, así que pasada la fecha el aprendiz quedaba atrapado con un pedido muerto que nadie iba a entregar y que él no podía retirar.
+
+Ahora son dos reglas distintas, porque no tienen el mismo límite:
+
+- **Editar** sigue exigiendo 48 horas de margen. Un pedido para una fecha que ya pasó no se edita: se cierra.
+- **Cancelar** se bloquea solo en las 48 horas **previas** a la entrega, cuando el pan puede estar ya en producción. Pasada la fecha ese motivo desaparece.
+
+**⬜ Lo que sigue abierto:** el estado que falta. Cerrar esto de verdad exige tres decisiones que son de negocio, no de código:
+
+1. **¿Quién marca un pedido como vencido?** El proyecto no tiene tareas programadas. O se calcula al vuelo en las consultas —barato, sin migración— o se añade un proceso que los cierre, más limpio pero con más infraestructura.
+2. **¿Qué pasa con el saldo de un pedido aprobado que venció sin entregarse?** ¿Se sigue debiendo o se anula? De la respuesta depende si `calcularSaldoPendiente()` debe excluirlos.
+3. **¿Debe avisarse al instructor** de que tiene pedidos aprobados cuya fecha pasó sin resolverse?
+
+**Severidad:** Baja mientras no haya casos. **Esfuerzo:** M.
+
+**Evidencia (2026-09-01):** la consulta
+
+```sql
+SELECT estado, aprobado_instructor, COUNT(*) n, MIN(fecha_entrega) mas_antiguo
+FROM pedido_cliente
+WHERE fecha_entrega < CURDATE() AND estado = 'pendiente'
+GROUP BY estado, aprobado_instructor;
+```
+
+devolvió **cero filas** contra producción. Conviene ser preciso sobre qué prueba eso: que **hoy** no hay ningún pedido vencido sin atender, no que no pueda haberlo. El hueco sigue en el código. Dicho de otro modo, **funciona porque la gente atiende los pedidos a tiempo, no porque el sistema lo garantice**.
+
+---
+
 ## Metodología de verificación
 
 Cada punto de este documento se verificó, antes de escribirlo, mediante al menos uno de estos métodos:

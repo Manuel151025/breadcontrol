@@ -709,6 +709,18 @@ parameters:
 			path: controllers/GastoController.php
 
 		-
+			message: '#^Parameter \#1 \$fecha_entrega of static method ReglasPortal\:\:fueraDeLimiteGestion\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Parameter \#2 \$fecha_entrega of static method ReglasPortal\:\:puedeCancelarPedido\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
 			message: '#^Possibly invalid array key type mixed\.$#'
 			identifier: offsetAccess.invalidOffset
 			count: 2
@@ -2482,12 +2494,6 @@ parameters:
 			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
-			path: models/PortalClienteModel.php
-
-		-
-			message: '#^Parameter \#1 \$fecha_entrega of static method ReglasPortal\:\:fueraDeLimiteGestion\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
 			path: models/PortalClienteModel.php
 
 		-

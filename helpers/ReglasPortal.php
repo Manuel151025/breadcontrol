@@ -135,6 +135,29 @@ class ReglasPortal {
     }
 
     /**
+     * Un pedido pendiente se puede CANCELAR salvo en las 48 horas previas a su
+     * entrega.
+     *
+     * Se separa de puedeGestionarPedido() porque cancelar y editar no tienen el
+     * mismo limite, aunque hasta ahora compartieran regla:
+     *
+     *   - Editar tiene sentido solo ANTES de la entrega. Un pedido para una
+     *     fecha que ya paso no se edita: se cierra.
+     *   - Cancelar se bloquea en las 48 horas previas porque a esas alturas el
+     *     pan puede estar ya en produccion. Pero pasada la fecha ese motivo
+     *     desaparece, y el bloqueo solo conseguia dejar al aprendiz atrapado
+     *     con un pedido muerto que nadie iba a entregar y que el no podia
+     *     retirar.
+     *
+     * La ventana que bloquea es exactamente la que describe dentroDeLimite48h():
+     * no vencido y a menos de 48 horas. Un pedido vencido queda fuera de ella,
+     * y por eso vuelve a ser cancelable.
+     */
+    public static function puedeCancelarPedido(string $estado, string $fecha_entrega, ?DateTimeInterface $ahora = null): bool {
+        return $estado === 'pendiente' && !self::dentroDeLimite48h($fecha_entrega, $ahora);
+    }
+
+    /**
      * Un aprendiz no puede editar/cancelar un pedido mientras su instructor
      * tenga un pago en proceso (PENDING/PENDIENTE) asociado a él.
      */
