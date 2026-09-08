@@ -225,6 +225,40 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ---
 
+### Seguridad
+
+- **Fase 1c del `unsafe-inline`: fuera el bloque de 165 líneas del tablero del
+  portal**, a `assets/js/portal_dashboard.js`.
+
+  Es el único de la serie donde **se cambió estructura, no solo de sitio**. El
+  bloque tenía control de flujo de PHP mezclado con el JavaScript: tres `if` que
+  decidían, al renderizar, qué código se emitía según fuera tienda, instructor o
+  hubiera pagos pendientes. Un archivo estático no puede llevarlos dentro.
+
+  La decisión se mueve del renderizado al navegador: **las funciones se declaran
+  siempre** —una función que nadie llama no hace nada— y lo que se protege son
+  los **cuatro enlaces al DOM**, comprobando que el elemento exista.
+
+  El resultado es **más robusto que el original**: antes, si la plantilla dejaba
+  de pintar uno de esos elementos, el `getElementById` devolvía `null` y la
+  excepción tumbaba el resto del archivo.
+
+- **De 21 a 20 bloques ejecutables, y de 434 a 269 líneas.** Acumulado de las
+  fases 1a-1c: **31 → 20 bloques, 651 → 269 líneas**. Los 164 manejadores en
+  línea siguen intactos.
+
+- Se restauró a propósito el **tipo numérico** del filtro de variedad. Un
+  atributo `data-*` siempre devuelve texto, y PHP interpolaba el entero directo.
+  Hoy la diferencia sería inocua —el valor solo se asigna a un campo de
+  formulario, que es texto igualmente— pero dejar un tipo distinto al del
+  original es sembrar una sorpresa para el día que alguien compare con `===`.
+
+- Verificado en el navegador: **las 13 funciones quedan definidas**, el modal
+  abre, cierra y filtra, el filtro conserva su valor, y no hay un solo error de
+  JavaScript. 19 recorridos en verde.
+
+---
+
 ## [1.11.0] — 2026-09-01
 
 Dos días dedicados a que el proyecto pueda demostrar lo que afirma. El CI pasó

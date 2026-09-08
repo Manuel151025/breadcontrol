@@ -33,7 +33,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 19 | Columna huérfana `pedido_cliente.id_tienda_destino` | Arquitectura | Bajo | ✅ **Resuelto** (2026-08-06) |
 | 20 | Los mensajes de confirmación nunca se muestran | Usabilidad | Bajo-Medio | ✅ **Resuelto** (2026-08-15) |
 | 21 | HSTS, versión de Nginx y cabeceras de proxy | Seguridad | Medio | ✅ **Resuelto** (2026-08-14/15) |
-| 22 | `unsafe-inline` en la CSP: 164 manejadores en línea | Seguridad | Medio | 🟡 **Fases 1a-1b** (2026-09-01) — bloques 31→21; faltan los manejadores |
+| 22 | `unsafe-inline` en la CSP: 164 manejadores en línea | Seguridad | Medio | 🟡 **Fases 1a-1c** (2026-09-08) — bloques 31→20, líneas 651→269; faltan los manejadores |
 | 23 | Respaldos: probados, pero en el mismo servidor | Continuidad | Medio | 🟡 Parcial — falta copia externa |
 | 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
 | 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Bajo | 🟡 **Desriesgado** (2026-09-01) — 8.3 verificado y bloqueando en CI; falta cambiar el `Dockerfile` |
@@ -352,6 +352,21 @@ Los bloques de la portada, del acceso al back-office, del acceso al portal y del
 **Medido: de 26 a 21 bloques ejecutables**, y de 631 a 434 líneas de JavaScript incrustado. Verificado en el navegador: esas cuatro pantallas ya no sirven **ningún** bloque de script ejecutable, y no dan un solo error de JavaScript.
 
 **Duplicación detectada de paso, sin corregir:** los bloques de `login.php`, `portal/login.php` y `portal/registro.php` traían cada uno su propia copia del reloj y del widget de clima. Ahora están en tres archivos separados, así que la duplicación es más visible que antes. Unificarlos es un cambio distinto y mezclarlo aquí habría enturbiado la revisión.
+
+**🟡 Fase 1c (2026-09-08): el bloque de 165 líneas del tablero del portal.**
+
+Es el único de la serie donde **se cambió estructura, no solo de sitio**. El bloque tenía control de flujo de PHP mezclado con el JavaScript: tres `if` que decidían, al renderizar, qué código se emitía según fuera tienda, instructor o hubiera pagos pendientes.
+
+Un archivo estático no puede llevar esos `if` dentro, así que la decisión se mueve del renderizado al navegador:
+
+- **Las funciones se declaran siempre.** Una función que nadie llama no hace nada, y todas se invocan desde controles que solo existen bajo esas mismas condiciones.
+- **Lo que se protege son los cuatro enlaces al DOM**, comprobando que el elemento exista antes de escuchar.
+
+El resultado es **más robusto que el original**: antes, si la plantilla dejaba de pintar uno de esos elementos, el `getElementById` devolvía `null` y la excepción tumbaba el resto del archivo.
+
+**Medido: de 21 a 20 bloques**, y de 434 a **269 líneas**. Verificado en el navegador: las 13 funciones quedan definidas, el modal abre, cierra y filtra, y el filtro de variedad conserva su tipo numérico original.
+
+**Estado acumulado de las fases 1a-1c: 31 → 20 bloques ejecutables, 651 → 269 líneas.** Los 164 manejadores en línea siguen intactos.
 
 **⬜ Lo que falta, y el orden está forzado:**
 
