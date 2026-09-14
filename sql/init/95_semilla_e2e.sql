@@ -124,3 +124,18 @@ VALUES (
     (SELECT id_categoria FROM categoria_precio WHERE nombre = 'Categoria E2E'),
     100
 );
+
+-- ── Cuentas para probar la recuperación de acceso ────────────
+--
+-- Una por escenario y por portal, a propósito: la prueba de bloqueo deja la
+-- cuenta bloqueada 15 minutos, y si compartiera cuenta con la de recuperación
+-- correcta, el resultado dependería del orden en que corran las pruebas.
+--
+-- PIN de recuperación de las cuatro:  246810
+INSERT INTO usuario (nombre_usuario, nombre_completo, contrasena_hash, pin_recuperacion, rol, activo) VALUES
+    ('e2e_recupera_ok',      'Recuperación correcta E2E', '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti', '$2y$10$Ch9ko5izfPMT3/itGCKWqugSLethcEhQDscUA5vCaiqLb2h8yoL6S', 'propietario', 1),
+    ('e2e_recupera_bloqueo', 'Recuperación bloqueada E2E', '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti', '$2y$10$Ch9ko5izfPMT3/itGCKWqugSLethcEhQDscUA5vCaiqLb2h8yoL6S', 'propietario', 1);
+
+INSERT INTO cliente (nombre, tipo, activo, usuario, contrasena_hash, pin_recuperacion, email) VALUES
+    ('Cliente recuperación correcta E2E', 'tienda', 1, 'e2e_cli_recupera_ok',      '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti', '$2y$10$Ch9ko5izfPMT3/itGCKWqugSLethcEhQDscUA5vCaiqLb2h8yoL6S', 'e2e_cli_rec_ok@ejemplo.test'),
+    ('Cliente recuperación bloqueada E2E', 'tienda', 1, 'e2e_cli_recupera_bloqueo', '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti', '$2y$10$Ch9ko5izfPMT3/itGCKWqugSLethcEhQDscUA5vCaiqLb2h8yoL6S', 'e2e_cli_rec_bloq@ejemplo.test');

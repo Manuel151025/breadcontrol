@@ -4,6 +4,7 @@
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/AuthController.php" method="recuperarPin"/>
   <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/AuthController.php" method="recuperarPin"/>
   <violation rule="PHPMD\Rule\Design\LongMethod" file="controllers/AuthController.php" method="recuperarPin"/>
+  <violation rule="PHPMD\Rule\Design\WeightedMethodCount" file="controllers/AuthController.php"/>
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/CompraController.php" method="index"/>
   <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/CompraController.php" method="index"/>
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/CompraController.php" method="proveedores"/>

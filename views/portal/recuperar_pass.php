@@ -129,12 +129,12 @@
       <?php if ($paso == 2): ?>
       <?php if ($metodo === 'email'): ?>
         <div style="text-align:center;font-size:.85rem;color:var(--fg);line-height:1.6;">
-          Enviamos un código a <strong style="color:var(--honey);"><?= htmlspecialchars($_SESSION['recover_cemail'] ?? '') ?></strong>.<br>
+          Si la cuenta existe y tiene correo registrado,<br>te enviamos un código de 6 dígitos.<br>
           <span style="font-size:.75rem;color:var(--muted);">Expira en 10 minutos. Revisa tu carpeta de spam si no llega.</span>
         </div>
       <?php else: ?>
         <div style="text-align:center;font-size:.85rem;color:var(--fg);line-height:1.6;">
-          Hola <strong style="color:var(--honey);"><?= htmlspecialchars($_SESSION['recover_cnombre'] ?? '') ?></strong>,<br>ingresa tu PIN de 6 dígitos.
+          Ingresa el PIN de 6 dígitos para <strong style="color:var(--honey);"><?= htmlspecialchars($_SESSION['recover_cusuario'] ?? '') ?></strong>.<br><span style="font-size:.75rem;color:var(--muted);">Si nunca configuraste un PIN, vuelve y usa el correo.</span>
         </div>
       <?php endif; ?>
 

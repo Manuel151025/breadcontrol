@@ -331,7 +331,7 @@ class PortalAuthController extends PortalControllerBase {
 
         if (isset($_GET['reiniciar'])) {
             unset($_SESSION['recover_cid'], $_SESSION['recover_cnombre'], $_SESSION['recover_cemail'],
-                  $_SESSION['recover_metodo'], $_SESSION['recover_pin_ok']);
+                  $_SESSION['recover_metodo'], $_SESSION['recover_pin_ok'], $_SESSION['recover_cusuario']);
             header('Location: recuperar_pass.php');
             exit;
         }
@@ -342,7 +342,7 @@ class PortalAuthController extends PortalControllerBase {
 
         $paso = 1;
         if (isset($_SESSION['recover_pin_ok']))  $paso = 3;
-        elseif (isset($_SESSION['recover_cid'])) $paso = 2;
+        elseif (isset($_SESSION['recover_cusuario'])) $paso = 2;
 
         $metodo = $_SESSION['recover_metodo'] ?? 'pin';
 
@@ -351,88 +351,108 @@ class PortalAuthController extends PortalControllerBase {
                 $error = 'Token de seguridad inválido o expirado. Recarga la página e intenta de nuevo.';
             } else {
                 // ── PASO 1: identificar usuario y elegir método
+                //
+                // No revela si la cuenta existe ni qué método tiene configurado:
+                // siempre avanza al paso 2 con la misma respuesta. Antes devolvía
+                // «Usuario no encontrado», «no tiene correo» o «no tiene PIN», y en
+                // el paso 2 saludaba al titular por su NOMBRE REAL, así que además
+                // de confirmar la cuenta filtraba cómo se llama. Sigue la misma regla
+                // que la recuperación del back-office.
                 if (isset($_POST['verificar_usuario'])) {
                     $usuario_input = trim($_POST['usuario'] ?? '');
-                    $metodo_sel    = $_POST['metodo'] ?? 'pin';
+                    $metodo_sel    = ($_POST['metodo'] ?? 'pin') === 'email' ? 'email' : 'pin';
 
-                    if (!$usuario_input) {
+                    if ($usuario_input === '') {
                         $error = 'Ingresa tu nombre de usuario.';
                     } else {
                         $cliente = $this->model->getClienteByUsuario($usuario_input);
+                        $cid     = 0;
 
-                        if (!$cliente) {
-                            $error = 'Usuario no encontrado.';
-                        } elseif ($metodo_sel === 'email') {
-                            if (empty($cliente['email'])) {
-                                $error = 'Tu cuenta no tiene correo registrado. Usa el método PIN o contacta al administrador.';
+                        if ($cliente && $metodo_sel === 'email' && !empty($cliente['email'])) {
+                            $codigo = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                            $expira = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+                            // Se guarda hasheado; el código en claro solo viaja al correo.
+                            $this->model->registrarCodigoRecuperacion(
+                                $cliente['id_cliente'],
+                                Seguridad::hashCodigoRecuperacion($codigo),
+                                $expira
+                            );
+
+                            $html    = correo_codigo_html($cliente['nombre'], $codigo, 'Solicitaste recuperar tu contraseña en el portal BreadControl. Tu código es:');
+                            $enviado = enviar_correo($cliente['email'], $cliente['nombre'], 'BreadControl — Código de recuperación', $html);
+
+                            if ($enviado) {
+                                $cid = is_numeric($cliente['id_cliente']) ? (int) $cliente['id_cliente'] : 0;
                             } else {
-                                $codigo = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-                                $expira = date('Y-m-d H:i:s', strtotime('+10 minutes'));
-                                // Se guarda hasheado; el código en claro solo viaja al correo.
-                                $this->model->registrarCodigoRecuperacion(
-                                    $cliente['id_cliente'],
-                                    Seguridad::hashCodigoRecuperacion($codigo),
-                                    $expira
-                                );
-
-                                $html    = correo_codigo_html($cliente['nombre'], $codigo, 'Solicitaste recuperar tu contraseña en el portal BreadControl. Tu código es:');
-                                $enviado = enviar_correo($cliente['email'], $cliente['nombre'], 'BreadControl — Código de recuperación', $html);
-
-                                if ($enviado) {
-                                    $_SESSION['recover_cid']     = $cliente['id_cliente'];
-                                    $_SESSION['recover_cnombre'] = $cliente['nombre'];
-                                    $_SESSION['recover_cemail']  = preg_replace('/(?<=.{2}).(?=.*@)/', '*', $cliente['email']);
-                                    $_SESSION['recover_metodo']  = 'email';
-                                    $paso   = 2;
-                                    $metodo = 'email';
-                                } else {
-                                    $error = 'No se pudo enviar el correo. Intenta con el método PIN.';
-                                }
+                                // No se le cuenta a quien lo pide: confirmaría la cuenta.
+                                log_error('Recuperación del portal: no se pudo enviar el código por correo.');
                             }
-                        } else {
-                            if (empty($cliente['pin_recuperacion'])) {
-                                $error = 'Tu cuenta no tiene PIN configurado. Usa el método correo o contacta al administrador.';
-                            } else {
-                                $_SESSION['recover_cid']     = $cliente['id_cliente'];
-                                $_SESSION['recover_cnombre'] = $cliente['nombre'];
-                                $_SESSION['recover_metodo']  = 'pin';
-                                $paso   = 2;
-                                $metodo = 'pin';
-                            }
+                        } elseif ($cliente && $metodo_sel === 'pin' && !empty($cliente['pin_recuperacion'])) {
+                            $cid = is_numeric($cliente['id_cliente']) ? (int) $cliente['id_cliente'] : 0;
                         }
+
+                        $_SESSION['recover_cid']      = $cid;
+                        $_SESSION['recover_cusuario'] = $usuario_input;
+                        $_SESSION['recover_metodo']   = $metodo_sel;
+                        $paso   = 2;
+                        $metodo = $metodo_sel;
                     }
                 }
                 // ── PASO 2: verificar código / PIN
+                //
+                // CON LÍMITE DE INTENTOS, que antes no existía: el PIN son 6 dígitos
+                // y un fallo dejaba volver a probar sin tope. Al acertar, el paso 3
+                // fija una contraseña nueva, así que se podía tomar la cuenta de
+                // cualquier cliente —incluida la del instructor, que es quien paga
+                // los pedidos—. Mismo limitador que el login, en base de datos y por
+                // cuenta: volver a empezar no reinicia el contador.
                 elseif (isset($_POST['verificar_codigo'])) {
-                    $codigo = trim($_POST['codigo'] ?? '');
-                    $cid    = $_SESSION['recover_cid']    ?? 0;
-                    $metodo = $_SESSION['recover_metodo'] ?? '';
+                    $codigo   = trim($_POST['codigo'] ?? '');
+                    $cid      = is_int($_SESSION['recover_cid'] ?? null) ? $_SESSION['recover_cid'] : 0;
+                    $metodo   = ($_SESSION['recover_metodo'] ?? '') === 'email' ? 'email' : 'pin';
+                    $usuario  = is_string($_SESSION['recover_cusuario'] ?? null) ? $_SESSION['recover_cusuario'] : '';
+                    $clave    = 'recuperar:' . mb_strtolower($usuario);
+                    $ip       = ip_cliente();
+                    $intentos = new IntentoLoginModel($this->pdo);
 
-                    if (!$cid || !preg_match('/^\d{6}$/', $codigo)) {
+                    if ($usuario === '') {
+                        header('Location: recuperar_pass.php?reiniciar=1');
+                        exit;
+                    } elseif ($intentos->estaBloqueado(IntentoLoginModel::AMBITO_PORTAL, $clave, $ip)) {
+                        unset($_SESSION['recover_cid'], $_SESSION['recover_cusuario'], $_SESSION['recover_metodo']);
+                        $error = 'Demasiados intentos fallidos. Espera ' . Seguridad::LOGIN_VENTANA_MINUTOS . ' minutos y vuelve a empezar.';
+                        $paso  = 1;
+                    } elseif (!preg_match('/^\d{6}$/', $codigo)) {
                         $error = 'Ingresa el código de 6 dígitos.';
                         $paso  = 2;
-                    } elseif ($metodo === 'email') {
-                        $cliente = $this->model->getClienteById($cid);
-                        if (!$cliente || !Seguridad::verificarCodigoRecuperacion($codigo, $cliente['codigo_recuperacion'])) {
-                            $error = 'Código incorrecto.';
-                            $paso  = 2;
-                        } elseif (strtotime($cliente['codigo_expira']) < time()) {
+                    } else {
+                        $cliente  = $cid > 0 ? $this->model->getClienteById($cid) : null;
+                        $valido   = false;
+                        $expirado = false;
+
+                        if ($cliente && $metodo === 'email') {
+                            $valido   = Seguridad::verificarCodigoRecuperacion($codigo, $cliente['codigo_recuperacion']);
+                            $exp      = $cliente['codigo_expira'] ?? null;
+                            $expirado = $valido && (!is_string($exp) || strtotime($exp) < time());
+                        } elseif ($cliente && $metodo === 'pin') {
+                            $hash   = $cliente['pin_recuperacion'] ?? null;
+                            $valido = is_string($hash) && $hash !== '' && password_verify($codigo, $hash);
+                        }
+
+                        if ($valido && $expirado) {
+                            unset($_SESSION['recover_cid'], $_SESSION['recover_cusuario'], $_SESSION['recover_metodo']);
                             $error = 'El código expiró. Vuelve a empezar.';
                             $paso  = 1;
-                            unset($_SESSION['recover_cid'], $_SESSION['recover_cnombre'], $_SESSION['recover_metodo']);
-                        } else {
-                            $this->model->limpiarCodigoRecuperacion($cid);
-                            $_SESSION['recover_pin_ok'] = true;
-                            $paso = 3;
-                        }
-                    } else {
-                        $cliente = $this->model->getClienteById($cid);
-                        $hash = $cliente['pin_recuperacion'] ?? '';
-                        if ($hash && password_verify($codigo, $hash)) {
+                        } elseif ($valido) {
+                            $intentos->limpiar(IntentoLoginModel::AMBITO_PORTAL, $clave);
+                            if ($metodo === 'email') {
+                                $this->model->limpiarCodigoRecuperacion($cid);
+                            }
                             $_SESSION['recover_pin_ok'] = true;
                             $paso = 3;
                         } else {
-                            $error = 'PIN incorrecto.';
+                            $intentos->registrarFallo(IntentoLoginModel::AMBITO_PORTAL, $clave, $ip);
+                            $error = $metodo === 'pin' ? 'PIN incorrecto.' : 'Código incorrecto.';
                             $paso  = 2;
                         }
                     }
@@ -457,7 +477,7 @@ class PortalAuthController extends PortalControllerBase {
                         $hash = password_hash($nueva, PASSWORD_DEFAULT);
                         $this->model->actualizarPassword($cid, $hash);
                         unset($_SESSION['recover_cid'], $_SESSION['recover_cnombre'], $_SESSION['recover_cemail'],
-                              $_SESSION['recover_metodo'], $_SESSION['recover_pin_ok']);
+                              $_SESSION['recover_metodo'], $_SESSION['recover_pin_ok'], $_SESSION['recover_cusuario']);
                         $ok   = '¡Contraseña restablecida! Ya puedes iniciar sesión.';
                         $paso = 4;
                     }

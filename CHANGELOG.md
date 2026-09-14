@@ -6,6 +6,56 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+### Seguridad
+
+- **La recuperación de acceso por PIN no tenía límite de intentos, en los dos
+  portales.** Es la vulnerabilidad más grave encontrada en el proyecto. El paso que
+  verifica el PIN solo devolvía «PIN incorrecto» y dejaba volver a probar, sin tope
+  ni caducidad. Son 6 dígitos —un millón de combinaciones— y al acertar se fija una
+  contraseña nueva: era una vía directa para tomar la **cuenta del propietario** en
+  el back-office, o la de **cualquier cliente** en el portal, incluida la del
+  instructor, que es quien paga los pedidos.
+
+  Lo irónico es que el login sí estaba protegido desde la v1.7.0 —5 fallos por
+  cuenta cada 15 minutos, 20 por IP—, pero la recuperación, que termina en lo mismo,
+  nunca usó ese limitador. Ahora lo usa, con un identificador propio para que los
+  intentos de recuperación y los de acceso no se sumen, y **en base de datos y por
+  cuenta**: volver a empezar o descartar la cookie no reinicia el contador. Aplica
+  tanto al PIN como al código enviado por correo.
+
+- **Y el primer paso ya no ayuda a elegir víctima.** Devolvía tres mensajes
+  distintos —«Usuario no encontrado», «no tiene correo configurado», «no tiene PIN
+  configurado»— que juntos enumeraban las cuentas y decían cuáles tenían PIN. El
+  portal, además, saludaba al titular por su **nombre real** y mostraba parte de su
+  correo. Ahora cualquier usuario, exista o no, avanza al mismo paso 2 con la misma
+  respuesta: la regla que ya cumplía el login (punto C05 del informe técnico).
+
+  El coste de experiencia es pequeño y habitual en este tipo de flujos: quien no
+  configuró un PIN ya no lo sabe al instante, así que el paso 2 lo recuerda con una
+  frase fija —«Si nunca configuraste un PIN, vuelve y usa el correo»—, igual para
+  todos. Tampoco se muestra ya un fallo de envío del correo, que confirmaría la
+  cuenta; queda en el registro del servidor.
+
+- **De paso, el botón «Volver» de la recuperación del back-office no hacía nada.**
+  Mandaba a la misma página sin cerrar la recuperación, y como la sesión seguía
+  viva, la página volvía a abrir el paso 2. Ahora reinicia el proceso, como ya hacía
+  el portal.
+
+- **Siete recorridos de Playwright lo demuestran**, sobre cuentas propias de la
+  semilla: el PIN correcto sigue permitiendo recuperar la cuenta; una cuenta real
+  sin PIN y una inexistente llegan exactamente al mismo sitio; y **cinco PIN
+  incorrectos bloquean la cuenta aunque el sexto sea el correcto** —la comprobación
+  que distingue un bloqueo real de una prueba que pasaría sin él—, también después
+  de volver a empezar.
+
+- PHPStan: el cambio **retira 8 entradas del baseline** (de 475 a 467): tipos que
+  antes se daban por buenos y ahora se comprueban. PHPMD: `AuthController` supera el
+  umbral de complejidad de clase (62 frente a 50) por las ramas nuevas; se registra
+  en el baseline, como ya lo estaba `PortalAuthController`, y queda anotado extraer
+  la recuperación a su propia clase (punto 31 del anexo).
+
+---
+
 ### Añadido
 
 - **PHP 8.3 entra en la matriz del CI, en modo informativo.** La compilación,
