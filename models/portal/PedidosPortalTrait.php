@@ -390,12 +390,27 @@ trait PedidosPortalTrait {
             }
 
             if ($edit_id > 0) {
-                // Validar que exista el pedido y esté pendiente
-                $stmt_chk = $this->pdo->prepare("SELECT id_pedido, estado, fecha_entrega, id_cliente, id_pago_activo FROM pedido_cliente WHERE id_pedido = ? AND (id_cliente = ? OR id_creador = ?)");
-                $stmt_chk->execute([$edit_id, $cliente_id, $cliente_id]);
+                // Validar que exista el pedido, que lo edite quien lo creó y que
+                // siga pendiente.
+                //
+                // La autoría se comprueba contra $id_creador, la cuenta que está
+                // editando. Antes se comprobaba contra $cliente_id, que aquí es la
+                // cuenta FACTURADA: cuando un aprendiz pide para ADSO, esa es la del
+                // instructor, así que la condición aceptaba cualquier pedido cargado
+                // al instructor. Cambiando el campo oculto edit_id, un aprendiz
+                // sobrescribía el pedido de otro, que seguía a nombre de la víctima
+                // —con su cupo y su deuda— pero con lo que eligió el primero.
+                $stmt_chk = $this->pdo->prepare("SELECT id_pedido, estado, fecha_entrega, id_cliente, id_creador, id_pago_activo FROM pedido_cliente WHERE id_pedido = ?");
+                $stmt_chk->execute([$edit_id]);
                 $ped_chk = $stmt_chk->fetch(PDO::FETCH_ASSOC);
 
-                if (!$ped_chk || $ped_chk['estado'] !== 'pendiente') {
+                $es_autor = is_array($ped_chk) && ReglasPortal::esAutorDelPedido(
+                    is_numeric($ped_chk['id_creador'] ?? null) ? (int) $ped_chk['id_creador'] : null,
+                    is_numeric($ped_chk['id_cliente'] ?? null) ? (int) $ped_chk['id_cliente'] : 0,
+                    $id_creador
+                );
+
+                if (!$es_autor || $ped_chk['estado'] !== 'pendiente') {
                     throw new Exception("No puedes editar este pedido.");
                 }
 

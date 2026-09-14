@@ -342,4 +342,36 @@ final class ReglasPortalTest extends TestCase
         $this->assertSame($manana, $minFecha('20:00'));
         $this->assertSame($manana, $minFecha('22:30'));
     }
+
+    // ============ GRUPO 9: Autoría del pedido ============
+
+    public function testSoloQuienPideElPedidoPuedeEditarlo(): void
+    {
+        $instructor = 10;
+        $aprendiz_a = 21;
+        $aprendiz_b = 22;
+
+        // El pedido de A para ADSO se factura al instructor, pero es de A.
+        $this->assertTrue(ReglasPortal::esAutorDelPedido($aprendiz_a, $instructor, $aprendiz_a));
+
+        // El caso que se explotaba: B también «pide para el instructor», y antes
+        // eso bastaba para editar el pedido de A.
+        $this->assertFalse(ReglasPortal::esAutorDelPedido($aprendiz_a, $instructor, $aprendiz_b),
+            'Un aprendiz no edita el pedido de otro aunque los dos se facturen al mismo instructor');
+
+        // Pagar no da derecho a cambiar lo que otro pidió.
+        $this->assertFalse(ReglasPortal::esAutorDelPedido($aprendiz_a, $instructor, $instructor),
+            'El instructor aprueba o rechaza el pedido del aprendiz, no lo edita');
+
+        // Un pedido propio: autor y facturado coinciden.
+        $this->assertTrue(ReglasPortal::esAutorDelPedido($instructor, $instructor, $instructor));
+    }
+
+    public function testUnPedidoSinCreadorLoGestionaLaCuentaFacturada(): void
+    {
+        // Pedidos anteriores a la columna id_creador, o cuyo creador se eliminó
+        // (ON DELETE SET NULL): siguen como hasta ahora.
+        $this->assertTrue(ReglasPortal::esAutorDelPedido(null, 30, 30));
+        $this->assertFalse(ReglasPortal::esAutorDelPedido(null, 30, 31));
+    }
 }

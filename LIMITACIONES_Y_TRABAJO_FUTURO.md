@@ -43,6 +43,9 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 29 | No se sabía qué migraciones tenía aplicada una base | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
 | 30 | Un pedido vencido se queda en «pendiente» para siempre | Ciclo de vida | Bajo | 🟡 **Parcial** (2026-09-01) — ya se puede cancelar; falta el estado |
 | 31 | Recuperación de acceso por PIN sin límite de intentos y con enumeración de cuentas | Seguridad | Crítico | ✅ **Resuelto** (2026-09-14) |
+| 32 | Un aprendiz podía sobrescribir el pedido de otro aprendiz | Seguridad | Alto | ✅ **Resuelto** (2026-09-14) |
+| 33 | Un pedido cancelado se podía aprobar desde un tablero abierto | Ciclo de vida | Bajo | ✅ **Resuelto** (2026-09-14) |
+| 34 | La hora de entrega se pide pero no se guarda | Ciclo de vida | Medio | ⬜ Abierto — S (migración y 3-4 consultas) |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -151,6 +154,26 @@ El paso 1 lo agravaba: tres mensajes distintos enumeraban las cuentas y decían 
 **Evidencia:** `e2e/tests/recuperacion.spec.js`, siete recorridos sobre cuentas propias de la semilla. El decisivo: tras cinco PIN incorrectos, **el sexto, con el PIN correcto, se rechaza**, y se sigue rechazando tras volver a empezar.
 
 **⬜ Lo que queda:** `AuthController` supera el umbral de complejidad de clase de PHPMD (62 frente a 50) por las ramas nuevas, y la lógica de los pasos 1 y 2 está casi duplicada entre `AuthController` y `PortalAuthController`. Extraerla a una clase propia reduciría las dos cosas. No se hizo aquí para no mezclar una refactorización con una corrección de seguridad recién probada.
+
+---
+
+### 32. ✅ Un aprendiz podía sobrescribir el pedido de otro aprendiz — RESUELTO (2026-09-14)
+
+**Descubierto el 2026-09-14** recorriendo el portal como aprendiz, durante la revisión de cierre del proyecto.
+
+**Descripción:** `PedidosPortalTrait::crearPedido` recibe dos cuentas: la facturada (`$cliente_id`) y la que crea el pedido (`$id_creador`). Al editar, la pertenencia se comprobaba con `id_cliente = ? OR id_creador = ?` pasando **dos veces la facturada**. En un pedido de aprendiz dirigido a ADSO la facturada es el instructor, así que la condición aceptaba cualquier pedido cargado al instructor.
+
+**Impacto:** un aprendiz autenticado, con su propio token CSRF, cambiaba el campo oculto `edit_id` por el número de otro pedido —son consecutivos— y lo reemplazaba por su carrito. El pedido seguía a nombre de la víctima: contaba contra su cupo semanal y figuraba en su deuda con el instructor. Alcanzaba a los pedidos pendientes, sin pago en curso y a más de 48 horas de la entrega: justo los que el instructor todavía no ha revisado.
+
+**Evidencia antes de corregir:** el pedido #8, de `e2e_aprendiz_b` por $2.000, quedó en $7.000 con el carrito de `e2e_aprendiz_a`.
+
+**Por qué no lo detectó ninguna prueba:** `crearPedido` abre su propia transacción y las pruebas de integración corren dentro de otra, así que nunca se probó directamente; y ningún recorrido de navegador usaba dos aprendices.
+
+**Corrección:** la autoría se comprueba contra quien edita, con `ReglasPortal::esAutorDelPedido`. Un pedido sin creador registrado lo sigue gestionando la cuenta facturada. La misma regla oculta el botón «Editar» y redirige la precarga del formulario.
+
+**Consecuencia buscada:** el instructor deja de poder editar los pedidos de sus aprendices, que la pantalla de detalle le ofrecía. Conserva aprobar, rechazar y cancelar; lo que contiene un pedido lo decide quien lo pidió.
+
+**Evidencia:** `e2e/tests/portal-aprendiz-instructor.spec.js`, que falló antes de la corrección, y el grupo 9 de `tests/Unit/ReglasPortalTest.php`.
 
 ---
 
@@ -627,6 +650,34 @@ GROUP BY estado, aprobado_instructor;
 ```
 
 devolvió **cero filas** contra producción. Conviene ser preciso sobre qué prueba eso: que **hoy** no hay ningún pedido vencido sin atender, no que no pueda haberlo. El hueco sigue en el código. Dicho de otro modo, **funciona porque la gente atiende los pedidos a tiempo, no porque el sistema lo garantice**.
+
+---
+
+### 33. ✅ Un pedido cancelado por el aprendiz se podía aprobar desde un tablero abierto — RESUELTO (2026-09-14)
+
+**Descripción:** `aprobarPedidosInstructorLote` y `rechazarPedidosInstructorLote` aceptaban cualquier pedido con `aprobado_instructor = 0`. Cancelar deja el pedido en `rechazado` sin tocar ese campo, así que un pedido cancelado seguía siendo «aprobable».
+
+**Impacto:** con el tablero del instructor abierto, si el aprendiz cancelaba entretanto, aprobar respondía «Pedido aprobado y programado con éxito» y dejaba `aprobado_instructor = 1` en un pedido cancelado. No movía dinero —la cartera excluye los rechazados—, pero el mensaje era falso y el pedido volvía a aparecer en la lista del instructor. Rechazarlo sobrescribía «Cancelado por el cliente» con «Rechazado por el instructor».
+
+**Corrección:** las dos operaciones exigen `estado = 'pendiente'`, también en el `UPDATE` —el aprendiz puede cancelar entre la lectura y la escritura—, y devuelven las filas que de verdad cambiaron.
+
+**Evidencia:** tres pruebas en `tests/Integration/PortalClienteModelTest.php` (pedido cancelado, motivo conservado, lote mixto) y el tercer recorrido de `portal-aprendiz-instructor.spec.js`, que abre dos navegadores a la vez.
+
+---
+
+### 34. ⬜ La hora de entrega se pide pero no se guarda
+
+**Descubierto el 2026-09-14** al comprobar en base de datos el pedido que la prueba de navegador aprobó para las 9:00.
+
+**Descripción:** `pedido_cliente.fecha_entrega` es de tipo `DATE`. El portal obliga a elegir hora —al crear un pedido y al aprobar los de los aprendices—, la valida contra el horario de 7:00 a 20:00 y rechaza horas pasadas; después la base la descarta. `formatearFechaEntrega()` solo muestra la hora cuando no es medianoche, así que nunca aparece.
+
+**Impacto:** ni la panadería sabe a qué hora entregar ni el aprendiz a qué hora recoger. Efecto secundario: la regla de las 48 horas se cuenta desde las 00:00 del día de entrega y no desde la hora elegida, así que bloquea hasta 20 horas antes de lo previsto (más estricta, nunca más laxa).
+
+**Evidencia:** pedido aprobado en la prueba para las 09:00 → `fecha_entrega = 2026-09-19`. `SHOW COLUMNS FROM pedido_cliente` en la base local: `date`.
+
+**Por qué no se corrigió aquí:** exige migrar la columna a `DATETIME` en producción y revisar las consultas que la comparan con una fecha sin hora (por ejemplo, el reporte por tienda usa `fecha_entrega = ?`). Es un cambio de esquema que merece su propio PR con la migración probada. La alternativa —quitar el campo de hora— es una decisión de producto.
+
+**Esfuerzo:** S.
 
 ---
 

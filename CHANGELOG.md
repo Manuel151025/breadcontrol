@@ -8,6 +8,71 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ### Seguridad
 
+- **Un aprendiz podía sobrescribir el pedido de otro aprendiz.** Al editar, el
+  modelo comprobaba que el pedido perteneciera a la cuenta *facturada*, y cuando
+  un aprendiz pide para ADSO esa cuenta es la del instructor: la condición
+  aceptaba cualquier pedido cargado al instructor. Bastaba con cambiar el campo
+  oculto `edit_id` del formulario —los números son consecutivos— para reemplazar
+  el contenido del pedido de un compañero, que seguía a su nombre, contra su cupo
+  semanal y dentro de su deuda.
+
+  Comprobado en el navegador antes de corregirlo: un pedido de $2.000 de un
+  aprendiz quedó en $7.000, con lo que eligió otro.
+
+  Ahora solo edita quien creó el pedido (`ReglasPortal::esAutorDelPedido`). Eso
+  también le retira al instructor la opción de editar los pedidos de sus
+  aprendices, que la pantalla de detalle le ofrecía: los sigue aprobando,
+  rechazando o cancelando, pero lo que contienen lo decide quien los pidió.
+
+### Corregido
+
+- **Un pedido que el aprendiz ya había cancelado se podía aprobar.** Con el
+  tablero del instructor abierto, si el aprendiz cancelaba entretanto, «Aprobar
+  seleccionados» respondía «Pedido aprobado y programado con éxito» y el pedido
+  cancelado quedaba marcado como aprobado. Rechazarlo, por su parte, le
+  sobrescribía el motivo: «Cancelado por el cliente» pasaba a «Rechazado por el
+  instructor». La aprobación y el rechazo en lote solo tocan ya pedidos
+  pendientes —con la condición repetida en la escritura, porque el aprendiz
+  puede cancelar entre la lectura y el cambio— y el mensaje cuenta los que de
+  verdad cambiaron.
+
+- **Con el pago del instructor en curso, el aprendiz veía «Editar» y
+  «Cancelar»**, y pulsarlos solo devolvía un error: el modelo ya los bloqueaba.
+  Ahora no se ofrecen.
+
+- El recuadro «Para entregar el» del detalle del pedido cerraba una etiqueta
+  `<strong>` que nunca abría.
+
+### Añadido
+
+- **Primer recorrido de navegador del flujo aprendiz → instructor → pago**
+  (`e2e/tests/portal-aprendiz-instructor.spec.js`): la razón de ser del portal, y
+  hasta ahora sin cubrir. El aprendiz pide para ADSO, el instructor lo aprueba en
+  lote con fecha y genera el pago consolidado por Nequi. **Las tres pruebas
+  fallaron contra el código anterior**, cada una en el punto exacto del fallo que
+  documentan. La semilla E2E suma el instructor, dos aprendices y la fila de
+  `configuracion` que el CI no creaba.
+
+- 3 pruebas de integración de la aprobación en lote (pedido cancelado, motivo
+  conservado, lote mixto) y 2 unitarias de la autoría. PHPUnit: 222 pruebas.
+  Playwright: 29 recorridos.
+
+- PHPStan retira 4 errores de tipo del baseline. PHPMD: `ReglasPortal` llega a 11
+  métodos públicos (umbral 10) y se registra en el baseline: partir una clase de
+  reglas puras solo por el contador haría más difícil encontrarlas.
+
+### Conocido
+
+- **La hora de entrega se pide pero no se guarda.** `pedido_cliente.fecha_entrega`
+  es de tipo `DATE`: el formulario obliga a elegir hora, la valida contra el
+  horario de 7:00 a 20:00 y después la base la descarta. Un pedido que el
+  instructor aprueba para las 9:00 queda solo con el día. Corregirlo exige una
+  migración en producción (punto 34 del anexo).
+
+---
+
+### Seguridad
+
 - **La recuperación de acceso por PIN no tenía límite de intentos, en los dos
   portales.** Es la vulnerabilidad más grave encontrada en el proyecto. El paso que
   verifica el PIN solo devolvía «PIN incorrecto» y dejaba volver a probar, sin tope

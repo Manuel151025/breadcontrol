@@ -230,10 +230,6 @@ class PortalPedidoController extends PortalControllerBase {
         $detalles = $this->model->getDetallesPedido($id_pedido);
 
         $dentro_limite   = ReglasPortal::dentroDeLimite48h($pedido['fecha_entrega']);
-        // Editar y cancelar dejaron de compartir regla: un pedido vencido ya no
-        // se puede editar —no tiene sentido— pero si retirar.
-        $puede_editar   = ReglasPortal::puedeGestionarPedido($pedido['estado'], $pedido['fecha_entrega']);
-        $puede_cancelar = ReglasPortal::puedeCancelarPedido($pedido['estado'], $pedido['fecha_entrega']);
 
         // Pago digital
         $estado_pago = $pedido['estado_pago'] ?? 'no_aplica';
@@ -249,6 +245,8 @@ class PortalPedidoController extends PortalControllerBase {
                 }
             }
         }
+
+        [$puede_editar, $puede_cancelar] = $this->accionesPermitidas($pedido, $cliente_id, $es_aprendiz, $pago_activo);
 
         $metodos_legibles = [
             'NEQUI' => 'Nequi', 'BANCOLOMBIA' => 'Bancolombia',
@@ -437,6 +435,14 @@ class PortalPedidoController extends PortalControllerBase {
         if ($edit_id > 0) {
             $ped_edit = $this->model->getPedido($edit_id, $cliente_id);
             if ($ped_edit && $ped_edit['estado'] === 'pendiente') {
+                // Solo quien lo pidió lo edita (ver ReglasPortal::esAutorDelPedido).
+                // El guardado ya lo impide; esto evita mostrar un formulario
+                // precargado que al enviarse solo daría error.
+                if (!ReglasPortal::esAutorDelPedido($ped_edit['id_creador'], $ped_edit['id_cliente'], $cliente_id)) {
+                    header('Location: detalle_pedido.php?id=' . $edit_id);
+                    exit;
+                }
+
                 $dt = new DateTime($ped_edit['fecha_entrega']);
                 $yr = (int)$dt->format('Y');
                 if ($yr <= 1970) {
@@ -540,6 +546,35 @@ class PortalPedidoController extends PortalControllerBase {
             }
         }
         exit;
+    }
+
+    /**
+     * Qué botones se le ofrecen a quien mira el pedido: [editar, cancelar].
+     *
+     * - Editar y cancelar no comparten regla: un pedido vencido ya no se puede
+     *   editar —no tiene sentido— pero sí retirar.
+     * - Editar es solo de quien lo pidió: el instructor ve los pedidos de sus
+     *   aprendices, y antes también se le ofrecía cambiarlos. Los aprueba,
+     *   rechaza o cancela; lo que contienen lo decide el aprendiz.
+     * - Con el pago del instructor en curso, el modelo rechaza que el aprendiz
+     *   edite o cancele (ReglasPortal::bloqueoPorPagoInstructor). Ofrecerle los
+     *   botones solo lo llevaba a un mensaje de error.
+     *
+     * @param array{id_creador: int|null, id_cliente: int, estado: string, fecha_entrega: string} $pedido
+     * @param array<mixed>|null $pago_activo
+     * @return array{bool, bool}
+     */
+    private function accionesPermitidas(array $pedido, int $cliente_id, bool $es_aprendiz, ?array $pago_activo): array {
+        $estado_pago = is_string($pago_activo['estado'] ?? null) ? $pago_activo['estado'] : null;
+        if (ReglasPortal::bloqueoPorPagoInstructor($es_aprendiz, $estado_pago)) {
+            return [false, false];
+        }
+
+        return [
+            ReglasPortal::esAutorDelPedido($pedido['id_creador'], $pedido['id_cliente'], $cliente_id)
+                && ReglasPortal::puedeGestionarPedido($pedido['estado'], $pedido['fecha_entrega']),
+            ReglasPortal::puedeCancelarPedido($pedido['estado'], $pedido['fecha_entrega']),
+        ];
     }
 
 }

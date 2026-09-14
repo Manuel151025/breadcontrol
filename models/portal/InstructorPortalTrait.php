@@ -619,26 +619,38 @@ trait InstructorPortalTrait {
      */
     public function aprobarPedidosInstructorLote(array $ids, int $instructor_id, string $datetime_entrega): int {
         if (empty($ids)) return 0;
-        
+
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        
-        $query_check = "SELECT id_pedido FROM pedido_cliente WHERE id_pedido IN ($placeholders) AND id_cliente = ? AND aprobado_instructor = 0";
+
+        // Solo pedidos que siguen PENDIENTES. Antes bastaba con que no estuvieran
+        // aprobados, y un pedido que el aprendiz ya había cancelado —estado
+        // 'rechazado', aprobado_instructor = 0— lo cumplía: desde un tablero que
+        // siguiera abierto, el instructor lo «aprobaba» y el sistema respondía
+        // «Pedido aprobado y programado con éxito».
+        $query_check = "SELECT id_pedido FROM pedido_cliente WHERE id_pedido IN ($placeholders) AND id_cliente = ? AND aprobado_instructor = 0 AND estado = 'pendiente'";
         $stmt_check = $this->pdo->prepare($query_check);
         $params_check = array_merge($ids, [$instructor_id]);
         $stmt_check->execute($params_check);
         $ids_validos = $stmt_check->fetchAll(PDO::FETCH_COLUMN);
-        
+
         if (empty($ids_validos)) {
             throw new Exception("Ninguno de los pedidos seleccionados pertenece a tu grupo o ya fueron procesados.");
         }
-        
+
+        // La misma condición se repite en el UPDATE: entre la consulta y la
+        // escritura el aprendiz todavía puede cancelar, y lo que se informa es
+        // lo que de verdad cambió, no lo que se leyó.
         $placeholders_upd = implode(',', array_fill(0, count($ids_validos), '?'));
-        $query_upd = "UPDATE pedido_cliente SET aprobado_instructor = 1, fecha_entrega = ? WHERE id_pedido IN ($placeholders_upd) AND id_cliente = ?";
+        $query_upd = "UPDATE pedido_cliente SET aprobado_instructor = 1, fecha_entrega = ? WHERE id_pedido IN ($placeholders_upd) AND id_cliente = ? AND aprobado_instructor = 0 AND estado = 'pendiente'";
         $stmt_upd = $this->pdo->prepare($query_upd);
         $params_upd = array_merge([$datetime_entrega], $ids_validos, [$instructor_id]);
         $stmt_upd->execute($params_upd);
-        
-        return count($ids_validos);
+
+        $aprobados = $stmt_upd->rowCount();
+        if ($aprobados === 0) {
+            throw new Exception("Ninguno de los pedidos seleccionados pertenece a tu grupo o ya fueron procesados.");
+        }
+        return $aprobados;
     }
 
     /**
@@ -657,7 +669,11 @@ trait InstructorPortalTrait {
         
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         
-        $query_check = "SELECT id_pedido FROM pedido_cliente WHERE id_pedido IN ($placeholders) AND id_cliente = ? AND aprobado_instructor = 0";
+        // Solo pedidos pendientes, por lo mismo que al aprobar: rechazar uno que el
+        // aprendiz ya canceló le sobrescribía el motivo —«Cancelado por el
+        // cliente» pasaba a «Rechazado por el instructor»— y el historial dejaba
+        // de decir quién lo retiró.
+        $query_check = "SELECT id_pedido FROM pedido_cliente WHERE id_pedido IN ($placeholders) AND id_cliente = ? AND aprobado_instructor = 0 AND estado = 'pendiente'";
         $stmt_check = $this->pdo->prepare($query_check);
         $params_check = array_merge($ids, [$instructor_id]);
         $stmt_check->execute($params_check);
@@ -668,11 +684,15 @@ trait InstructorPortalTrait {
         }
         
         $placeholders_upd = implode(',', array_fill(0, count($ids_validos), '?'));
-        $query_upd = "UPDATE pedido_cliente SET estado = 'rechazado', aprobado_instructor = 0, mensaje_propietario = 'Rechazado por el instructor' WHERE id_pedido IN ($placeholders_upd) AND id_cliente = ?";
+        $query_upd = "UPDATE pedido_cliente SET estado = 'rechazado', aprobado_instructor = 0, mensaje_propietario = 'Rechazado por el instructor' WHERE id_pedido IN ($placeholders_upd) AND id_cliente = ? AND aprobado_instructor = 0 AND estado = 'pendiente'";
         $stmt_upd = $this->pdo->prepare($query_upd);
         $params_upd = array_merge($ids_validos, [$instructor_id]);
         $stmt_upd->execute($params_upd);
         
-        return count($ids_validos);
+        $rechazados = $stmt_upd->rowCount();
+        if ($rechazados === 0) {
+            throw new Exception("Ninguno de los pedidos seleccionados pertenece a tu grupo o ya fueron procesados.");
+        }
+        return $rechazados;
     }
 }

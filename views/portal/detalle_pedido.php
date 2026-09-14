@@ -106,6 +106,7 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <span><i class="bi bi-calendar-event"></i> Para entregar el</span>
+                        <strong>
                             <?= formatearFechaEntrega($pedido['fecha_entrega']) ?>
                         </strong>
                     </div>
