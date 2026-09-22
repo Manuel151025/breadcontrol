@@ -139,7 +139,7 @@
             <div class="prod-meta">
               <span><?= $p['unidad_produccion'] ?></span>
               <?php if ($p['cantidad_por_tanda'] > 0): ?>
-              <span>· <?= floatval($p['cantidad_por_tanda']) ?> uds/tanda</span>
+              <span>· <?= formatoInteligente((float) $p['cantidad_por_tanda']) ?> uds/tanda</span>
               <?php endif; ?>
             </div>
           </div>
