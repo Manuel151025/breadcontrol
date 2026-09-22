@@ -94,6 +94,7 @@
   <violation rule="PHPMD\Rule\Design\LongMethod" file="models/ProduccionModel.php" method="registrarProduccionConConsumos"/>
   <violation rule="PHPMD\Rule\Design\LongParameterList" file="models/ProduccionModel.php" method="registrarProduccionConConsumos"/>
   <violation rule="PHPMD\Rule\Design\TooManyPublicMethods" file="models/RecetaModel.php"/>
+  <violation rule="PHPMD\Rule\Design\TooManyPublicMethods" file="helpers/ReglasPortal.php"/>
   <violation rule="PHPMD\Rule\Design\WeightedMethodCount" file="models/VentaModel.php"/>
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="models/VentaModel.php" method="registrarPedidoDetallado"/>
   <violation rule="PHPMD\Rule\Design\NpathComplexity" file="models/VentaModel.php" method="registrarPedidoDetallado"/>

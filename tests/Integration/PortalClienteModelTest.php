@@ -36,9 +36,33 @@ final class PortalClienteModelTest extends BaseDatosTestCase
 
     private function leerPedido(int $id): array
     {
-        $stmt = $this->pdo->prepare("SELECT aprobado_instructor, fecha_entrega, estado FROM pedido_cliente WHERE id_pedido = ?");
+        $stmt = $this->pdo->prepare("SELECT aprobado_instructor, fecha_entrega, estado, mensaje_propietario FROM pedido_cliente WHERE id_pedido = ?");
         $stmt->execute([$id]);
         return $stmt->fetch();
+    }
+
+    /** Deja el pedido como lo deja PedidosPortalTrait::cancelarPedido. */
+    private function cancelarComoAprendiz(int $id): void
+    {
+        $this->pdo->prepare("UPDATE pedido_cliente SET estado = 'rechazado', mensaje_propietario = 'Cancelado por el cliente' WHERE id_pedido = ?")
+            ->execute([$id]);
+    }
+
+    /**
+     * Ejecuta una operación del instructor y devuelve el mensaje de la excepción,
+     * o null si no lanzó ninguna.
+     *
+     * No se usa expectException() porque detiene la prueba en la excepción, y lo
+     * que importa aquí es comprobar después que el pedido NO cambió.
+     */
+    private function mensajeDeError(callable $operacion): ?string
+    {
+        try {
+            $operacion();
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
+        return null;
     }
 
     public function testAprobacionEnLoteActualizaPedidosYFechaDeEntrega(): void
@@ -100,5 +124,48 @@ final class PortalClienteModelTest extends BaseDatosTestCase
 
         $this->expectException(Exception::class);
         $this->model->rechazarPedidosInstructorLote([$id_ped], $this->id_instructor);
+    }
+
+    public function testNoSeApruebaUnPedidoQueElAprendizYaCancelo(): void
+    {
+        // El caso real: el instructor tiene el tablero abierto, el aprendiz cancela
+        // y el instructor aprueba lo que aún ve en pantalla. Antes el sistema
+        // respondía «Pedido aprobado y programado con éxito».
+        $id_ped = $this->crearPedidoPendiente(4000.0);
+        $this->cancelarComoAprendiz($id_ped);
+
+        $error = $this->mensajeDeError(fn () => $this->model->aprobarPedidosInstructorLote([$id_ped], $this->id_instructor, '2026-06-20 08:30:00'));
+
+        $this->assertNotNull($error, 'Aprobar un pedido cancelado tiene que fallar');
+        $p = $this->leerPedido($id_ped);
+        $this->assertSame(0, (int) $p['aprobado_instructor'], 'El pedido cancelado no puede quedar aprobado');
+        $this->assertSame('rechazado', $p['estado']);
+    }
+
+    public function testRechazarUnPedidoYaCanceladoNoBorraElMotivoDelAprendiz(): void
+    {
+        $id_ped = $this->crearPedidoPendiente(4000.0);
+        $this->cancelarComoAprendiz($id_ped);
+
+        $error = $this->mensajeDeError(fn () => $this->model->rechazarPedidosInstructorLote([$id_ped], $this->id_instructor));
+
+        $this->assertNotNull($error);
+        $this->assertSame('Cancelado por el cliente', $this->leerPedido($id_ped)['mensaje_propietario'],
+            'El historial tiene que seguir diciendo que lo retiró el aprendiz');
+    }
+
+    public function testEnUnLoteMixtoSoloSeApruebaLoQueSiguePendiente(): void
+    {
+        // Marcar «todos» en el tablero no puede arrastrar un pedido cancelado
+        // entre los pendientes, ni contarlo en el mensaje de éxito.
+        $pendiente = $this->crearPedidoPendiente(5000.0);
+        $cancelado = $this->crearPedidoPendiente(6000.0);
+        $this->cancelarComoAprendiz($cancelado);
+
+        $afectados = $this->model->aprobarPedidosInstructorLote([$pendiente, $cancelado], $this->id_instructor, '2026-06-20 08:30:00');
+
+        $this->assertSame(1, $afectados);
+        $this->assertSame(1, (int) $this->leerPedido($pendiente)['aprobado_instructor']);
+        $this->assertSame(0, (int) $this->leerPedido($cancelado)['aprobado_instructor']);
     }
 }

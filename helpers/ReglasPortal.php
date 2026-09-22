@@ -158,6 +158,26 @@ class ReglasPortal {
     }
 
     /**
+     * ¿Es esta cuenta la autora del pedido? Solo la autora puede editarlo.
+     *
+     * Quien paga no es quien pide: el pedido de un aprendiz para ADSO se factura
+     * al instructor (id_cliente) pero lo eligió el aprendiz (id_creador). Por eso
+     * la autoría no puede deducirse de id_cliente. Hacerlo dejaba a un aprendiz
+     * editar los pedidos de los demás —todos se facturan a la misma cuenta— y al
+     * instructor cambiar lo que pidió un aprendiz sin que este lo supiera. El
+     * instructor conserva lo que le corresponde: aprobar, rechazar o cancelar.
+     *
+     * Un pedido sin creador registrado (anterior a esa columna, o cuyo creador
+     * se eliminó) lo gestiona la cuenta facturada, como hasta ahora.
+     */
+    public static function esAutorDelPedido(?int $id_creador, int $id_cliente, int $id_cuenta): bool {
+        if ($id_creador === null) {
+            return $id_cliente === $id_cuenta;
+        }
+        return $id_creador === $id_cuenta;
+    }
+
+    /**
      * Un aprendiz no puede editar/cancelar un pedido mientras su instructor
      * tenga un pago en proceso (PENDING/PENDIENTE) asociado a él.
      */
