@@ -72,17 +72,7 @@ parameters:
 			count: 1
 			path: config/logger.php
 
-		-
-			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/AuthController.php
 
-		-
-			message: '#^Parameter \#1 \$id of method AuthModel\:\:getUsuarioPorId\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/AuthController.php
 
 		-
 			message: '#^Parameter \#1 \$id_usuario of method AuthModel\:\:actualizarClaveUsuario\(\) expects int, mixed given\.$#'
@@ -90,11 +80,6 @@ parameters:
 			count: 1
 			path: controllers/AuthController.php
 
-		-
-			message: '#^Parameter \#1 \$id_usuario of method AuthModel\:\:limpiarCodigoRecuperacion\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/AuthController.php
 
 		-
 			message: '#^Parameter \#1 \$id_usuario of method AuthModel\:\:registrarCodigoRecuperacion\(\) expects int, mixed given\.$#'
@@ -126,11 +111,6 @@ parameters:
 			count: 1
 			path: controllers/AuthController.php
 
-		-
-			message: '#^Parameter \#2 \$hash of function password_verify expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/AuthController.php
 
 		-
 			message: '#^Parameter \#2 \$to_nombre of function enviar_correo expects string, mixed given\.$#'
@@ -138,11 +118,6 @@ parameters:
 			count: 1
 			path: controllers/AuthController.php
 
-		-
-			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/AuthController.php
 
 		-
 			message: '#^Parameter \#1 \$id_usuario of method CierreModel\:\:guardarCierre\(\) expects int, mixed given\.$#'
@@ -1368,11 +1343,6 @@ parameters:
 			count: 3
 			path: controllers/portal/PortalAuthController.php
 
-		-
-			message: '#^Parameter \#1 \$datetime of function strtotime expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalAuthController.php
 
 		-
 			message: '#^Parameter \#1 \$email of method PortalClienteModel\:\:getClienteByEmail\(\) expects string, mixed given\.$#'
@@ -1398,17 +1368,7 @@ parameters:
 			count: 1
 			path: controllers/portal/PortalAuthController.php
 
-		-
-			message: '#^Parameter \#1 \$id of method PortalClienteModel\:\:getClienteById\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/portal/PortalAuthController.php
 
-		-
-			message: '#^Parameter \#1 \$id_cliente of method PortalClienteModel\:\:limpiarCodigoRecuperacion\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalAuthController.php
 
 		-
 			message: '#^Parameter \#1 \$known_string of function hash_equals expects string, mixed given\.$#'

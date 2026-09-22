@@ -110,15 +110,15 @@
       <?php endif; ?>
 
       <?php if ($paso == 2): ?>
-      <div class="step-info"><?php if($metodo==='email'): ?>Enviamos un codigo a<br><strong><?= $_SESSION['recover_email_masked']??'' ?></strong>
+      <div class="step-info"><?php if($metodo==='email'): ?>Si la cuenta existe y tiene correo registrado,<br>te enviamos un código de 6 dígitos.
         <?php else: ?>Ingresa el PIN de 6 digitos para<br><strong><?= htmlspecialchars($_SESSION['recover_usuario']??'') ?></strong><?php endif; ?></div>
       <form method="POST">
         <?= campo_csrf() ?>
         <div class="pin-wrap"><?php for($i=0;$i<6;$i++): ?><input type="text" class="pin-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="<?=$i?>" autocomplete="off"><?php endfor; ?></div>
         <input type="hidden" name="codigo" id="ch" value="">
-        <?php if($metodo==='email'): ?><div class="email-masked">El codigo expira en 5 minutos</div><?php endif; ?>
+        <?php if($metodo==='email'): ?><div class="email-masked">El código expira en 5 minutos. Revisa también la carpeta de spam.</div><?php else: ?><div class="email-masked">Si nunca configuraste un PIN, vuelve y usa el correo.</div><?php endif; ?>
         <button type="submit" name="verificar_codigo" class="btn-primary">Verificar <i class="bi bi-arrow-right"></i></button>
-        <button type="button" onclick="window.location='<?= APP_URL ?>/recuperar_pin.php'" class="btn-back"><i class="bi bi-arrow-left"></i> Volver</button>
+        <button type="button" onclick="window.location='<?= APP_URL ?>/recuperar_pin.php?reiniciar=1'" class="btn-back"><i class="bi bi-arrow-left"></i> Volver</button>
       </form>
       <script>(function(){const d=document.querySelectorAll('.pin-digit'),h=document.getElementById('ch');function s(){h.value=Array.from(d).map(x=>x.value).join('');}d.forEach((x,i)=>{x.addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,1);s();if(this.value&&i<5)d[i+1].focus();});x.addEventListener('keydown',function(e){if(e.key==='Backspace'&&!this.value&&i>0){d[i-1].focus();d[i-1].value='';s();}});x.addEventListener('paste',function(e){e.preventDefault();const t=(e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6);for(let j=0;j<6;j++)d[j].value=t[j]||'';s();if(t.length>=6)d[5].focus();});});d[0].focus();})();</script>
       <?php endif; ?>

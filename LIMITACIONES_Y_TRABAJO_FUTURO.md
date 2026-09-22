@@ -42,6 +42,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 28 | El tablero del instructor no cuadraba consigo mismo | Integridad de datos | Medio | ✅ **Resuelto** (2026-08-15) |
 | 29 | No se sabía qué migraciones tenía aplicada una base | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
 | 30 | Un pedido vencido se queda en «pendiente» para siempre | Ciclo de vida | Bajo | 🟡 **Parcial** (2026-09-01) — ya se puede cancelar; falta el estado |
+| 31 | Recuperación de acceso por PIN sin límite de intentos y con enumeración de cuentas | Seguridad | Crítico | ✅ **Resuelto** (2026-09-14) |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -121,6 +122,35 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 **Cómo se resolvió:** las cuatro variables se leen ahora del `.env` (que Compose carga solo), con la sintaxis `${VAR:?mensaje}`: si no están definidas, Compose **falla con ese mensaje** en lugar de arrancar con una contraseña que cualquiera puede leer en el repositorio. La plantilla quedó documentada en `.env.example`.
 
 **Lo que NO se hizo, y por qué:** las credenciales antiguas **siguen en el historial de Git**. Purgarlas exigiría reescribir la historia de una rama compartida (y de la etiqueta `historia-inicial`), lo que rompería cualquier clon existente. El riesgo práctico es bajo —eran las de un `docker-compose` de desarrollo que nunca gobernó el despliegue real, que usa Dokploy con su propia configuración— pero conviene tenerlo escrito: **si alguna de esas contraseñas se reutiliza en algún entorno vigente, hay que rotarla**, porque eliminarla de `HEAD` no la borra del historial.
+
+---
+
+### 31. ✅ La recuperación de acceso por PIN no tenía límite de intentos — RESUELTO (2026-09-14)
+
+**Descubierto el 2026-09-14** durante la revisión de cierre del proyecto, al leer entero el flujo de recuperación.
+
+**Descripción:** en los dos portales, el paso 2 de la recuperación verificaba el PIN sin contador de intentos, sin bloqueo y sin caducidad. Un fallo solo devolvía «PIN incorrecto» y dejaba volver a probar. El PIN son 6 dígitos —un millón de combinaciones— y acertarlo lleva al paso 3, que fija una contraseña nueva.
+
+**Impacto:** toma de cuenta.
+
+| Portal | Cuenta expuesta |
+|---|---|
+| Back-office (`recuperar_pin.php`) | La del **propietario**, la de más privilegios del sistema |
+| Portal (`portal/recuperar_pass.php`) | La de **cualquier cliente**, incluida la del instructor, que paga los pedidos |
+
+El paso 1 lo agravaba: tres mensajes distintos enumeraban las cuentas y decían cuáles tenían PIN configurado, y el portal además mostraba el nombre real del titular y parte de su correo.
+
+**Por qué pasó desapercibido:** el login sí tenía límite de intentos desde la v1.7.0 (punto 3), así que la protección contra fuerza bruta se daba por cubierta. La recuperación termina en lo mismo —una contraseña nueva— pero nunca usó ese limitador.
+
+**Corrección:**
+
+- El paso 2 reutiliza `IntentoLoginModel` con el identificador `recuperar:<usuario>`, para no sumarse a los intentos de login. Mismos umbrales: 5 fallos por cuenta cada 15 minutos y 20 por IP. El contador vive en base de datos y por cuenta: volver a empezar o descartar la cookie no lo reinicia. Aplica al PIN y al código por correo.
+- El paso 1 responde igual exista o no la cuenta, y tenga o no el método elegido. Siempre avanza al paso 2; si no hay nada que verificar, el paso 2 falla como con cualquier código incorrecto.
+- Un fallo al enviar el correo ya no se le muestra a quien pide el código —confirmaría la cuenta—; queda en el registro del servidor.
+
+**Evidencia:** `e2e/tests/recuperacion.spec.js`, siete recorridos sobre cuentas propias de la semilla. El decisivo: tras cinco PIN incorrectos, **el sexto, con el PIN correcto, se rechaza**, y se sigue rechazando tras volver a empezar.
+
+**⬜ Lo que queda:** `AuthController` supera el umbral de complejidad de clase de PHPMD (62 frente a 50) por las ramas nuevas, y la lógica de los pasos 1 y 2 está casi duplicada entre `AuthController` y `PortalAuthController`. Extraerla a una clase propia reduciría las dos cosas. No se hizo aquí para no mezclar una refactorización con una corrección de seguridad recién probada.
 
 ---
 
