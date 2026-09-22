@@ -127,22 +127,64 @@ class RecetaModel {
     }
 
     /**
-     * Eliminar todos los ingredientes asociados a una receta
+     * Reemplaza los ingredientes de una receta: borra los que tenía y escribe los nuevos.
+     *
+     * Antes eran dos métodos sueltos que el controlador llamaba en fila, y eso tenía
+     * dos fallos que se tapaban entre sí:
+     *
+     *   - El INSERT no nombraba `unidad`, que es NOT NULL y no tiene valor por
+     *     defecto. En producción (modo estricto) MySQL rechazaba la fila con el
+     *     error 1364. En un XAMPP sin modo estricto pasaba sin quejarse, así que
+     *     el fallo solo se veía en el sitio publicado.
+     *   - El borrado no estaba en una transacción con las inserciones. Al fallar
+     *     el INSERT, el DELETE ya estaba hecho: **la receta se quedaba sin
+     *     ingredientes**. Quien editaba una receta la perdía entera.
+     *
+     * Si ya hay una transacción abierta se usa un SAVEPOINT, para que sea atómico
+     * tanto si lo llama el controlador (sin transacción) como si lo envuelve otra
+     * operación o una prueba.
+     *
+     * @param array<int, array{id_insumo: int, cantidad: float, unidad: string, aplica_merma: int, notas: string|null}> $ingredientes
      */
-    public function limpiarIngredientesReceta(int $id_receta): bool {
-        $stmt = $this->pdo->prepare("DELETE FROM receta_ingrediente WHERE id_receta = ?");
-        return $stmt->execute([$id_receta]);
-    }
+    public function guardarIngredientesReceta(int $id_receta, array $ingredientes): void {
+        $anidada = $this->pdo->inTransaction();
+        if ($anidada) {
+            $this->pdo->exec('SAVEPOINT ingredientes_receta');
+        } else {
+            $this->pdo->beginTransaction();
+        }
 
-    /**
-     * Registrar ingrediente de receta
-     */
-    public function agregarIngredienteReceta(int $id_receta, int $id_insumo, float $cantidad, int $aplica_merma, ?string $notas): bool {
-        $stmt = $this->pdo->prepare("
-            INSERT INTO receta_ingrediente (id_receta, id_insumo, cantidad, aplica_merma, notas)
-            VALUES (?, ?, ?, ?, ?)
-        ");
-        return $stmt->execute([$id_receta, $id_insumo, $cantidad, $aplica_merma, $notas]);
+        try {
+            $this->pdo->prepare("DELETE FROM receta_ingrediente WHERE id_receta = ?")->execute([$id_receta]);
+
+            $stmt = $this->pdo->prepare("
+                INSERT INTO receta_ingrediente (id_receta, id_insumo, cantidad, unidad, aplica_merma, notas)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            foreach ($ingredientes as $ing) {
+                $stmt->execute([
+                    $id_receta,
+                    $ing['id_insumo'],
+                    $ing['cantidad'],
+                    $ing['unidad'],
+                    $ing['aplica_merma'],
+                    $ing['notas'],
+                ]);
+            }
+
+            if ($anidada) {
+                $this->pdo->exec('RELEASE SAVEPOINT ingredientes_receta');
+            } else {
+                $this->pdo->commit();
+            }
+        } catch (Throwable $e) {
+            if ($anidada) {
+                $this->pdo->exec('ROLLBACK TO SAVEPOINT ingredientes_receta');
+            } else {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
     }
 
     /**

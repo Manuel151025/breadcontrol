@@ -1,0 +1,38 @@
+name: Proponer una mejora
+description: Algo que falta o que se puede hacer mejor
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qué problema resuelve
+      description: >
+        Qué es hoy incómodo, lento o imposible, y para quién. Describe la
+        situación real antes que la solución: a veces hay una salida mejor que la
+        que uno trae pensada.
+    validations:
+      required: true
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Qué propones
+    validations:
+      required: true
+  - type: dropdown
+    id: parte
+    attributes:
+      label: Qué parte del sistema toca
+      options:
+        - Back-office (inventario, producción, ventas, compras, finanzas, cierre)
+        - Portal de clientes
+        - Flujo aprendiz e instructor
+        - Pagos
+        - Documentación o pruebas
+        - Otra
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Qué alternativas consideraste
+      description: Incluida la de no hacer nada.
