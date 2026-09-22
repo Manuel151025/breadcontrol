@@ -46,6 +46,7 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 32 | Un aprendiz podía sobrescribir el pedido de otro aprendiz | Seguridad | Alto | ✅ **Resuelto** (2026-09-14) |
 | 33 | Un pedido cancelado se podía aprobar desde un tablero abierto | Ciclo de vida | Bajo | ✅ **Resuelto** (2026-09-14) |
 | 34 | La hora de entrega se pide pero no se guarda | Ciclo de vida | Medio | ⬜ Abierto — S (migración y 3-4 consultas) |
+| 35 | Guardar una receta la dejaba sin ingredientes en producción | Integridad de datos | Alto | ✅ **Resuelto** (2026-09-22) |
 
 *Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
 
@@ -218,6 +219,35 @@ El paso 1 lo agravaba: tres mensajes distintos enumeraban las cuentas y decían 
 **Severidad:** Alto. **Esfuerzo:** L — el POS tendría que capturar también qué producto específico se vendió dentro de la categoría: cambio de modelo de datos **y** de la interfaz de cobro en mostrador.
 
 **Por qué sigue abierto:** es una decisión de diseño del POS, que prioriza la velocidad de cobro (elegir precio, no producto) sobre la trazabilidad por producto. Cambiarlo afecta la experiencia de venta rápida, no es un ajuste aislado de backend.
+
+---
+
+### 35. ✅ Guardar una receta la dejaba sin ingredientes en producción — RESUELTO (2026-09-22)
+
+**Descubierto el 2026-09-22**, probando en el sitio publicado la receta de un producto.
+
+**Descripción:** dos fallos encadenados en el guardado de recetas.
+
+| | Qué pasaba |
+|---|---|
+| 1 | El `INSERT` en `receta_ingrediente` no nombraba `unidad`, columna `NOT NULL` y sin valor por defecto. En modo estricto, MySQL responde `1364 Field 'unidad' doesn't have a default value` |
+| 2 | El `DELETE` de los ingredientes anteriores no compartía transacción con las inserciones, así que un INSERT rechazado dejaba la receta **vacía** |
+
+**Por qué no se veía en desarrollo:** el `docker-compose.yml` de producción arranca MySQL con `STRICT_TRANS_TABLES`; el XAMPP local traía `sql_mode` sin modo estricto y aceptaba la fila incompleta. El mismo código, dos comportamientos.
+
+**Impacto:** pérdida de datos silenciosa. Cualquiera que editara una receta en producción la dejaba sin ingredientes, y el costeo real de cada producción se calcula a partir de la receta vigente. Presente desde el **2026-06-18** (commit 5ae009a).
+
+**Evidencia antes de corregir:** una receta con 1 ingrediente, tras el guardado fallido, quedaba con 0.
+
+**Corrección:**
+
+- `RecetaModel::guardarIngredientesReceta` reemplaza los ingredientes en una sola transacción (o un `SAVEPOINT` si ya hay una abierta), y guarda la unidad de medida del insumo.
+- `config/db.php` fija en cada conexión el mismo `sql_mode` que producción, para que local deje de ser más permisivo que el servidor.
+- Auditadas todas las sentencias `INSERT` del proyecto contra las columnas obligatorias del esquema: era la única que omitía una.
+
+**Evidencia:** `tests/Integration/RecetaModelTest.php`, con el modo estricto fijado en la sesión.
+
+**⬜ Lo que queda:** la auditoría de `INSERT` contra el esquema se hizo con un script de una sola vez. Como verificación del CI avisaría sola la próxima vez; hoy depende de que alguien se acuerde de repetirla.
 
 ---
 

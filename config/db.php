@@ -15,7 +15,9 @@ define('DB_CHARSET',get_env('DB_CHARSET', 'utf8mb4'));
 function getConexion(): PDO {
     static $pdo = null;
 
-    if ($pdo === null) {
+    // instanceof y no "=== null": asi el analisis estatico sabe que a partir de
+    // aqui $pdo es una conexion, sin necesidad de conversiones ni anotaciones.
+    if (!$pdo instanceof PDO) {
         $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
         $opciones = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -31,6 +33,14 @@ function getConexion(): PDO {
         }
     }
 
+    // El MISMO modo estricto que el MySQL de producción (ver docker-compose.yml).
+    //
+    // Sin esto, un XAMPP con el modo laxo acepta en silencio lo que el servidor
+    // rechaza, y el fallo solo aparece en el sitio publicado. Pasó exactamente eso
+    // al guardar una receta: el INSERT omitía una columna NOT NULL y en local
+    // funcionaba, mientras en producción devolvía el error 1364 y dejaba la receta
+    // sin ingredientes.
+    $pdo->exec("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
     $pdo->exec("SET time_zone = '-05:00'");
     return $pdo;
 }

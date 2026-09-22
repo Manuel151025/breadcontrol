@@ -30,17 +30,7 @@ parameters:
 			count: 2
 			path: config/db.php
 
-		-
-			message: '#^Cannot call method exec\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: config/db.php
 
-		-
-			message: '#^Function getConexion\(\) should return PDO but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: config/db.php
 
 		-
 			message: '#^Parameter \#2 \$username of class PDO constructor expects string\|null, mixed given\.$#'
@@ -1067,11 +1057,6 @@ parameters:
 			count: 1
 			path: controllers/RecetaController.php
 
-		-
-			message: '#^Parameter \#1 \$id_receta of method RecetaModel\:\:agregarIngredienteReceta\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/RecetaController.php
 
 		-
 			message: '#^Parameter \#1 \$id_receta of method RecetaModel\:\:getIngredientesReceta\(\) expects int, mixed given\.$#'
@@ -1079,11 +1064,6 @@ parameters:
 			count: 1
 			path: controllers/RecetaController.php
 
-		-
-			message: '#^Parameter \#1 \$id_receta of method RecetaModel\:\:limpiarIngredientesReceta\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/RecetaController.php
 
 		-
 			message: '#^Parameter \#1 \$path of function pathinfo expects string, mixed given\.$#'
@@ -1121,11 +1101,6 @@ parameters:
 			count: 1
 			path: controllers/RecetaController.php
 
-		-
-			message: '#^Parameter \#2 \$id_usuario of method RecetaModel\:\:crearReceta\(\) expects int, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/RecetaController.php
 
 		-
 			message: '#^Parameter \#3 \$categoria of method RecetaModel\:\:updateProducto\(\) expects string, mixed given\.$#'

@@ -200,14 +200,19 @@ class RecetaController {
                 $cant_g  = (float)($cantidades[$i] ?? 0);
                 $nota    = trim($notas[$i] ?? '');
                 $merma   = in_array($i, array_keys($aplica_merma)) ? 1 : 0;
-                if ($id_ins > 0 && $cant_g > 0) {
-                    $unidad = $this->model->getIngredienteUnidadMedida($id_ins);
-                    $cant_guardar = in_array($unidad, ['kg','L']) ? $cant_g / 1000 : $cant_g;
+                $unidad = $id_ins > 0 ? $this->model->getIngredienteUnidadMedida($id_ins) : null;
+                // Sin unidad no hay insumo: la columna `unidad` es obligatoria y la
+                // clave foránea rechazaría la fila de todas formas.
+                if ($id_ins > 0 && $cant_g > 0 && is_string($unidad) && $unidad !== '') {
+                    // El formulario pide gramos o mililitros; los insumos que se
+                    // miden en kg o L se guardan en su propia unidad.
+                    $cant_guardar = in_array($unidad, ['kg', 'L']) ? $cant_g / 1000 : $cant_g;
                     $validos[] = [
-                        'id_insumo'   => $id_ins,
-                        'cantidad'    => $cant_guardar,
-                        'notas'       => $nota,
-                        'aplica_merma' => $merma
+                        'id_insumo'    => $id_ins,
+                        'cantidad'     => $cant_guardar,
+                        'unidad'       => $unidad,
+                        'notas'        => $nota !== '' ? $nota : null,
+                        'aplica_merma' => $merma,
                     ];
                 }
             }
@@ -218,16 +223,17 @@ class RecetaController {
 
             if (empty($errores)) {
                 try {
-                    $id_receta = $this->model->getRecetaVigenteId($id_producto);
+                    $vigente   = $this->model->getRecetaVigenteId($id_producto);
+                    $id_receta = is_numeric($vigente) ? (int) $vigente : 0;
 
-                    if (!$id_receta) {
-                        $id_receta = $this->model->crearReceta($id_producto, $user['id_usuario']);
+                    if ($id_receta === 0) {
+                        $id_usuario = is_numeric($user['id_usuario'] ?? null) ? (int) $user['id_usuario'] : 0;
+                        $id_receta  = $this->model->crearReceta($id_producto, $id_usuario);
                     }
 
-                    $this->model->limpiarIngredientesReceta($id_receta);
-                    foreach ($validos as $v) {
-                        $this->model->agregarIngredienteReceta($id_receta, $v['id_insumo'], $v['cantidad'], $v['aplica_merma'], $v['notas']);
-                    }
+                    // De una sola vez y en una transacción: si algo falla, la receta
+                    // se queda como estaba en lugar de perder sus ingredientes.
+                    $this->model->guardarIngredientesReceta($id_receta, $validos);
                     redirigir(APP_URL . '/modules/recetas/index.php?ok=1');
                 } catch (Exception $e) {
                     log_error($e);

@@ -6,6 +6,45 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+### Corregido
+
+- **Guardar una receta la dejaba sin ingredientes, y solo en producción.** Editar
+  la receta de un producto y guardarla devolvía «Error al guardar la receta» y la
+  receta quedaba **vacía**. Son dos fallos encadenados:
+
+  1. La inserción no nombraba la columna `unidad`, que es `NOT NULL` y no tiene
+     valor por defecto. El MySQL del servidor corre en modo estricto y rechazaba
+     la fila con el error 1364. El XAMPP local no tiene ese modo: aceptaba la fila
+     incompleta sin decir nada, así que el fallo **solo existía en el sitio
+     publicado**.
+  2. El borrado de los ingredientes anteriores no estaba en la misma transacción
+     que las inserciones. Al fallar el INSERT, el DELETE ya estaba hecho y la
+     receta perdía lo que tenía.
+
+  Está así desde el **2026-06-18** (commit 5ae009a), cuando el guardado se movió
+  al modelo. Conviene revisar en la base de producción qué recetas quedaron sin
+  ingredientes, porque de ahí sale el costeo de cada producción.
+
+- Las dos operaciones son ahora **un solo método transaccional**,
+  `guardarIngredientesReceta`, que usa `SAVEPOINT` si ya hay una transacción
+  abierta. Un ingrediente que falle deja la receta como estaba.
+
+- **La causa de fondo era que la base local es más permisiva que la de
+  producción.** `config/db.php` fija ahora el mismo `sql_mode` que el
+  `docker-compose.yml` del servidor, así que lo que producción rechaza falla
+  también en local, donde corregirlo cuesta un minuto. Las 225 pruebas y los 29
+  recorridos de navegador siguen en verde con el modo estricto puesto.
+
+- Revisado el resto del proyecto con un script que compara cada `INSERT` con las
+  columnas obligatorias del esquema: era la **única** inserción que omitía una.
+
+- `tests/Integration/RecetaModelTest.php`: tres pruebas que fijan el modo estricto
+  en la sesión —sin eso pasarían sin demostrar nada— y cubren la unidad guardada,
+  el reemplazo de ingredientes y que un fallo no vacíe la receta. PHPStan: 5
+  entradas menos en el baseline (461), corrigiendo los tipos en lugar de taparlos.
+
+---
+
 ### Proyecto
 
 - **El repositorio ya dice cómo reportar y cómo contribuir.** Se añaden
