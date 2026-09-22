@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Reportar una vulnerabilidad (privado)
+    url: https://github.com/Manuel151025/breadcontrol/security/advisories/new
+    about: Fallos de seguridad. No abras un issue público.
+  - name: Limitaciones ya conocidas
+    url: https://github.com/Manuel151025/breadcontrol/blob/main/LIMITACIONES_Y_TRABAJO_FUTURO.md
+    about: Antes de reportar, mira si ya está inventariado con su motivo.

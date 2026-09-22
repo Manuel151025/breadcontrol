@@ -6,6 +6,22 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+### Proyecto
+
+- **El repositorio ya dice cómo reportar y cómo contribuir.** Se añaden
+  `SECURITY.md` —con la vía privada para vulnerabilidades, lo que el proyecto ya
+  protege, y la advertencia de no hacer pruebas contra el sitio publicado, que
+  tiene datos de una panadería real—, dos formularios de issue (error y mejora) y
+  una plantilla de pull request que pide lo que este proyecto ha aprendido a
+  exigir: que la prueba de una corrección **falle antes** de la corrección, que
+  las migraciones se declaren, y que toda entrada nueva en `phpstan-baseline.neon`
+  o `phpmd.baseline.xml` venga con su motivo.
+
+  Los formularios se validaron contra el esquema de GitHub: uno mal formado se
+  ignora en silencio y nadie se entera hasta que alguien abre un issue vacío.
+
+---
+
 ### Documentación
 
 - **Diagramas nuevos en `docs/diagramas.md`**, dibujados desde el esquema real
