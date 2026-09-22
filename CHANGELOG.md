@@ -6,6 +6,36 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+### Documentación
+
+- **Diagramas nuevos en `docs/diagramas.md`**, dibujados desde el esquema real
+  —consultado con `information_schema` sobre una base recién creada— y no de
+  memoria: modelo entidad-relación de las 29 tablas en tres dominios, ciclo de vida
+  del pedido y del pago, secuencia aprendiz → instructor → panadería, los puntos
+  del flujo que procesan pedidos en lote y el recorrido del CI. Los nueve diagramas
+  del repositorio se validaron dibujándolos con mermaid 11 en Chromium, con un
+  control negativo que comprueba que la validación sí detecta un diagrama roto.
+
+- El modelo deja a la vista **cinco relaciones sin clave foránea**
+  (`cliente.id_instructor`, `configuracion.id_cliente_adso`,
+  `pedido_cliente.id_pago_activo`, `lote.id_compra` y `venta.id_cliente`) y qué
+  pasa si alguna queda huérfana.
+
+- **El README tenía datos desactualizados que alguien seguiría al pie de la
+  letra.** Mandaba crear la base con `sql/panaderia_bd.sql` y
+  `02_extensiones_flujo.sql`, que crean un `cliente` de 6 columnas; listaba 6 de
+  las 10 migraciones; pedía PHP 8.0; situaba el hosting en Hostinger, la versión en
+  1.6.2, la rama de trabajo en `master` y el CI en 4 verificaciones. Contaba 213
+  pruebas y 16 recorridos (hoy 222 y 29), y un cierre de sesión de 6 minutos que
+  solo existe en el navegador: en el servidor la sesión dura 8 horas. CONTRIBUTING
+  repetía lo de `master` y las 4 verificaciones.
+
+- Se retiran cinco archivos `models/portal/*.php (in context of class
+  PortalClienteModel)`: restos de una salida de PHPStan que entraron por error en
+  el commit c242dc9 y solo contenían anotaciones `@return` sueltas.
+
+---
+
 ### Seguridad
 
 - **Un aprendiz podía sobrescribir el pedido de otro aprendiz.** Al editar, el

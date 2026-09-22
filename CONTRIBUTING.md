@@ -130,12 +130,18 @@ vendor/bin/phpstan analyse --generate-baseline
 
 ## Proceso para enviar cambios
 
-1. Crea una rama desde `master`: `git checkout -b fix/descripcion-corta`
-2. Haz tus cambios **con pruebas** (nuevas o actualizadas según aplique).
-3. Verifica en local: `composer test` y `vendor/bin/phpstan analyse`.
+1. Crea una rama desde `main`: `git checkout -b fix/descripcion-corta`
+   (`master` ya no existe: se retiró el 2026-08-20).
+2. Haz tus cambios **con pruebas** (nuevas o actualizadas según aplique). Si
+   corriges un fallo, la prueba debe **fallar antes** de la corrección: si pasa
+   también sin ella, no demuestra nada.
+3. Verifica en local: `composer test`, `vendor/bin/phpstan analyse` y
+   `composer calidad`. Si tocas controladores o vistas, corre también los
+   recorridos de `e2e/` (ver el README).
 4. Abre un Pull Request describiendo **qué** cambia y **por qué**.
-5. El CI (GitHub Actions) debe pasar en verde sus 4 verificaciones:
-   sintaxis PHP, PHPStan, pruebas unitarias y pruebas de integración.
+5. El CI (GitHub Actions) debe pasar en verde sus **11 verificaciones**; la lista
+   y lo que exige cada una está en la sección «Integración Continua» del README.
+   Espera a que terminen antes de fusionar.
 
 ## Reportar errores
 
