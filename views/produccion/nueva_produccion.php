@@ -73,7 +73,7 @@
                 data-tanda="<?= (int)$p['cantidad_por_tanda'] ?>"
                 <?= (isset($_POST['id_producto']) && $_POST['id_producto']==$p['id_producto']) ? 'selected' : '' ?>>
                 <?= htmlspecialchars($p['nombre'] ?? '') ?>
-                (<?= (int)$p['cantidad_por_tanda'] ?> und/tanda)
+                (<?= formatoInteligente((float) $p['cantidad_por_tanda']) ?> und/tanda)
                 <?= !$p['tiene_receta'] ? ' ⚠ sin receta' : '' ?>
               </option>
               <?php endforeach; ?>

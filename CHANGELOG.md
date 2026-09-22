@@ -43,6 +43,12 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
   el reemplazo de ingredientes y que un fallo no vacíe la receta. PHPStan: 5
   entradas menos en el baseline (461), corrigiendo los tipos en lugar de taparlos.
 
+- **«Rinde 100.00 unidades por tanda».** Las unidades por tanda salen de una
+  columna decimal y se imprimían tal cual, con dos ceros que no dicen nada. Las
+  tres pantallas que las muestran —receta, listado de recetas y nueva
+  producción— usan ahora `formatoInteligente()`, el helper que ya existía para
+  esto: «100» cuando es exacto y «82,5» cuando no.
+
 ---
 
 ### Proyecto

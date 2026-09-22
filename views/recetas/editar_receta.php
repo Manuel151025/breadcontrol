@@ -28,7 +28,7 @@
     <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;">
       <div class="mod-titulo"><i class="bi bi-journal-text"></i> <?= htmlspecialchars($producto['nombre'] ?? '') ?></div>
       <?php if ($producto['cantidad_por_tanda'] > 0): ?>
-      <span class="mod-sub">Rinde <?= $producto['cantidad_por_tanda'] ?> unidades por tanda</span>
+      <span class="mod-sub">Rinde <?= formatoInteligente((float) $producto['cantidad_por_tanda']) ?> unidades por tanda</span>
       <?php endif; ?>
     </div>
     <a href="index.php" class="btn-back"><i class="bi bi-arrow-left"></i> Volver</a>
