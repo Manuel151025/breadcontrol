@@ -88,6 +88,8 @@ final class FuncionesTest extends TestCase
             'redondeo a 2 cifras'   => [300.0, 400.0, 33.33],
             // Manejo de error: división por cero no debe lanzar excepción
             'precio anterior cero'  => [0.0, 500.0, 0.0],
+            // Acotada al tamaño de la columna (DECIMAL(7,2))
+            'subida desmedida'      => [1.0, 5000000.0, 99999.99],
         ];
     }
 

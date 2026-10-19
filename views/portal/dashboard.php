@@ -97,13 +97,6 @@
     </div>
     <?php endif; ?>
 
-    <?php if (!empty($_GET['epago'])): ?>
-    <div style="background:#ffebee;border:1px solid #ef9a9a;border-left:4px solid #c62828;border-radius:10px;padding:.85rem 1.1rem;font-size:.85rem;color:#c62828;display:flex;align-items:center;gap:.6rem;">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <?= htmlspecialchars($_GET['epago'] ?? '') ?>
-    </div>
-    <?php endif; ?>
-
     <?php if (!empty($mostrar_canje)): ?>
     <!-- ══ AVISO CANJE APRENDIZ SENA (solo si hay código activo) ══ -->
     <div style="background:linear-gradient(120deg,#eef8e6,#fff);border:1px solid #bfe6a3;border-left:4px solid #39A900;border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:.8rem;box-shadow:0 1px 8px rgba(43,125,0,.09);">
@@ -230,7 +223,7 @@
             <table class="gt">
                 <thead>
                     <tr>
-                        <th style="width:30px;"><input type="checkbox" id="chk-all-approve" onclick="toggleAllApprove(this)"></th>
+                        <th style="width:30px;"><input type="checkbox" aria-label="Seleccionar todos los pedidos por aprobar" id="chk-all-approve" onclick="toggleAllApprove(this)"></th>
                         <th>Aprendiz</th>
                         <th>Pedido #</th>
                         <th>Fecha de Entrega</th>
@@ -241,7 +234,7 @@
                 <tbody>
                     <?php foreach ($pedidos_por_aprobar as $pa): ?>
                     <tr>
-                        <td data-label="Seleccionar"><input type="checkbox" name="ids_aprobar[]" value="<?= $pa['id_pedido'] ?>" class="chk-approve" onchange="updateBulkApproveBar()"></td>
+                        <td data-label="Seleccionar"><input type="checkbox" aria-label="Seleccionar este pedido para aprobar" name="ids_aprobar[]" value="<?= $pa['id_pedido'] ?>" class="chk-approve" onchange="updateBulkApproveBar()"></td>
                         <td data-label="Aprendiz">
                             <strong><?= htmlspecialchars($pa['nombre_creador'] ?? '') ?></strong>
                         </td>
@@ -543,7 +536,7 @@
             <thead>
                 <tr>
                     <?php if ($es_tienda): ?>
-                    <th style="width:36px;"><input type="checkbox" id="chk-all-dash" title="Seleccionar todos"></th>
+                    <th style="width:36px;"><input type="checkbox" aria-label="Seleccionar todos los pedidos" id="chk-all-dash" title="Seleccionar todos"></th>
                     <?php endif; ?>
                     <th>ID</th>
                     <th>Creado Por</th>
@@ -566,7 +559,7 @@
                     <?php foreach ($mis_pedidos as $p): ?>
                     <tr>
                         <?php if ($es_tienda): ?>
-                        <td data-label=""><input type="checkbox" name="ids[]" value="<?= $p['id_pedido'] ?>" class="chk-dash"></td>
+                        <td data-label=""><input type="checkbox" aria-label="Seleccionar este pedido para exportar" name="ids[]" value="<?= $p['id_pedido'] ?>" class="chk-dash"></td>
                         <?php endif; ?>
                         <td data-label="Pedido" style="font-weight:700;color:var(--ink2);">#<?= str_pad($p['id_pedido'],4,'0',STR_PAD_LEFT) ?></td>
                         <td data-label="Creado por" style="font-weight:600;">
@@ -610,7 +603,7 @@
         <!-- Barra seleccionar todos + total -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.2rem;border-bottom:1px solid var(--border);background:#fffbf5;">
             <label style="display:flex;align-items:center;gap:.5rem;font-size:.83rem;font-weight:700;color:var(--ink2);cursor:pointer;">
-                <input type="checkbox" id="chk-all-instr" checked onchange="toggleTodosInstructor()" style="width:16px;height:16px;accent-color:#2e7d32;">
+                <input type="checkbox" aria-label="Incluir todos los pedidos en el pago" id="chk-all-instr" checked onchange="toggleTodosInstructor()" style="width:16px;height:16px;accent-color:#2e7d32;">
                 Seleccionar todos (<?= count($pedidos_pago_instructor) ?>)
             </label>
             <span style="font-size:.85rem;font-weight:800;color:#dc2626;" id="total-instr">
@@ -622,7 +615,7 @@
         <div style="padding:.8rem 1.2rem;display:flex;flex-direction:column;gap:.5rem;max-height:340px;overflow-y:auto;">
         <?php foreach ($pedidos_pago_instructor as $pp): ?>
         <label style="display:flex;align-items:center;gap:.75rem;padding:.7rem .85rem;border-radius:10px;border:1.5px solid var(--border);cursor:pointer;background:#fff; width: 100%;">
-            <input type="checkbox" class="chk-instr"
+            <input type="checkbox" aria-label="Incluir este pedido en el pago" class="chk-instr"
                    data-monto="<?= (float)$pp['total_estimado'] ?>"
                    checked
                    onchange="recalcularTotalInstructor()"

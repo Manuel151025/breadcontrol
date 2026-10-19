@@ -23,6 +23,9 @@ class PortalPagoController extends PortalControllerBase {
         // getPedidosPendientesPago aplica la regla unica de pago por id_cliente (D2/D5).
         $pedidos = $this->model->getPedidosPendientesPago($cliente_id, $id_pedido_spec);
         if (empty($pedidos)) {
+            $_SESSION['flash_err'] = $id_pedido_spec > 0
+                ? 'Ese pedido no tiene nada pendiente por pagar desde tu cuenta.'
+                : 'No tienes pedidos pendientes de pago.';
             header('Location: dashboard.php');
             exit;
         }

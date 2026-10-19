@@ -4,6 +4,9 @@
 require_once __DIR__ . '/../models/ProduccionModel.php';
 
 class ProduccionController {
+    /** Tope de tandas por registro; la columna admite hasta 9.999,9. */
+    private const TANDAS_MAXIMAS = 500;
+
     private ProduccionModel $model;
 
     public function __construct(PDO $pdo) {
@@ -17,7 +20,7 @@ class ProduccionController {
         requerirPropietario();
 
         // ── Filtro por fecha ────────────────────────────────────────
-        $fecha_fil = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha'] ?? '') ? $_GET['fecha'] : date('Y-m-d');
+        $fecha_fil = fecha_valida(get_texto('fecha')) ? get_texto('fecha') : date('Y-m-d');
 
         $producciones  = $this->model->getProduccionesPorFecha($fecha_fil);
         $total_tandas  = array_sum(array_column($producciones, 'cantidad_tandas'));
@@ -105,16 +108,20 @@ class ProduccionController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar'])) {
             $id_prod  = (int)($_POST['id_producto']         ?? 0);
             $tandas   = max(1, (int)($_POST['num_tandas']    ?? 1));
-            $fecha    =       $_POST['fecha_produccion']     ?? date('Y-m-d');
-            $obs      = trim($_POST['observaciones']         ?? '');
+            $fecha    =       post_texto('fecha_produccion') ?: date('Y-m-d');
+            $obs      = trim(post_texto('observaciones'));
 
             // Calcular unidades desde tandas × cantidad_por_tanda
             $cant_por_tanda = $this->model->getCantidadPorTanda($id_prod);
             $unidades = (int)round($tandas * $cant_por_tanda);
 
             if (!$id_prod)        $msg_err = 'Selecciona un producto.';
+            // produccion.cantidad_tandas es DECIMAL(5,1): una tecla de más
+            // («2000» en vez de «20») hacía fallar el registro en la base.
+            elseif ($tandas > self::TANDAS_MAXIMAS) $msg_err = 'El número de tandas no puede pasar de ' . self::TANDAS_MAXIMAS . '.';
             elseif ($unidades<=0) $msg_err = 'Las unidades producidas deben ser mayor a 0.';
-            elseif (empty($fecha) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) $msg_err = 'La fecha de producción no es válida.';
+            elseif (!texto_cabe($obs, 255)) $msg_err = 'Las observaciones no pueden superar los 255 caracteres.';
+            elseif (!fecha_valida($fecha)) $msg_err = 'La fecha de producción no es válida.';
             elseif ($fecha > date('Y-m-d')) $msg_err = 'No se puede registrar producción con fecha futura.';
             elseif ($fecha < date('Y-m-d', strtotime('-7 days'))) $msg_err = 'La fecha de producción no puede ser de hace más de 7 días.';
             else {
@@ -136,14 +143,14 @@ class ProduccionController {
                                  . '<div style="margin-bottom:.5rem;font-weight:700;">Stock insuficiente para producir:</div>'
                                  . '<ul style="margin:0;padding-left:1.5rem;line-height:1.6;font-size:.82rem;">';
                         foreach ($errores_stock as $es) {
-                            $msg_err .= '<li>Falta <strong>' . $es['nombre'] . '</strong>: necesitas '
+                            $msg_err .= '<li>Falta <strong>' . htmlspecialchars(is_string($es['nombre']) ? $es['nombre'] : '') . '</strong>: necesitas '
                                 . formatoInteligente($es['cant_necesaria']) . ' ' . $es['unidad_medida']
                                 . ', solo hay ' . formatoInteligente($es['disponible']) . ' ' . $es['unidad_medida'] . '.</li>';
                         }
                         $msg_err .= '</ul>';
                         if (!empty($avisos_stock)) {
                             $msg_err .= '<div style="margin-top:.6rem;font-size:.78rem;opacity:.85;">⚠ Además, el stock registrado no coincide con los lotes reales en: '
-                                     . implode(', ', array_column($avisos_stock, 'nombre')) . '.</div>';
+                                     . htmlspecialchars(implode(', ', array_column($avisos_stock, 'nombre'))) . '.</div>';
                         }
                         $msg_err .= '<form method="post" style="margin-top:.8rem" id="form-forzar">'
                                  . '<input type="hidden" name="id_producto" value="' . $id_prod . '">'
@@ -176,13 +183,13 @@ class ProduccionController {
                                     . "<br>Lotes descontados correctamente.";
                             if (!empty($avisos_stock)) {
                                 $_SESSION['msg_ok_prod'] .= "<br><small>⚠ Diferencia entre stock registrado y lotes reales en: "
-                                        . implode(', ', array_column($avisos_stock, 'nombre')) . "</small>";
+                                        . htmlspecialchars(implode(', ', array_column($avisos_stock, 'nombre'))) . "</small>";
                             }
                             header('Location: nueva_produccion.php');
                             exit;
 
                         } catch (Exception $e) {
-                            $msg_err = 'Error al registrar. Intenta de nuevo. (' . $e->getMessage() . ')';
+                            $msg_err = 'Error al registrar. Intenta de nuevo. (' . mensaje_para_usuario($e) . ')';
                         }
                     }
                 }
@@ -236,7 +243,7 @@ class ProduccionController {
     public function exportarPDF(): void {
         requerirPropietario();
 
-        $fecha_fil = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha'] ?? '') ? $_GET['fecha'] : date('Y-m-d');
+        $fecha_fil = fecha_valida(get_texto('fecha')) ? get_texto('fecha') : date('Y-m-d');
 
         $producciones  = $this->model->getProduccionesPorFecha($fecha_fil);
         $total_tandas  = array_sum(array_column($producciones, 'cantidad_tandas'));

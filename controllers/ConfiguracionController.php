@@ -13,6 +13,26 @@ class ConfiguracionController {
     }
 
     /**
+     * Primer problema de los datos personales del perfil, o '' si son válidos.
+     * Los límites son los de las columnas de `usuario`.
+     */
+    private static function errorDatosPerfil(string $nombre, string $correo, string $telefono): string {
+        if ($nombre === '') {
+            return 'El nombre es obligatorio.';
+        }
+        if (!texto_cabe($nombre, 100)) {
+            return 'El nombre no puede superar los 100 caracteres.';
+        }
+        if ($correo !== '' && (!filter_var($correo, FILTER_VALIDATE_EMAIL) || !texto_cabe($correo, 150))) {
+            return 'El correo no es válido.';
+        }
+        if (!preg_match('/^[0-9 +()-]{0,20}$/', $telefono)) {
+            return 'El teléfono solo puede tener números (máximo 20 caracteres).';
+        }
+        return '';
+    }
+
+    /**
      * Gestión del Perfil de Usuario (perfil.php)
      */
     public function perfil(): void {
@@ -37,21 +57,18 @@ class ConfiguracionController {
 
             // ── 1. Guardar Datos Personales ──────────────────────────────────
             if (isset($_POST['guardar_perfil'])) {
-                $nombre   = trim($_POST['nombre_completo'] ?? '');
-                $correo   = trim($_POST['correo_electronico'] ?? '');
-                $telefono = trim($_POST['telefono'] ?? '');
-                
-                if (empty($nombre)) {
-                    $msg_err = 'El nombre es obligatorio.';
-                } elseif ($correo && !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-                    $msg_err = 'El correo no es válido.';
-                } else {
+                $nombre   = trim(post_texto('nombre_completo'));
+                $correo   = trim(post_texto('correo_electronico'));
+                $telefono = trim(post_texto('telefono'));
+
+                $msg_err = self::errorDatosPerfil($nombre, $correo, $telefono);
+                if ($msg_err === '') {
                     try {
                         $this->model->updateUsuarioPerfil($user['id_usuario'], $nombre, $correo ?: null, $telefono ?: null);
                         $msg_ok = "Datos actualizados correctamente.";
                         $datos = $this->model->getUsuario($user['id_usuario']) ?: $datos;
                     } catch (Exception $e) {
-                        $msg_err = 'Error al actualizar datos: ' . $e->getMessage();
+                        $msg_err = 'Error al actualizar datos: ' . mensaje_para_usuario($e);
                     }
                 }
                 $tab_activo = 'datos';
@@ -75,7 +92,7 @@ class ConfiguracionController {
                         $this->model->updateUsuarioPassword($user['id_usuario'], $new_hash);
                         $msg_ok = "Contraseña actualizada.";
                     } catch (Exception $e) {
-                        $msg_err = 'Error al actualizar contraseña: ' . $e->getMessage();
+                        $msg_err = 'Error al actualizar contraseña: ' . mensaje_para_usuario($e);
                     }
                 }
                 $tab_activo = 'seguridad';
@@ -97,7 +114,7 @@ class ConfiguracionController {
                         $msg_ok = "PIN guardado correctamente.";
                         $datos = $this->model->getUsuario($user['id_usuario']) ?: $datos;
                     } catch (Exception $e) {
-                        $msg_err = 'Error al guardar el PIN: ' . $e->getMessage();
+                        $msg_err = 'Error al guardar el PIN: ' . mensaje_para_usuario($e);
                     }
                 }
                 $tab_activo = 'pin';
@@ -139,13 +156,17 @@ class ConfiguracionController {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_link'])) {
-            $link     = trim($_POST['nequi_link_pago'] ?? '');
-            $titular  = trim($_POST['nequi_titular'] ?? '');
+            $link     = trim(post_texto('nequi_link_pago'));
+            $titular  = trim(post_texto('nequi_titular'));
             $habilitar = isset($_POST['wompi_habilitado']) ? 1 : 0;
             $auto     = isset($_POST['wompi_confirmar_auto']) ? 1 : 0;
 
             if ($habilitar && empty($link)) {
                 $msg_err = 'Si activas los pagos digitales, debes ingresar tu link.';
+            } elseif (!texto_cabe($link, 255)) {
+                $msg_err = 'El link no puede superar los 255 caracteres.';
+            } elseif (!texto_cabe($titular, 100)) {
+                $msg_err = 'El nombre del titular no puede superar los 100 caracteres.';
             } elseif ($link && !filter_var($link, FILTER_VALIDATE_URL)) {
                 $msg_err = 'La URL del link no es válida.';
             } elseif ($link && !preg_match('#^https?://([a-z0-9\-]+\.)*wompi\.co/#i', $link)) {
@@ -156,7 +177,7 @@ class ConfiguracionController {
                     $msg_ok = 'Configuración de pagos guardada correctamente.';
                     $config = $this->model->getConfiguracion();
                 } catch (Exception $e) {
-                    $msg_err = 'Error al guardar: ' . $e->getMessage();
+                    $msg_err = 'Error al guardar: ' . mensaje_para_usuario($e);
                 }
             }
         }
@@ -236,7 +257,9 @@ class ConfiguracionController {
         requerirPropietario();
         $user = usuarioActual();
 
-        $msg_ok = '';
+        // Aviso de una tienda recién creada (Post-Redirect-Get, más abajo).
+        $msg_ok = is_string($_SESSION['tiendas_ok'] ?? null) ? $_SESSION['tiendas_ok'] : '';
+        unset($_SESSION['tiendas_ok']);
         $msg_err = '';
         if (($_GET['err'] ?? '') === 'csrf') {
             $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
@@ -247,7 +270,7 @@ class ConfiguracionController {
 
             // ── 1. Crear nueva tienda beneficiaria ───────────────────────────
             if (isset($_POST['crear_tienda'])) {
-                $nombre   = trim($_POST['nombre'] ?? '');
+                $nombre   = trim(post_texto('nombre'));
                 // is_string: un formulario manipulado puede enviar telefono[] (array)
                 $telefono = (string) preg_replace('/\D/', '', is_string($_POST['telefono'] ?? null) ? $_POST['telefono'] : '');
                 if (strlen($telefono) > 15) {
@@ -261,9 +284,12 @@ class ConfiguracionController {
                 } else {
                     try {
                         $this->model->crearTiendaBeneficiaria($nombre, $telefono ?: null);
-                        $msg_ok = 'Tienda beneficiaria creada correctamente.';
+                        // F5 sobre el aviso creaba otra tienda con el mismo nombre.
+                        $_SESSION['tiendas_ok'] = 'Tienda beneficiaria creada correctamente.';
+                        header('Location: tiendas.php');
+                        exit;
                     } catch (Exception $e) {
-                        $msg_err = 'Error al crear: ' . $e->getMessage();
+                        $msg_err = 'Error al crear: ' . mensaje_para_usuario($e);
                     }
                 }
             }
@@ -276,7 +302,7 @@ class ConfiguracionController {
                     $this->model->toggleBeneficiaria($id_cliente, $accion);
                     $msg_ok = $accion ? 'Tienda marcada como beneficiaria.' : 'Tienda desmarcada.';
                 } catch (Exception $e) {
-                    $msg_err = 'Error: ' . $e->getMessage();
+                    $msg_err = 'Error: ' . mensaje_para_usuario($e);
                 }
             }
         }

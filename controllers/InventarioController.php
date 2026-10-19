@@ -4,6 +4,9 @@
 require_once __DIR__ . '/../models/InventarioModel.php';
 
 class InventarioController {
+    /** Mayor cantidad que admiten las columnas DECIMAL(12,3) de stock y lotes. */
+    private const CANTIDAD_MAXIMA = 999999999;
+
     private InventarioModel $model;
 
     public function __construct(PDO $pdo) {
@@ -32,10 +35,11 @@ class InventarioController {
 
         // ── 1. Guardar/Editar insumo (POST guardar_insumo) ───────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_insumo'])) {
-            $nombre  = trim($_POST['nombre'] ?? '');
-            $unidad  = trim($_POST['unidad_medida'] ?? '');
-            $stock   = (float)($_POST['stock_actual'] ?? 0);
-            $reposi  = (float)($_POST['punto_reposicion'] ?? 0);
+            $nombre  = trim(post_texto('nombre'));
+            $unidad  = trim(post_texto('unidad_medida'));
+            // Vacío cuenta como 0; letras, negativos o cifras que no caben, no.
+            $stock   = numero_en_rango(post_texto('stock_actual') ?: '0', 0, self::CANTIDAD_MAXIMA);
+            $reposi  = numero_en_rango(post_texto('punto_reposicion') ?: '0', 0, self::CANTIDAD_MAXIMA);
             $es_har  = isset($_POST['es_harina']) ? 1 : 0;
             $id_edit = (int)($_POST['id_insumo'] ?? 0);
 
@@ -43,10 +47,16 @@ class InventarioController {
 
             if (!$nombre || !$unidad) {
                 $msg_err = 'Nombre y unidad son obligatorios.';
+            } elseif (!texto_cabe($nombre, 100)) {
+                $msg_err = 'El nombre del insumo no puede superar los 100 caracteres.';
             } elseif (preg_match('/[0-9]/', $nombre)) {
                 $msg_err = 'El nombre del insumo no puede contener números, solo letras.';
             } elseif (!in_array($unidad, $unidades_validas)) {
                 $msg_err = 'Unidad de medida no válida.';
+            } elseif ($stock === null) {
+                $msg_err = 'El stock debe ser un número entre 0 y ' . number_format(self::CANTIDAD_MAXIMA, 0, ',', '.') . '.';
+            } elseif ($reposi === null) {
+                $msg_err = 'El punto de reposición debe ser un número entre 0 y ' . number_format(self::CANTIDAD_MAXIMA, 0, ',', '.') . '.';
             } elseif ($id_edit) {
                 // Modo Edición
                 $chk = $this->model->getInsumoPorNombre($nombre, $id_edit);
@@ -149,14 +159,15 @@ class InventarioController {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             requerir_csrf('crear_insumo.php?err=csrf');
-            $nombre      = limpiar($_POST['nombre'] ?? '');
-            $unidad      = limpiar($_POST['unidad_medida'] ?? '');
+            $nombre      = limpiar(post_texto('nombre'));
+            $unidad      = limpiar(post_texto('unidad_medida'));
             $es_harina   = isset($_POST['es_harina']) ? 1 : 0;
-            $punto_repos = (float)($_POST['punto_reposicion'] ?? 0);
+            $punto_repos = numero_en_rango(post_texto('punto_reposicion') ?: '0', 0, self::CANTIDAD_MAXIMA);
 
             if (empty($nombre))  $errores[] = 'El nombre es obligatorio.';
-            if (empty($unidad))  $errores[] = 'La unidad de medida es obligatoria.';
-            if ($punto_repos < 0) $errores[] = 'El punto de reposición no puede ser negativo.';
+            if (!texto_cabe($nombre, 100)) $errores[] = 'El nombre no puede superar los 100 caracteres.';
+            if (!in_array($unidad, ['kg', 'g', 'L', 'ml', 'unidad'], true)) $errores[] = 'Elige una unidad de medida de la lista.';
+            if ($punto_repos === null) $errores[] = 'El punto de reposición debe ser un número entre 0 y ' . number_format(self::CANTIDAD_MAXIMA, 0, ',', '.') . '.';
 
             if (empty($errores)) {
                 $check = $this->model->getInsumoPorNombre($nombre);
@@ -167,7 +178,7 @@ class InventarioController {
 
             if (empty($errores)) {
                 try {
-                    $this->model->registrarInsumo($nombre, $unidad, 0, $punto_repos, $es_harina);
+                    $this->model->registrarInsumo($nombre, $unidad, 0, (float) $punto_repos, $es_harina);
                     // El nombre lo escribe el usuario y el aviso se imprime como HTML:
                     // sin escapar, un insumo llamado <script>… se ejecutaría al mostrarlo.
                     redirigir(APP_URL . '/modules/inventario/index.php', 'exito', 'Insumo <strong>' . htmlspecialchars($nombre) . '</strong> creado correctamente.');
@@ -201,14 +212,16 @@ class InventarioController {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             requerir_csrf('editar_insumo.php?id=' . $id . '&err=csrf');
-            $nombre      = limpiar($_POST['nombre'] ?? '');
-            $unidad      = limpiar($_POST['unidad_medida'] ?? '');
+            $nombre      = limpiar(post_texto('nombre'));
+            $unidad      = limpiar(post_texto('unidad_medida'));
             $es_harina   = isset($_POST['es_harina']) ? 1 : 0;
-            $punto_repos = (float)($_POST['punto_reposicion'] ?? 0);
+            $punto_repos = numero_en_rango(post_texto('punto_reposicion') ?: '0', 0, self::CANTIDAD_MAXIMA);
             $activo      = isset($_POST['activo']) ? 1 : 0;
 
             if (empty($nombre)) $errores[] = 'El nombre es obligatorio.';
-            if (empty($unidad)) $errores[] = 'La unidad de medida es obligatoria.';
+            if (!texto_cabe($nombre, 100)) $errores[] = 'El nombre no puede superar los 100 caracteres.';
+            if (!in_array($unidad, ['kg', 'g', 'L', 'ml', 'unidad'], true)) $errores[] = 'Elige una unidad de medida de la lista.';
+            if ($punto_repos === null) $errores[] = 'El punto de reposición debe ser un número entre 0 y ' . number_format(self::CANTIDAD_MAXIMA, 0, ',', '.') . '.';
 
             if (empty($errores)) {
                 $check = $this->model->getInsumoPorNombre($nombre, $id);
@@ -219,7 +232,7 @@ class InventarioController {
 
             if (empty($errores)) {
                 try {
-                    $this->model->actualizarInsumo($id, $nombre, $unidad, (float)$insumo['stock_actual'], $punto_repos, $es_harina, $activo);
+                    $this->model->actualizarInsumo($id, $nombre, $unidad, (float)$insumo['stock_actual'], (float) $punto_repos, $es_harina, $activo);
                     redirigir(APP_URL . '/modules/inventario/index.php', 'exito', 'Insumo <strong>' . htmlspecialchars($nombre) . '</strong> actualizado.');
                 } catch (Exception $e) {
                     log_error($e);
@@ -255,20 +268,22 @@ class InventarioController {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             requerir_csrf('ajuste.php?id=' . $id . '&err=csrf');
-            $cantidad_real = (float)($_POST['cantidad_real'] ?? -1);
-            $motivo        = limpiar($_POST['motivo'] ?? '');
+            $cantidad_real = numero_en_rango(post_texto('cantidad_real'), 0, self::CANTIDAD_MAXIMA);
+            $motivo        = limpiar(post_texto('motivo'));
 
-            if ($cantidad_real < 0) {
-                $errores[] = 'La cantidad real no puede ser negativa.';
+            if ($cantidad_real === null) {
+                $errores[] = 'Escribe la cantidad real que hay: un número entre 0 y ' . number_format(self::CANTIDAD_MAXIMA, 0, ',', '.') . '.';
             }
             if (empty($motivo)) {
                 $errores[] = 'El motivo del ajuste es obligatorio.';
+            } elseif (!texto_cabe($motivo, 255)) {
+                $errores[] = 'El motivo no puede superar los 255 caracteres.';
             }
 
             if (empty($errores)) {
                 $id_usuario = usuarioActual()['id_usuario'];
                 try {
-                    $res = $this->model->registrarAjusteInventario($id, $id_usuario, $cantidad_real, $motivo);
+                    $res = $this->model->registrarAjusteInventario($id, $id_usuario, (float) $cantidad_real, $motivo);
                     // La unidad la escribió un usuario al crear el insumo y el aviso
                     // se imprime como HTML, así que se escapa antes de componerlo.
                     $unidad = is_string($res['unidad']) ? htmlspecialchars($res['unidad']) : '';

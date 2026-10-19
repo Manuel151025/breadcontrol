@@ -76,7 +76,19 @@ function log_error(mixed $error): void {
 // Configurar el manejador global de excepciones
 set_exception_handler(function($e) {
     log_error($e);
-    
+
+    // Lo que la página alcanzó a generar antes del error no se envía: la
+    // persona vería media pantalla con el aviso pegado al final.
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    // Una exportación ya había pedido descargar un archivo: el aviso de error
+    // debe verse en el navegador, no bajarse como «reporte.xls».
+    if (!headers_sent()) {
+        header_remove('Content-Disposition');
+        header('Content-Type: text/html; charset=UTF-8');
+    }
+
     // Verificar si es una petición AJAX
     $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
     

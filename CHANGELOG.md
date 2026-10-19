@@ -6,6 +6,66 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+### Corregido — uso desordenado y entradas manipuladas
+
+Se probó el sistema como lo prueban los compañeros de clase: un programa entró
+con cada rol (propietario, empleado, instructor, aprendiz, cliente y sin
+sesión), recorrió todas las pantallas y metió en cada campo y parámetro de URL
+valores vacíos, negativos, gigantes, letras, fechas imposibles, inyección SQL,
+scripts y listas en lugar de texto. La primera pasada dejó **98 fallos
+distintos**; la última, **ninguno**.
+
+- **Toda la entrada se normaliza antes de llegar a los controladores**
+  (`includes/entrada.php`). Bastaba escribir `?estado[]=1` en la barra de
+  direcciones para que una pantalla terminara en «Ocurrió un error inesperado».
+  Los campos que sí son listas se declaran por pantalla; además se quitan los
+  bytes nulos y las listas tienen tope.
+- **F5 o doble clic ya no duplican nada.** Repetían el pedido del portal (y
+  gastaban cupo del aprendiz), la compra (otro lote, stock y gasto duplicados),
+  el gasto, la tienda beneficiaria, y la aprobación del instructor, que
+  respondía «ya fueron procesados». El pedido lleva un token de envío único; el
+  resto sigue Post-Redirect-Get.
+- **La sesión dura de verdad 8 horas.** PHP la borraba a los 24 minutos sin
+  actividad (`session.gc_maxlifetime` no estaba configurado): quien dejaba un
+  formulario abierto recibía «token de seguridad inválido» al enviarlo.
+- **Fechas, horas y números se validan como valores reales.** «2026-13-45»,
+  «10:99», «1e309» o cifras que no caben en la columna pasaban la validación y
+  reventaban en la base. En finanzas, `desde=0000-00-00` recorría 740.000 días y
+  **tumbaba el servidor por memoria**; el rango ahora se acota a dos años.
+- **Los errores de base de datos ya no se muestran en pantalla.** Varios avisos
+  pegaban el texto de la excepción, con SQL y nombres de tablas.
+  `mensaje_para_usuario()` deja pasar los mensajes de negocio y traduce los de la
+  base («ya existe un registro con ese nombre», «texto demasiado largo»).
+- **XSS**: el aviso de éxito del punto de venta viajaba por la URL y se pintaba
+  sin escapar; la búsqueda de inventario se metía en un `<script>` con
+  `addslashes`; el título de página y tres `confirm()` con nombres de cliente,
+  proveedor o gasto se podían romper con una comilla. Nuevo `js_attr()`.
+- **Ajuste de inventario**: el lote que crea un ajuste llevaba siempre el
+  consecutivo `001`, así que el segundo ajuste del día —o el de otro insumo con
+  las mismas tres letras— no se guardaba.
+- **Receta**: la marca «aplica merma» caía en el ingrediente equivocado al
+  añadir o borrar filas, con efecto en el costo y el consumo de harina.
+- **Proveedores**: registrar de nuevo uno desactivado lo reactiva, en vez de
+  chocar con el nombre único y decir solo «Error al guardar el proveedor».
+- **Exportaciones** de ventas y pedidos abiertas sin selección (a mano, con
+  «atrás» o F5) devolvían un error 500; ahora vuelven con un aviso.
+- **Portal**: avisos claros al abrir un pedido ajeno o inexistente; el detalle
+  del pedido y el tablero ya no pintan texto libre de la URL (se podía fabricar
+  un aviso falso con un enlace); el catálogo deja de quedarse en «Cargando...»
+  si la sesión se cerró en otra pestaña.
+- **Accesibilidad**: las casillas de selección de las tablas no tenían nombre
+  para lectores de pantalla; solo se notaba con filas en la tabla.
+
+La lectura y validación de los formularios de compras y proveedores pasó a
+`helpers/FormularioCompra.php`: funciones puras que se prueban sin navegador ni
+base de datos, y que dejan a `CompraController` por debajo del umbral de
+complejidad de PHPMD.
+
+Pruebas nuevas: `tests/Unit/EntradaTest.php`, `tests/Unit/FormularioCompraTest.php`,
+`tests/Integration/AjusteInventarioTest.php` y `e2e/tests/robustez.spec.js`
+(doble clic y F5 en el pedido, merma de la receta, F5 tras una compra). El
+baseline de PHPStan baja de 804 a 635 ocurrencias; el de PHPMD no crece.
+
 ### Corregido
 
 - **Guardar una receta la dejaba sin ingredientes, y solo en producción.** Editar

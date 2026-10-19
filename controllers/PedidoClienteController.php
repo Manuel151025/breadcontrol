@@ -62,8 +62,7 @@ class PedidoClienteController {
                         $n = $this->model->confirmarCobroTienda($ids_pedidos, $auto);
                         $msg_cobro_ok = "$n pedido(s) marcados como pagados." . ($auto ? ' Los pedidos pendientes pasaron a confirmados.' : '');
                     } catch (Exception $e) {
-                        log_error($e);
-                        $msg_cobro_err = 'Error al confirmar cobros: ' . $e->getMessage();
+                        $msg_cobro_err = 'Error al confirmar cobros: ' . mensaje_para_usuario($e);
                     }
                 }
             }
@@ -191,8 +190,10 @@ class PedidoClienteController {
                 // (A) Actualizar estado del pedido
                 if (isset($_POST['actualizar'])) {
                     $estado = $_POST['estado'] ?? 'pendiente';
-                    $mensaje = trim($_POST['mensaje_propietario'] ?? '');
-                    if (in_array($estado, ['pendiente', 'confirmado', 'rechazado'])) {
+                    $mensaje = trim(post_texto('mensaje_propietario'));
+                    if (!texto_cabe($mensaje, 255)) {
+                        $msg_err = 'El mensaje para el cliente no puede superar los 255 caracteres.';
+                    } elseif (in_array($estado, ['pendiente', 'confirmado', 'rechazado'])) {
                         try {
                             $this->model->updatePedidoEstado($id_pedido, $estado, $mensaje);
                             $msg_ok = 'Pedido actualizado correctamente.';
@@ -217,8 +218,7 @@ class PedidoClienteController {
                             $this->model->habilitarPagoDigital($id_pedido, $referencia, $link_id, $config_pago['nequi_link_pago'], (float)$pedido['total_estimado']);
                             $msg_ok = 'Pago habilitado. El cliente ya puede pagar desde su portal.';
                         } catch (Exception $e) {
-                            log_error($e);
-                            $msg_err = 'Error: ' . $e->getMessage();
+                            $msg_err = 'Error: ' . mensaje_para_usuario($e);
                         }
                     }
                 }
@@ -226,8 +226,8 @@ class PedidoClienteController {
                 // (C) Marcar como pagado (Confirmar abono)
                 elseif (isset($_POST['marcar_pagado'])) {
                     $metodo = $_POST['metodo_pago'] ?? 'NEQUI';
-                    $monto_recibido = (float) ($_POST['monto_recibido'] ?? 0);
-                    $nota = trim($_POST['nota_pago'] ?? '');
+                    $monto_recibido = numero_en_rango(post_texto('monto_recibido'), 1, 99999999);
+                    $nota = trim(post_texto('nota_pago'));
 
                     $metodos_validos = ['NEQUI', 'BANCOLOMBIA', 'PSE', 'TARJETA', 'OTRO'];
                     if (!in_array($metodo, $metodos_validos, true)) {
@@ -236,15 +236,16 @@ class PedidoClienteController {
 
                     if (empty($pedido['id_pago_activo'])) {
                         $msg_err = 'No hay un pago activo para este pedido.';
-                    } elseif ($monto_recibido <= 0) {
-                        $msg_err = 'Debes ingresar el monto recibido.';
+                    } elseif ($monto_recibido === null) {
+                        $msg_err = 'Escribe el monto recibido: un número mayor que 0 y de máximo $99.999.999.';
+                    } elseif (!texto_cabe($nota, 255)) {
+                        $msg_err = 'La nota del pago no puede superar los 255 caracteres.';
                     } else {
                         try {
                             $this->model->registrarAbonoPago((int)$pedido['id_pago_activo'], $monto_recibido, $metodo, $nota);
                             $msg_ok = 'Abono confirmado y registrado con éxito.';
                         } catch (Exception $e) {
-                            log_error($e);
-                            $msg_err = 'Error: ' . $e->getMessage();
+                            $msg_err = 'Error: ' . mensaje_para_usuario($e);
                         }
                     }
                 }
@@ -256,8 +257,7 @@ class PedidoClienteController {
                             $this->model->deshabilitarPagoDigital((int)$pedido['id_pago_activo']);
                             $msg_ok = 'Pago deshabilitado.';
                         } catch (Exception $e) {
-                            log_error($e);
-                            $msg_err = 'Error: ' . $e->getMessage();
+                            $msg_err = 'Error: ' . mensaje_para_usuario($e);
                         }
                     }
                 }
@@ -269,8 +269,7 @@ class PedidoClienteController {
                             $this->model->revertirPagoDigital((int)$pedido['id_pago_activo']);
                             $msg_ok = 'Pago revertido.';
                         } catch (Exception $e) {
-                            log_error($e);
-                            $msg_err = 'Error: ' . $e->getMessage();
+                            $msg_err = 'Error: ' . mensaje_para_usuario($e);
                         }
                     }
                 }
@@ -333,8 +332,10 @@ class PedidoClienteController {
     public function exportar(): void {
         requerirPropietario();
 
+        // Se llega aquí sin selección al abrir la dirección a mano, con «atrás»
+        // o con F5. Antes era una excepción y la pantalla de error genérico.
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['exportar_ids'])) {
-            throw new Exception("No se seleccionaron pedidos para exportar.");
+            redirigir(APP_URL . '/modules/pedidos_clientes/index.php', 'alerta', 'Selecciona al menos un pedido para exportar.');
         }
 
         $formato = $_POST['formato'] ?? 'excel';

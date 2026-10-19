@@ -292,13 +292,28 @@ class CompraModel {
     }
 
     /**
+     * Proveedor con ese nombre, activo o no, distinto de $excluir. El nombre es
+     * único en la tabla también entre los desactivados.
+     * @return array{id_proveedor: int, activo: int}|null
+     */
+    public function getProveedorPorNombre(string $nombre, int $excluir = 0): ?array {
+        $stmt = $this->pdo->prepare("SELECT id_proveedor, activo FROM proveedor WHERE nombre = ? AND id_proveedor != ? LIMIT 1");
+        $stmt->execute([$nombre, $excluir]);
+        /** @var array{id_proveedor: int, activo: int}|false $prov */
+        $prov = $stmt->fetch();
+        return $prov ?: null;
+    }
+
+    /**
      * Crea o actualiza un proveedor
      */
     public function guardarProveedor(int $id_edit, string $nombre, string $telefono, string $entrega, float $dias, ?string $dias_visita): bool {
         if ($id_edit > 0) {
+            // activo = 1: guardar sobre un proveedor desactivado es la forma de
+            // reactivarlo (ver CompraController::proveedores).
             $stmt = $this->pdo->prepare("
                 UPDATE proveedor
-                SET nombre = ?, telefono = ?, tipo_entrega = ?, dias_entrega_promedio = ?, dias_visita = ?
+                SET nombre = ?, telefono = ?, tipo_entrega = ?, dias_entrega_promedio = ?, dias_visita = ?, activo = 1
                 WHERE id_proveedor = ?
             ");
             return $stmt->execute([$nombre, $telefono, $entrega, $dias, $dias_visita, $id_edit]);

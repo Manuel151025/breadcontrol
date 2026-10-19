@@ -24,9 +24,9 @@ class VentaController {
         if (isset($_GET['ajax_detalle_venta'])) {
             header('Content-Type: application/json');
             try {
-                $id_v = (int)$_GET['id_venta'];
+                $id_v = (int) get_texto('id_venta');
                 $res = $this->model->getDetalleVentaAjax($id_v);
-                echo json_encode($res);
+                echo json_encode($res, JSON_HEX_TAG | JSON_HEX_AMP);
             } catch (Exception $e) {
                 echo json_encode(['items' => [], 'id_cliente' => 0]);
             }
@@ -37,7 +37,7 @@ class VentaController {
             header('Content-Type: application/json');
             try {
                 $all = $this->model->getAllVariedadesAjax();
-                echo json_encode($all);
+                echo json_encode($all, JSON_HEX_TAG | JSON_HEX_AMP);
             } catch (Exception $e) {
                 echo json_encode([]);
             }
@@ -47,9 +47,9 @@ class VentaController {
         if (isset($_GET['ajax_variedades'])) {
             header('Content-Type: application/json');
             try {
-                $id_cat = (int)$_GET['id_cat'];
+                $id_cat = (int) get_texto('id_cat');
                 $vars = $this->model->getVariedadesPorCategoriaAjax($id_cat);
-                echo json_encode($vars);
+                echo json_encode($vars, JSON_HEX_TAG | JSON_HEX_AMP);
             } catch (Exception $e) {
                 echo json_encode([]);
             }
@@ -57,8 +57,12 @@ class VentaController {
         }
 
         // ── 2. Mensajes ──────────────────────────────────────────────────────────
-        $msg_ok  = $_GET['msg_ok']  ?? '';
-        $msg_err = $_GET['msg_err'] ?? '';
+        // El aviso de éxito llega por la sesión, nunca por la URL. Antes viajaba
+        // como ?msg_ok=<html> y la vista lo pintaba sin escapar: un enlace
+        // preparado ejecutaba código en la sesión del propietario.
+        $msg_ok  = is_string($_SESSION['ventas_msg_ok'] ?? null) ? $_SESSION['ventas_msg_ok'] : '';
+        $msg_err = '';
+        unset($_SESSION['ventas_msg_ok']);
         if (($_GET['err'] ?? '') === 'csrf') {
             $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
         }
@@ -162,11 +166,11 @@ class VentaController {
                                 $msg_ok .= "<br>Total: <strong>$" . number_format($total, 0, ',', '.') . "</strong>";
                             }
 
-                            header('Location: index.php?msg_ok=' . urlencode($msg_ok));
+                            $_SESSION['ventas_msg_ok'] = $msg_ok;
+                            header('Location: index.php');
                             exit;
                         } catch (Exception $e) {
-                            log_error($e);
-                            $msg_err = 'Error al registrar la venta rápida: ' . $e->getMessage();
+                            $msg_err = 'Error al registrar la venta rápida: ' . mensaje_para_usuario($e);
                         }
                     }
                 }
@@ -175,11 +179,11 @@ class VentaController {
 
         // ── 4. POST — Registrar Pedido Detallado (guardar_pedido) ────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_pedido'])) {
-            $cart_json   = $_POST['carrito_json'] ?? '[]';
+            $cart_json   = post_texto('carrito_json');
             $id_cliente  = (int)($_POST['ped_cliente'] ?? 0);
-            $bonif_json  = $_POST['bonif_json'] ?? '[]';
-            $cart        = json_decode($cart_json, true) ?: [];
-            $bonif_items = json_decode($bonif_json, true) ?: [];
+            $bonif_json  = post_texto('bonif_json');
+            $cart        = json_lista_productos($cart_json);
+            $bonif_items = json_lista_productos($bonif_json);
 
             if (empty($cart)) {
                 $msg_err = 'El carrito está vacío.';
@@ -197,11 +201,11 @@ class VentaController {
                     }
                     $msg_ok .= "<br>Total cobrado: <strong>$" . number_format($resultado['total_dinero'], 0, ',', '.') . "</strong>";
 
-                    header('Location: index.php?msg_ok=' . urlencode($msg_ok));
+                    $_SESSION['ventas_msg_ok'] = $msg_ok;
+                    header('Location: index.php');
                     exit;
                 } catch (Exception $e) {
-                    log_error($e);
-                    $msg_err = 'Error al guardar el pedido: ' . $e->getMessage();
+                    $msg_err = 'Error al guardar el pedido: ' . mensaje_para_usuario($e);
                 }
             }
         }
@@ -209,12 +213,12 @@ class VentaController {
         // ── 5. POST — Editar Pedido Detallado (editar_pedido) ────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_pedido'])) {
             $id_v         = (int)($_POST['edit_id_venta'] ?? 0);
-            $cart_json    = $_POST['edit_carrito_json'] ?? '[]';
+            $cart_json    = post_texto('edit_carrito_json');
             $id_cliente   = (int)($_POST['edit_ped_cliente'] ?? 0);
-            $bonif_json_e = $_POST['edit_bonif_json'] ?? '[]';
+            $bonif_json_e = post_texto('edit_bonif_json');
 
-            $cart          = json_decode($cart_json, true) ?: [];
-            $bonif_items_e = json_decode($bonif_json_e, true) ?: [];
+            $cart          = json_lista_productos($cart_json);
+            $bonif_items_e = json_lista_productos($bonif_json_e);
 
             if ($id_v && !empty($cart)) {
                 try {
@@ -227,11 +231,11 @@ class VentaController {
                         $msg_ok .= "<br>+ <strong>" . $resultado['bonus_units'] . "</strong> de $etiq";
                     }
 
-                    header('Location: index.php?msg_ok=' . urlencode($msg_ok));
+                    $_SESSION['ventas_msg_ok'] = $msg_ok;
+                    header('Location: index.php');
                     exit;
                 } catch (Exception $e) {
-                    log_error($e);
-                    $msg_err = 'Error al editar el pedido: ' . $e->getMessage();
+                    $msg_err = 'Error al editar el pedido: ' . mensaje_para_usuario($e);
                 }
             }
         }
@@ -249,7 +253,13 @@ class VentaController {
                 $tipo = 'venta';
             }
 
-            if ($id_v && $id_cat && $cant > 0) {
+            // Mismos topes que al registrar. Antes la edición no tenía ninguno y una
+            // cifra enorme reventaba en la base con un «Error al actualizar».
+            if (!$id_v || !$id_cat || $cant <= 0) {
+                $msg_err = 'Completa la categoría y una cantidad mayor a 0.';
+            } elseif ($cant > 999 || $extra > 999) {
+                $msg_err = 'La cantidad máxima permitida es 999.';
+            } else {
                 try {
                     $stmt_cat = $this->pdo->prepare("SELECT precio_unitario FROM categoria_precio WHERE id_categoria = ?");
                     $stmt_cat->execute([$id_cat]);
@@ -358,13 +368,15 @@ class VentaController {
             if (strlen($telefono) > 15) {
                 $telefono = substr($telefono, 0, 15);
             }
-            $notes   = trim($_POST['notas'] ?? '');
+            $notes   = trim(post_texto('notas'));
             $id_edit = (int)($_POST['id_cliente'] ?? 0);
 
             if (!$nombre) {
                 $msg_err = 'El nombre de la tienda es obligatorio.';
             } elseif (mb_strlen($nombre) > 100) {
                 $msg_err = 'El nombre de la tienda no puede superar los 100 caracteres.';
+            } elseif (!texto_cabe($notes, 255)) {
+                $msg_err = 'Las notas no pueden superar los 255 caracteres.';
             } elseif ($id_edit) {
                 try {
                     $this->model->guardarCliente($id_edit, $nombre, $telefono, $notes);
@@ -381,7 +393,9 @@ class VentaController {
                         $msg_err = "Ya existe una tienda con ese nombre.";
                     } else {
                         $this->model->guardarCliente(0, $nombre, $telefono, $notes);
-                        $msg_ok = "Tienda <strong>" . htmlspecialchars($nombre) . "</strong> registrada correctamente.";
+                        // Redirigir como al editar: F5 sobre el aviso reenviaba el
+                        // formulario y respondía «Ya existe una tienda con ese nombre».
+                        redirigir(APP_URL.'/modules/ventas/clientes.php', 'exito', "Tienda <strong>" . htmlspecialchars($nombre) . "</strong> registrada correctamente.");
                     }
                 } catch (Exception $e) {
                     log_error($e);
@@ -443,11 +457,13 @@ class VentaController {
             $id_prod   = (int)($_POST['id_producto'] ?? 0);
             $id_cli    = (int)($_POST['id_cliente'] ?? 0) ?: null;
             $unidades  = (int)($_POST['unidades_vendidas'] ?? 0);
-            $precio    = (float)($_POST['precio_unitario'] ?? 0);
+            $precio    = numero_en_rango(post_texto('precio_unitario'), 0.01, 10000000);
             $sobrantes = (int)($_POST['unidades_sobrantes'] ?? 0);
 
-            if (!$id_prod || $unidades <= 0 || $precio <= 0) {
+            if (!$id_prod || $unidades <= 0 || $precio === null) {
                 $msg_err = 'Completa todos los campos correctamente.';
+            } elseif ($unidades > 99999) {
+                $msg_err = 'Las unidades vendidas no pueden pasar de 99.999.';
             } elseif ($sobrantes < 0) {
                 $msg_err = 'Los sobrantes no pueden ser negativos.';
             } elseif ($sobrantes > $unidades) {
@@ -491,8 +507,10 @@ class VentaController {
     public function exportarExcel(): void {
         requerirPropietario();
 
+        // Se llega aquí sin selección al abrir la dirección a mano, con «atrás»
+        // o con F5. Antes era una excepción y la pantalla de error genérico.
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['exportar_ids'])) {
-            throw new Exception("No se seleccionaron registros para exportar.");
+            redirigir(APP_URL . '/modules/ventas/index.php', 'alerta', 'Selecciona al menos un registro para exportar.');
         }
 
         $ids = $_POST['exportar_ids'];

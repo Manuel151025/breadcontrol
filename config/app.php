@@ -49,6 +49,18 @@ unset($app_es_local);
 
 require_once __DIR__ . '/logger.php';
 
+// La página se acumula en memoria y se envía al terminar. Si a mitad de la
+// plantilla salta un error, el manejador de config/logger.php descarta lo ya
+// generado y muestra solo el aviso, en vez de media página rota con el aviso
+// pegado debajo. De paso, un header() tardío deja de fallar por «headers
+// already sent».
+if (PHP_SAPI !== 'cli') {
+    ob_start();
+}
+
+// Antes de que ningún controlador lea la petición: ver includes/entrada.php.
+require_once __DIR__ . '/../includes/entrada.php';
+
 define('APP_NOMBRE',   'Sistema Inventario Panadería');
 define('APP_VERSION',  '1.11.0'); // mantener en sincronía con CHANGELOG.md
 

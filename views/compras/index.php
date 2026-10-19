@@ -242,7 +242,7 @@
         <table class="gt">
           <thead>
             <tr>
-              <th class="th-chk"><input type="checkbox" class="chk-all" id="chk-all" onclick="toggleTodos(this)" title="Seleccionar todas"></th>
+              <th class="th-chk"><input type="checkbox" aria-label="Seleccionar todas las compras" class="chk-all" id="chk-all" onclick="toggleTodos(this)" title="Seleccionar todas"></th>
               <th>Fecha</th>
               <th>Insumo</th>
               <th>Proveedor</th>
@@ -257,7 +257,7 @@
           <?php foreach ($compras as $c):
             $var = (float)$c['variacion_precio_pct']; ?>
           <tr>
-            <td class="td-chk"><input type="checkbox" class="row-chk" value="<?= $c['id_compra'] ?>" onchange="actualizarSeleccion()"></td>
+            <td class="td-chk"><input type="checkbox" aria-label="Seleccionar esta compra" class="row-chk" value="<?= $c['id_compra'] ?>" onchange="actualizarSeleccion()"></td>
             <td style="white-space:nowrap"><?= date('d/m/Y', strtotime($c['fecha_compra'])) ?></td>
             <td><strong><?= htmlspecialchars($c['insumo'] ?? '') ?></strong></td>
             <td><?= htmlspecialchars($c['proveedor'] ?? '') ?></td>

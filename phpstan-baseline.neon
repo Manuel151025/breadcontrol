@@ -30,8 +30,6 @@ parameters:
 			count: 2
 			path: config/db.php
 
-
-
 		-
 			message: '#^Parameter \#2 \$username of class PDO constructor expects string\|null, mixed given\.$#'
 			identifier: argument.type
@@ -62,14 +60,11 @@ parameters:
 			count: 1
 			path: config/logger.php
 
-
-
 		-
 			message: '#^Parameter \#1 \$id_usuario of method AuthModel\:\:actualizarClaveUsuario\(\) expects int, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/AuthController.php
-
 
 		-
 			message: '#^Parameter \#1 \$id_usuario of method AuthModel\:\:registrarCodigoRecuperacion\(\) expects int, mixed given\.$#'
@@ -101,13 +96,11 @@ parameters:
 			count: 1
 			path: controllers/AuthController.php
 
-
 		-
 			message: '#^Parameter \#2 \$to_nombre of function enviar_correo expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/AuthController.php
-
 
 		-
 			message: '#^Parameter \#1 \$id_usuario of method CierreModel\:\:guardarCierre\(\) expects int, mixed given\.$#'
@@ -208,35 +201,17 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to float\.$#'
 			identifier: cast.double
-			count: 6
+			count: 3
 			path: controllers/CompraController.php
 
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 7
-			path: controllers/CompraController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, ''trim'' given\.$#'
-			identifier: argument.type
-			count: 1
+			count: 4
 			path: controllers/CompraController.php
 
 		-
 			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/CompraController.php
-
-		-
-			message: '#^Parameter \#1 \$dato of function limpiar expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/CompraController.php
-
-		-
-			message: '#^Parameter \#1 \$mesFiltro of method CompraModel\:\:getComprasMesActual\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/CompraController.php
@@ -278,25 +253,7 @@ parameters:
 			path: controllers/CompraController.php
 
 		-
-			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/CompraController.php
-
-		-
 			message: '#^Parameter \#2 \$string of function explode expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/CompraController.php
-
-		-
-			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/CompraController.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/CompraController.php
@@ -370,7 +327,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 9
+			count: 3
 			path: controllers/ConfiguracionController.php
 
 		-
@@ -392,217 +349,7 @@ parameters:
 			path: controllers/FinanzasController.php
 
 		-
-			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 12
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getComprasPorDia\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getComprasTotal\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getConsumoIngredientes\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getConsumoIngredientesEstimado\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getCostoProduccionRango\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getDetalleCompras\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getDetalleVentas\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getGastosOp\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getGastosPorCategoria\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getIngresos\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getNumCompras\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getNumVentas\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getTopClientes\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getTopInsumos\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getTopProductos\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#1 \$desde of method FinanzasModel\:\:getVentasPorDia\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getComprasPorDia\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getComprasTotal\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getConsumoIngredientes\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getConsumoIngredientesEstimado\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getCostoProduccionRango\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getDetalleCompras\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getDetalleVentas\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getGastosOp\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getGastosPorCategoria\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getIngresos\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getNumCompras\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getNumVentas\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getTopClientes\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getTopInsumos\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getTopProductos\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$hasta of method FinanzasModel\:\:getVentasPorDia\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/FinanzasController.php
-
-		-
-			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: controllers/FinanzasController.php
-
-		-
 			message: '#^Binary operation "\+" between \(float\|int\) and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: controllers/GastoController.php
-
-		-
-			message: '#^Binary operation "\." between ''Location\: index\.php…'' and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
 			path: controllers/GastoController.php
@@ -614,27 +361,9 @@ parameters:
 			path: controllers/GastoController.php
 
 		-
-			message: '#^Parameter \#1 \$fecha of method GastoModel\:\:getGastosPorFecha\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/GastoController.php
-
-		-
-			message: '#^Parameter \#1 \$fecha of method GastoModel\:\:getResumenFinanzasDia\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/GastoController.php
-
-		-
 			message: '#^Parameter \#1 \$id_usuario of method GastoModel\:\:registrarGasto\(\) expects int, mixed given\.$#'
 			identifier: argument.type
 			count: 1
-			path: controllers/GastoController.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
 			path: controllers/GastoController.php
 
 		-
@@ -644,46 +373,10 @@ parameters:
 			path: controllers/GastoController.php
 
 		-
-			message: '#^Parameter \#2 \$categoria of method GastoModel\:\:actualizarGasto\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/GastoController.php
-
-		-
-			message: '#^Parameter \#2 \$categoria of method GastoModel\:\:registrarGasto\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/GastoController.php
-
-		-
 			message: '#^Parameter \#2 \$costoProduccionReal of static method FinanzasHelper\:\:calcularUtilidad\(\) expects float, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/GastoController.php
-
-		-
-			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/GastoController.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/GastoController.php
-
-		-
-			message: '#^Parameter \#1 \$fecha_entrega of static method ReglasPortal\:\:fueraDeLimiteGestion\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: models/PortalClienteModel.php
-
-		-
-			message: '#^Parameter \#2 \$fecha_entrega of static method ReglasPortal\:\:puedeCancelarPedido\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: models/PortalClienteModel.php
 
 		-
 			message: '#^Possibly invalid array key type mixed\.$#'
@@ -700,18 +393,12 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to float\.$#'
 			identifier: cast.double
-			count: 6
+			count: 1
 			path: controllers/InventarioController.php
 
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 5
-			path: controllers/InventarioController.php
-
-		-
-			message: '#^Parameter \#1 \$dato of function limpiar expects string, mixed given\.$#'
-			identifier: argument.type
 			count: 5
 			path: controllers/InventarioController.php
 
@@ -730,7 +417,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 3
+			count: 1
 			path: controllers/InventarioController.php
 
 		-
@@ -766,7 +453,7 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to float\.$#'
 			identifier: cast.double
-			count: 4
+			count: 3
 			path: controllers/PedidoClienteController.php
 
 		-
@@ -814,7 +501,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 6
+			count: 4
 			path: controllers/PedidoClienteController.php
 
 		-
@@ -856,18 +543,6 @@ parameters:
 		-
 			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
 			identifier: foreach.nonIterable
-			count: 1
-			path: controllers/ProduccionController.php
-
-		-
-			message: '#^Binary operation "\." between ''\<li\>Falta \<strong\>'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: controllers/ProduccionController.php
-
-		-
-			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
-			identifier: binaryOp.invalid
 			count: 1
 			path: controllers/ProduccionController.php
 
@@ -920,27 +595,9 @@ parameters:
 			path: controllers/ProduccionController.php
 
 		-
-			message: '#^Parameter \#1 \$fecha of method ProduccionModel\:\:getProduccionesPorFecha\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/ProduccionController.php
-
-		-
 			message: '#^Parameter \#1 \$num of function number_format expects float, mixed given\.$#'
 			identifier: argument.type
 			count: 2
-			path: controllers/ProduccionController.php
-
-		-
-			message: '#^Parameter \#1 \$string of function htmlspecialchars expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/ProduccionController.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: controllers/ProduccionController.php
 
 		-
@@ -953,12 +610,6 @@ parameters:
 			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, list given\.$#'
 			identifier: argument.type
 			count: 2
-			path: controllers/ProduccionController.php
-
-		-
-			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 3
 			path: controllers/ProduccionController.php
 
 		-
@@ -1004,33 +655,9 @@ parameters:
 			path: controllers/RecetaController.php
 
 		-
-			message: '#^Cannot access offset ''error'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: controllers/RecetaController.php
-
-		-
-			message: '#^Cannot access offset ''name'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: controllers/RecetaController.php
-
-		-
-			message: '#^Cannot access offset ''tmp_name'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: controllers/RecetaController.php
-
-		-
 			message: '#^Cannot access offset mixed on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 2
-			path: controllers/RecetaController.php
-
-		-
-			message: '#^Cannot cast mixed to float\.$#'
-			identifier: cast.double
-			count: 1
 			path: controllers/RecetaController.php
 
 		-
@@ -1046,17 +673,10 @@ parameters:
 			path: controllers/RecetaController.php
 
 		-
-			message: '#^Parameter \#1 \$from of function move_uploaded_file expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/RecetaController.php
-
-		-
 			message: '#^Parameter \#1 \$id_producto of method RecetaModel\:\:reactivarProducto\(\) expects int, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/RecetaController.php
-
 
 		-
 			message: '#^Parameter \#1 \$id_receta of method RecetaModel\:\:getIngredientesReceta\(\) expects int, mixed given\.$#'
@@ -1064,17 +684,10 @@ parameters:
 			count: 1
 			path: controllers/RecetaController.php
 
-
-		-
-			message: '#^Parameter \#1 \$path of function pathinfo expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/RecetaController.php
-
 		-
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 8
+			count: 1
 			path: controllers/RecetaController.php
 
 		-
@@ -1087,31 +700,6 @@ parameters:
 			message: '#^Parameter \#2 \$callback of function array_filter expects \(callable\(array\<string, mixed\>\)\: bool\)\|null, Closure\(mixed\)\: mixed given\.$#'
 			identifier: argument.type
 			count: 1
-			path: controllers/RecetaController.php
-
-		-
-			message: '#^Parameter \#2 \$categoria of method RecetaModel\:\:crearProducto\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/RecetaController.php
-
-		-
-			message: '#^Parameter \#2 \$categoria of method RecetaModel\:\:reactivarProducto\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/RecetaController.php
-
-
-		-
-			message: '#^Parameter \#3 \$categoria of method RecetaModel\:\:updateProducto\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/RecetaController.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
 			path: controllers/RecetaController.php
 
 		-
@@ -1171,25 +759,19 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to float\.$#'
 			identifier: cast.double
-			count: 3
+			count: 2
 			path: controllers/VentaController.php
 
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 22
+			count: 20
 			path: controllers/VentaController.php
 
 		-
 			message: '#^Parameter \#1 \$ids of method VentaModel\:\:getVentasPorIds\(\) expects array\<mixed\>, mixed given\.$#'
 			identifier: argument.type
 			count: 1
-			path: controllers/VentaController.php
-
-		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 4
 			path: controllers/VentaController.php
 
 		-
@@ -1207,7 +789,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 3
+			count: 2
 			path: controllers/VentaController.php
 
 		-
@@ -1218,18 +800,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#2 \$tipo_salida of method VentaModel\:\:registrarVentaRapida\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/VentaController.php
-
-		-
-			message: '#^Parameter \#3 \$cart of method VentaModel\:\:editarPedidoDetallado\(\) expects array\<mixed\>, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/VentaController.php
-
-		-
-			message: '#^Parameter \#3 \$cart of method VentaModel\:\:registrarPedidoDetallado\(\) expects array\<mixed\>, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/VentaController.php
@@ -1248,18 +818,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#3 \$tipo of method VentaModel\:\:editarVentaRapida\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/VentaController.php
-
-		-
-			message: '#^Parameter \#4 \$bonif_items of method VentaModel\:\:editarPedidoDetallado\(\) expects array\<mixed\>, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/VentaController.php
-
-		-
-			message: '#^Parameter \#4 \$bonif_items of method VentaModel\:\:registrarPedidoDetallado\(\) expects array\<mixed\>, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/VentaController.php
@@ -1318,7 +876,6 @@ parameters:
 			count: 3
 			path: controllers/portal/PortalAuthController.php
 
-
 		-
 			message: '#^Parameter \#1 \$email of method PortalClienteModel\:\:getClienteByEmail\(\) expects string, mixed given\.$#'
 			identifier: argument.type
@@ -1343,8 +900,6 @@ parameters:
 			count: 1
 			path: controllers/portal/PortalAuthController.php
 
-
-
 		-
 			message: '#^Parameter \#1 \$known_string of function hash_equals expects string, mixed given\.$#'
 			identifier: argument.type
@@ -1360,7 +915,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 11
+			count: 10
 			path: controllers/portal/PortalAuthController.php
 
 		-
@@ -1526,12 +1081,6 @@ parameters:
 			path: controllers/portal/PortalExportController.php
 
 		-
-			message: '#^Cannot cast mixed to float\.$#'
-			identifier: cast.double
-			count: 1
-			path: controllers/portal/PortalInstructorController.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 5
@@ -1610,18 +1159,6 @@ parameters:
 			path: controllers/portal/PortalPedidoController.php
 
 		-
-			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: controllers/portal/PortalPedidoController.php
-
-		-
 			message: '#^Cannot access offset ''bonificacion'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 2
@@ -1672,13 +1209,13 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to float\.$#'
 			identifier: cast.double
-			count: 3
+			count: 2
 			path: controllers/portal/PortalPedidoController.php
 
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 19
+			count: 17
 			path: controllers/portal/PortalPedidoController.php
 
 		-
@@ -1691,18 +1228,6 @@ parameters:
 			message: '#^Parameter \#1 \$cliente_id of method PortalClienteModel\:\:crearPedido\(\) expects int, mixed given\.$#'
 			identifier: argument.type
 			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#1 \$hora of static method ReglasPortal\:\:horarioEntregaValido\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
 			path: controllers/portal/PortalPedidoController.php
 
 		-
@@ -1725,18 +1250,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#2 \$codigo of method PortalControllerBase\:\:intentarCanjeCodigo\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#4 \$cart of method PortalClienteModel\:\:crearPedido\(\) expects array\<mixed\>, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: controllers/portal/PortalPedidoController.php
-
-		-
-			message: '#^Parameter \#5 \$bonif_items of method PortalClienteModel\:\:crearPedido\(\) expects array\<mixed\>, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: controllers/portal/PortalPedidoController.php
@@ -2072,12 +1585,6 @@ parameters:
 			path: models/InventarioModel.php
 
 		-
-			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: models/InventarioModel.php
-
-		-
 			message: '#^Method PedidoClienteModel\:\:getAbonosPago\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
 			identifier: return.type
 			count: 1
@@ -2190,7 +1697,6 @@ parameters:
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: models/PortalClienteModel.php
-
 
 		-
 			message: '#^Cannot access offset ''id_codigo'' on mixed\.$#'
@@ -2422,6 +1928,18 @@ parameters:
 
 		-
 			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Parameter \#1 \$fecha_entrega of static method ReglasPortal\:\:fueraDeLimiteGestion\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: models/PortalClienteModel.php
+
+		-
+			message: '#^Parameter \#2 \$fecha_entrega of static method ReglasPortal\:\:puedeCancelarPedido\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: models/PortalClienteModel.php

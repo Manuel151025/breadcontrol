@@ -160,6 +160,25 @@ class InventarioModel {
     }
 
     /**
+     * Número para el lote que crea un ajuste: AJU-<prefijo>-<fecha>-<consecutivo>.
+     *
+     * Antes el consecutivo era siempre 001. El segundo ajuste positivo del día
+     * sobre un insumo sin lotes activos —o el de otro insumo con las mismas tres
+     * letras, como «Azúcar» y «Azúcar morena»— chocaba con el índice único de
+     * numero_lote y el ajuste no se guardaba. Se consulta dentro de la misma
+     * transacción del ajuste.
+     */
+    private function siguienteLoteAjuste(string $nombre_insumo): string {
+        $base = 'AJU-' . prefijoLote($nombre_insumo) . '-' . date('Y-m-d') . '-';
+        $stmt = $this->pdo->prepare("SELECT numero_lote FROM lote WHERE numero_lote LIKE ? ORDER BY numero_lote DESC LIMIT 1");
+        $stmt->execute([$base . '%']);
+        $ultimo = $stmt->fetchColumn();
+        $partes = explode('-', is_string($ultimo) ? $ultimo : '');
+        $seq    = is_string($ultimo) ? (int) end($partes) + 1 : 1;
+        return $base . str_pad((string) $seq, 3, '0', STR_PAD_LEFT);
+    }
+
+    /**
      * Registra un ajuste de inventario y sincroniza los lotes activos usando FIFO
      * @return array<mixed>
      */
@@ -205,8 +224,7 @@ class InventarioModel {
                     $stmt_up_lote->execute([$nueva_disp, $ultimo_lote['id_lote']]);
                 } else {
                     // Sin lotes activos: crear uno de ajuste
-                    $prefijo  = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $insumo['nombre']), 0, 3));
-                    $num_lote = 'AJU-' . $prefijo . '-' . date('Y-m-d') . '-001';
+                    $num_lote = $this->siguienteLoteAjuste(is_string($insumo['nombre']) ? $insumo['nombre'] : '');
                     $stmt_ins_lote = $this->pdo->prepare("
                         INSERT INTO lote (id_insumo, numero_lote, cantidad_inicial, cantidad_disponible, precio_unitario, fecha_ingreso, estado)
                         VALUES (?, ?, ?, ?, 0, NOW(), 'activo')

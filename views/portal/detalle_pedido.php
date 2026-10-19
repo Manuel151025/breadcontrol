@@ -90,7 +90,7 @@
                             <?php elseif ($_GET['error'] === 'pago_proceso'): ?>
                                 No puedes modificar o cancelar este pedido porque está vinculado a una transacción de pago activa de tu instructor.
                             <?php else: ?>
-                                <?= htmlspecialchars($_GET['error'] ?? '') ?>
+                                <?= htmlspecialchars($aviso_error) ?>
                             <?php endif; ?>
                         </div>
                     </div>

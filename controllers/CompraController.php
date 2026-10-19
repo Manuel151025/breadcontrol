@@ -2,6 +2,7 @@
 // controllers/CompraController.php
 
 require_once __DIR__ . '/../models/CompraModel.php';
+require_once __DIR__ . '/../helpers/FormularioCompra.php';
 
 class CompraController {
     private CompraModel $model;
@@ -17,9 +18,12 @@ class CompraController {
         requerirPropietario();
         $user = usuarioActual();
 
-        $msg_ok  = '';
+        // Resultado de la última compra, si se acaba de registrar (ver más abajo).
+        $flash   = is_array($_SESSION['compras_ok'] ?? null) ? $_SESSION['compras_ok'] : [];
+        unset($_SESSION['compras_ok']);
+        $msg_ok  = is_string($flash['msg'] ?? null) ? $flash['msg'] : '';
         $msg_err = '';
-        $last_id = 0;
+        $last_id = is_int($flash['id'] ?? null) ? $flash['id'] : 0;
         if (($_GET['err'] ?? '') === 'csrf') {
             $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
         }
@@ -30,43 +34,38 @@ class CompraController {
 
         // ── 1. Registrar nueva compra (POST) ─────────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_compra'])) {
-            $id_insumo    = (int)($_POST['id_insumo'] ?? 0);
-            $id_proveedor = (int)($_POST['id_proveedor'] ?? 0);
-            $fecha        = post_texto('fecha_compra') ?: date('Y-m-d');
-            $cantidad     = (float)($_POST['cantidad'] ?? 0);
-            $num_bultos   = max(1, (int)($_POST['num_bultos'] ?? 1));
-            $precio_bulto = (float)($_POST['precio_bulto'] ?? 0);
+            $c = FormularioCompra::compra($_POST, date('Y-m-d'));
 
-            // Se comprueba la fecha elegida, no el día de hoy: un domingo se
-            // puede registrar la compra del sábado, pero no fecharla en domingo.
-            if (esDomingo($fecha)) {
-                $msg_err = 'No se pueden registrar compras con fecha de domingo.';
+            if ($c['error'] !== '') {
+                $msg_err = $c['error'];
             } else {
-                if (!$id_insumo || !$id_proveedor || $cantidad <= 0 || $precio_bulto <= 0) {
-                    $msg_err = 'Todos los campos son obligatorios y deben ser mayores a 0.';
-                } else {
-                    try {
-                        $res = $this->model->registrarCompra($id_insumo, $id_proveedor, $fecha, $cantidad, $num_bultos, $precio_bulto, $user['id_usuario']);
-                        $last_id = $res['id_compra'];
+                try {
+                    $res = $this->model->registrarCompra($c['id_insumo'], $c['id_proveedor'], $c['fecha'], $c['cantidad'], $c['num_bultos'], $c['precio_bulto'], $user['id_usuario']);
+                    $last_id = $res['id_compra'];
 
-                        $merma_aviso = $res['es_harina'] 
-                            ? " (merma aplicada: disponible <strong>" . number_format($res['cantidad_disponible'], 3) . " kg</strong> de {$res['cantidad']} kg comprados)" 
-                            : '';
-                        $alerta_precio = abs($res['variacion']) >= 5 
-                            ? " ⚠️ Variación de precio: {$res['variacion']}%" 
-                            : '';
+                    $merma_aviso = $res['es_harina'] 
+                        ? " (merma aplicada: disponible <strong>" . number_format($res['cantidad_disponible'], 3) . " kg</strong> de {$res['cantidad']} kg comprados)" 
+                        : '';
+                    $alerta_precio = abs($res['variacion']) >= 5 
+                        ? " ⚠️ Variación de precio: {$res['variacion']}%" 
+                        : '';
 
-                        $msg_ok = "Compra registrada.<br>Lote <strong>{$res['numero_lote']}</strong> creado.";
-                        if ($merma_aviso) {
-                            $msg_ok .= "<br>" . ltrim($merma_aviso, " ");
-                        }
-                        if ($alerta_precio) {
-                            $msg_ok .= "<br>" . ltrim($alerta_precio, " ");
-                        }
-                    } catch (Exception $e) {
-                        log_error($e);
-                        $msg_err = 'Error al registrar la compra: ' . $e->getMessage();
+                    $msg_ok = "Compra registrada.<br>Lote <strong>{$res['numero_lote']}</strong> creado.";
+                    if ($merma_aviso) {
+                        $msg_ok .= "<br>" . ltrim($merma_aviso, " ");
                     }
+                    if ($alerta_precio) {
+                        $msg_ok .= "<br>" . ltrim($alerta_precio, " ");
+                    }
+
+                    // Post-Redirect-Get: con la página de resultado servida por
+                    // POST, un F5 registraba la compra otra vez —otro lote, el
+                    // stock y el gasto del mes duplicados—.
+                    $_SESSION['compras_ok'] = ['msg' => $msg_ok, 'id' => is_numeric($last_id) ? (int) $last_id : 0];
+                    header('Location: index.php');
+                    exit;
+                } catch (Exception $e) {
+                    $msg_err = 'Error al registrar la compra: ' . mensaje_para_usuario($e);
                 }
             }
         }
@@ -74,7 +73,7 @@ class CompraController {
         // ── 2. Filtros y Búsqueda ────────────────────────────────────────────────
         $busca         = trim($_GET['q'] ?? '');
         $filtro_alerta = !empty($_GET['alerta']);
-        $mes_filtro    = preg_match('/^\d{4}-\d{2}$/', $_GET['mes'] ?? '') ? $_GET['mes'] : date('Y-m');
+        $mes_filtro    = fecha_valida(get_texto('mes') . '-01') ? get_texto('mes') : date('Y-m');
 
         // ── 3. Consultar datos ───────────────────────────────────────────────────
         $compras     = $this->model->getComprasMesActual($mes_filtro, $busca, $filtro_alerta);
@@ -108,31 +107,31 @@ class CompraController {
         }
 
         // ── 1. Guardar/Editar Proveedor (POST) ───────────────────────────────────
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // El formulario de desactivar también llega por POST: no es un guardado.
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['desactivar'])) {
             requerirPropietario();
             requerir_csrf('proveedores.php?err=csrf');
-            $id_edit   = (int)($_POST['id_proveedor'] ?? 0);
-            $nombre    = limpiar($_POST['nombre'] ?? '');
-            $telefono  = preg_replace('/\D/', '', $_POST['telefono'] ?? '');
-            if (strlen($telefono) > 15) {
-                $telefono = substr($telefono, 0, 15);
-            }
-            $entrega     = limpiar($_POST['tipo_entrega'] ?? 'domicilio');
-            $dias        = (float)($_POST['dias_entrega_promedio'] ?? 0);
-            $dias_visita = $entrega === 'visita'
-                ? implode(',', array_map('trim', $_POST['dias_visita'] ?? []))
-                : null;
+            $id_edit = (int)($_POST['id_proveedor'] ?? 0);
+            $p       = FormularioCompra::proveedor($_POST);
+            $errores = array_merge($errores, $p['errores']);
+            $nombre  = $p['nombre'];
 
-            if (empty($nombre)) {
-                $errores[] = 'El nombre es obligatorio.';
-            }
-            if ($entrega === 'visita' && empty($dias_visita)) {
-                $errores[] = 'Selecciona al menos un día de visita.';
+            // Nombre único, también entre los desactivados (índice de la tabla).
+            // Registrar de nuevo uno desactivado lo reactiva con los datos nuevos,
+            // igual que hace inventario con los insumos; antes la base de datos
+            // lo rechazaba y solo se veía «Error al guardar el proveedor».
+            if (empty($errores)) {
+                $mismo_nombre = $this->model->getProveedorPorNombre($nombre, $id_edit);
+                if ($mismo_nombre && ($mismo_nombre['activo'] === 1 || $id_edit > 0)) {
+                    $errores[] = 'Ya existe un proveedor con ese nombre.';
+                } elseif ($mismo_nombre) {
+                    $id_edit = $mismo_nombre['id_proveedor'];
+                }
             }
 
             if (empty($errores)) {
                 try {
-                    $this->model->guardarProveedor($id_edit, $nombre, $telefono, $entrega, $dias, $dias_visita);
+                    $this->model->guardarProveedor($id_edit, $nombre, $p['telefono'], $p['entrega'], $p['dias'], $p['dias_visita']);
                     redirigir(APP_URL . '/modules/compras/proveedores.php', 'exito', "Proveedor <strong>" . htmlspecialchars($nombre) . "</strong> " . ($id_edit > 0 ? "actualizado." : "creado."));
                 } catch (Exception $e) {
                     log_error($e);
@@ -144,6 +143,7 @@ class CompraController {
         // ── 2. Desactivar Proveedor (POST desactivar) ────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desactivar'])) {
             requerirPropietario();
+            requerir_csrf('proveedores.php?err=csrf');
             $id_des = (int)$_POST['desactivar'];
             try {
                 $this->model->desactivarProveedor($id_des);

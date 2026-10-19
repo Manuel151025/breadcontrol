@@ -57,6 +57,39 @@ class RecetaController {
     }
 
     /**
+     * Lee y valida el formulario de producto (crear y editar comparten campos).
+     *
+     * Ni la cantidad por tanda ni el precio tenían tope: una cifra que no cabía
+     * en la columna hacía fallar el guardado con un «Error al guardar» sin más
+     * explicación. La cantidad admite 0, que el formulario ofrece para «varía».
+     * Los dos campos son type="number", así que el punto es decimal.
+     *
+     * @param list<string> $errores se le añaden los problemas encontrados
+     * @return array{0: string, 1: string, 2: string, 3: int, 4: float}
+     */
+    private static function leerProducto(array &$errores): array {
+        $nombre    = trim(post_texto('nombre'));
+        $categoria = in_array(post_texto('categoria'), ['sal', 'dulce', 'especial'], true) ? post_texto('categoria') : 'sal';
+        $unidad    = trim(post_texto('unidad_produccion'));
+        $cantidad  = numero_en_rango(post_texto('cantidad_por_tanda') ?: '0', 0, 100000);
+        $precio    = numero_en_rango(str_replace(['$', ' '], '', post_texto('precio_venta')) ?: '0', 0, 10000000);
+
+        $reglas = [
+            'El nombre es obligatorio.'                                          => $nombre === '',
+            'El nombre del producto no puede superar los 100 caracteres.'        => !texto_cabe($nombre, 100),
+            'La unidad de producción es obligatoria.'                            => $unidad === '',
+            'La unidad de producción no puede superar los 20 caracteres.'        => !texto_cabe($unidad, 20),
+            'La cantidad por tanda debe ser un número entero entre 0 y 100.000.' => $cantidad === null || $cantidad != (int) $cantidad,
+            'El precio de venta debe ser un número entre $0 y $10.000.000.'      => $precio === null,
+        ];
+        foreach (array_keys(array_filter($reglas)) as $mensaje) {
+            $errores[] = $mensaje;
+        }
+
+        return [$nombre, $categoria, $unidad, (int) $cantidad, (float) $precio];
+    }
+
+    /**
      * Crear nuevo producto (crear_producto.php)
      */
     public function crearProducto(): void {
@@ -68,17 +101,7 @@ class RecetaController {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             requerir_csrf('crear_producto.php?err=csrf');
-            $nombre         = trim($_POST['nombre']              ?? '');
-            $categoria      = in_array($_POST['categoria'] ?? '', ['sal','dulce','especial']) ? $_POST['categoria'] : 'sal';
-            $unidad         = trim($_POST['unidad_produccion']   ?? '');
-            $cantidad_tanda = (int)($_POST['cantidad_por_tanda'] ?? 0);
-            $precio_venta   = (float)str_replace(['.','$',' '], '', $_POST['precio_venta'] ?? 0);
-
-            if (empty($nombre))  $errores[] = 'El nombre es obligatorio.';
-            if (mb_strlen($nombre) > 100) $errores[] = 'El nombre del producto no puede superar los 100 caracteres.';
-            if (empty($unidad))  $errores[] = 'La unidad de producción es obligatoria.';
-            if ($cantidad_tanda < 0) $errores[] = 'La cantidad por tanda no puede ser negativa.';
-            if ($precio_venta < 0)   $errores[] = 'El precio de venta no puede ser negativo.';
+            [$nombre, $categoria, $unidad, $cantidad_tanda, $precio_venta] = self::leerProducto($errores);
 
             if (empty($errores)) {
                 $existe = $this->model->getProductoByName($nombre);
@@ -134,17 +157,17 @@ class RecetaController {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             requerir_csrf('editar_producto.php?id=' . $id_producto . '&err=csrf');
-            $nombre         = trim($_POST['nombre']              ?? '');
-            $categoria      = in_array($_POST['categoria'] ?? '', ['sal','dulce','especial']) ? $_POST['categoria'] : 'sal';
-            $unidad         = trim($_POST['unidad_produccion']   ?? '');
-            $cantidad_tanda = (int)($_POST['cantidad_por_tanda'] ?? 0);
-            $precio_venta   = (float)str_replace(['.','$',' '], '', $_POST['precio_venta'] ?? 0);
+            [$nombre, $categoria, $unidad, $cantidad_tanda, $precio_venta] = self::leerProducto($errores);
 
-            if (empty($nombre)) $errores[] = 'El nombre es obligatorio.';
-            if (mb_strlen($nombre) > 100) $errores[] = 'El nombre del producto no puede superar los 100 caracteres.';
-            if (empty($unidad)) $errores[] = 'La unidad de producción es obligatoria.';
-            if ($cantidad_tanda < 0) $errores[] = 'La cantidad por tanda no puede ser negativa.';
-            if ($precio_venta < 0)   $errores[] = 'El precio de venta no puede ser negativo.';
+            // El nombre es único en la tabla: renombrar a uno que ya existe
+            // terminaba en «Error al actualizar el producto» sin decir por qué.
+            if (empty($errores)) {
+                $mismo_nombre = $this->model->getProductoByName($nombre);
+                if ($mismo_nombre && (int) $mismo_nombre['id_producto'] !== $id_producto) {
+                    $errores[] = 'Ya existe otro producto con el nombre "' . htmlspecialchars($nombre) . '"'
+                        . ((int) $mismo_nombre['activo'] === 1 ? '.' : ' (desactivado).');
+                }
+            }
 
             if (empty($errores)) {
                 try {
@@ -197,8 +220,13 @@ class RecetaController {
             $validos = [];
             foreach ($ids_insumo as $i => $id_ins) {
                 $id_ins  = (int)$id_ins;
-                $cant_g  = (float)($cantidades[$i] ?? 0);
-                $nota    = trim($notas[$i] ?? '');
+                // Letras, negativos, INF o cifras que no caben cuentan como vacío.
+                $cant_g  = numero_en_rango(is_string($cantidades[$i] ?? null) ? $cantidades[$i] : '', 0, 10000000) ?? 0.0;
+                $nota    = trim(is_string($notas[$i] ?? null) ? $notas[$i] : '');
+                if (!texto_cabe($nota, 255)) {
+                    $errores[] = 'Las notas de cada ingrediente no pueden superar los 255 caracteres.';
+                    break;
+                }
                 $merma   = in_array($i, array_keys($aplica_merma)) ? 1 : 0;
                 $unidad = $id_ins > 0 ? $this->model->getIngredienteUnidadMedida($id_ins) : null;
                 // Sin unidad no hay insumo: la columna `unidad` es obligatoria y la
@@ -260,6 +288,60 @@ class RecetaController {
     }
 
     /**
+     * Sube la imagen de una variedad, si se eligió una.
+     *
+     * Devuelve la ruta relativa, o null si no se subió ninguna; si hubo un
+     * problema deja el motivo en $error. Antes una imagen demasiado pesada o un
+     * archivo que no era imagen se descartaban en silencio: la variedad se
+     * guardaba sin foto y nadie sabía por qué. Además de la extensión se mira
+     * el contenido, para que un archivo renombrado a .png no pase.
+     */
+    private static function subirImagenVariedad(string $campo, string $upload_dir, string &$error): ?string {
+        $archivo = $_FILES[$campo] ?? null;
+        if (!is_array($archivo) || ($archivo['error'] ?? null) === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+        $error = self::motivoRechazoImagen($archivo);
+        if ($error !== '') {
+            return null;
+        }
+
+        // motivoRechazoImagen() ya comprobó que los dos son texto.
+        $nombre = is_string($archivo['name'] ?? null) ? $archivo['name'] : '';
+        $tmp    = is_string($archivo['tmp_name'] ?? null) ? $archivo['tmp_name'] : '';
+        $ext    = strtolower(pathinfo($nombre, PATHINFO_EXTENSION));
+        $fname  = 'var_' . time() . '_' . random_int(100, 999) . '.' . $ext;
+        if (!move_uploaded_file($tmp, $upload_dir . $fname)) {
+            $error = 'No se pudo guardar la imagen. Intenta de nuevo.';
+            return null;
+        }
+        return 'assets/img/variedades/' . $fname;
+    }
+
+    /**
+     * Por qué no se acepta un archivo subido como imagen de variedad, o '' si
+     * se acepta.
+     *
+     * @param array<mixed> $archivo una entrada de $_FILES
+     */
+    private static function motivoRechazoImagen(array $archivo): string {
+        $codigo = $archivo['error'] ?? null;
+        if ($codigo === UPLOAD_ERR_INI_SIZE || $codigo === UPLOAD_ERR_FORM_SIZE) {
+            return 'La imagen pesa demasiado. Usa una de máximo ' . ini_get('upload_max_filesize') . 'B.';
+        }
+        if ($codigo !== UPLOAD_ERR_OK || !is_string($archivo['tmp_name'] ?? null) || !is_string($archivo['name'] ?? null)) {
+            return 'No se pudo subir la imagen. Intenta de nuevo.';
+        }
+
+        $ext  = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+        $info = @getimagesize($archivo['tmp_name']);
+        $tipo_real = is_array($info) ? $info[2] : 0;
+        $es_imagen = in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)
+            && in_array($tipo_real, [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP], true);
+        return $es_imagen ? '' : 'Solo se permiten imágenes JPG, PNG o WebP.';
+    }
+
+    /**
      * Variedades de Pan (variedades.php)
      */
     public function variedades(): void {
@@ -294,28 +376,23 @@ class RecetaController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // ── 2. Agregar variedad ──────────────────────────────────────────
             if (isset($_POST['agregar_variedad'])) {
-                $nombre = trim($_POST['nombre_variedad'] ?? '');
+                $nombre = trim(post_texto('nombre_variedad'));
                 $id_cat = (int)($_POST['id_categoria'] ?? 0);
+
+                $ids_categorias = array_column($this->model->getCategoriasPrecio(), 'id_categoria');
 
                 if (empty($nombre) || !$id_cat) {
                     $msg_err = 'Escribe el nombre de la variedad.';
+                } elseif (!texto_cabe($nombre, 100)) {
+                    $msg_err = 'El nombre de la variedad no puede superar los 100 caracteres.';
+                } elseif (!in_array($id_cat, $ids_categorias)) {
+                    $msg_err = 'Esa categoría de precio no existe. Recarga la página.';
                 } else {
                     $duplicado = $this->model->getVariedadPanExistente($nombre, $id_cat);
                     if ($duplicado) {
                         $msg_err = 'Ya existe esta variedad en esa categoría.';
                     } else {
-                        $img_path = null;
-                        if (!empty($_FILES['imagen']['name']) && $_FILES['imagen']['error'] === 0) {
-                            $ext = strtolower(pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION));
-                            if (in_array($ext, ['jpg','jpeg','png','webp'])) {
-                                $fname = 'var_' . time() . '_' . rand(100,999) . '.' . $ext;
-                                if (move_uploaded_file($_FILES['imagen']['tmp_name'], $upload_dir . $fname)) {
-                                    $img_path = 'assets/img/variedades/' . $fname;
-                                }
-                            } else {
-                                $msg_err = 'Solo se permiten imágenes JPG, PNG o WebP.';
-                            }
-                        }
+                        $img_path = self::subirImagenVariedad('imagen', $upload_dir, $msg_err);
                         if (!$msg_err) {
                             try {
                                 $this->model->crearVariedadPan($id_cat, $nombre, $img_path);
@@ -332,21 +409,19 @@ class RecetaController {
             // ── 3. Editar variedad ───────────────────────────────────────────
             elseif (isset($_POST['editar_variedad'])) {
                 $id_var = (int)($_POST['id_variedad'] ?? 0);
-                $nombre = trim($_POST['nombre_edit'] ?? '');
+                $nombre = trim(post_texto('nombre_edit'));
+                $img_path   = null;
+                $update_img = false;
 
-                if ($id_var && $nombre) {
-                    $img_path = null;
-                    $update_img = false;
-                    if (!empty($_FILES['imagen_edit']['name']) && $_FILES['imagen_edit']['error'] === 0) {
-                        $ext = strtolower(pathinfo($_FILES['imagen_edit']['name'], PATHINFO_EXTENSION));
-                        if (in_array($ext, ['jpg','jpeg','png','webp'])) {
-                            $fname = 'var_' . time() . '_' . rand(100,999) . '.' . $ext;
-                            if (move_uploaded_file($_FILES['imagen_edit']['tmp_name'], $upload_dir . $fname)) {
-                                $img_path = 'assets/img/variedades/' . $fname;
-                                $update_img = true;
-                            }
-                        }
-                    }
+                if (!$id_var || $nombre === '') {
+                    $msg_err = 'Escribe el nombre de la variedad.';
+                } elseif (!texto_cabe($nombre, 100)) {
+                    $msg_err = 'El nombre de la variedad no puede superar los 100 caracteres.';
+                } else {
+                    $img_path   = self::subirImagenVariedad('imagen_edit', $upload_dir, $msg_err);
+                    $update_img = $img_path !== null;
+                }
+                if (!$msg_err) {
                     try {
                         $this->model->updateVariedadPan($id_var, $nombre, $img_path, $update_img);
                         $msg_ok = "Variedad actualizada.";

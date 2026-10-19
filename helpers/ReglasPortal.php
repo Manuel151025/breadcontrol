@@ -44,6 +44,13 @@ class ReglasPortal {
     /** El cupo semanal debe ser múltiplo de este valor (COP). */
     public const CUPO_MULTIPLO = 500;
 
+    /**
+     * Total máximo de un pedido del portal (COP). Un pedido mayor se coordina
+     * directamente con la panadería; además, pedido_cliente.total_estimado es
+     * DECIMAL(10,2) y no admite mucho más.
+     */
+    public const TOTAL_MAXIMO_PEDIDO = 10000000;
+
     /** Horario de entrega de la panadería. */
     public const HORA_APERTURA = '07:00';
     public const HORA_CIERRE   = '20:00';
@@ -216,8 +223,37 @@ class ReglasPortal {
 
     /**
      * El horario de entrega de la panadería es de 7:00 AM a 8:00 PM.
+     *
+     * La hora tiene que ser una hora real en formato HH:MM. Antes se comparaba
+     * el texto tal cual, y «10:99» o «12:3x» quedaban dentro del horario.
      */
     public static function horarioEntregaValido(string $hora): bool {
+        if (!self::horaValida($hora)) {
+            return false;
+        }
         return $hora >= self::HORA_APERTURA && $hora <= self::HORA_CIERRE;
+    }
+
+    /**
+     * True si el texto es una hora real en formato HH:MM (00:00 a 23:59).
+     */
+    public static function horaValida(string $hora): bool {
+        return (bool) preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $hora);
+    }
+
+    /**
+     * True si el texto es una fecha de calendario real en formato AAAA-MM-DD.
+     *
+     * Los campos de fecha comparan cadenas («2026-13-45» < «2027-01-01»), así
+     * que una fecha imposible pasaba todas las comprobaciones y reventaba al
+     * llegar a la base de datos.
+     */
+    public static function fechaValida(string $fecha): bool {
+        // Primero la forma: createFromFormat lanza ValueError con bytes nulos.
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+            return false;
+        }
+        $d = DateTimeImmutable::createFromFormat('!Y-m-d', $fecha);
+        return $d !== false && $d->format('Y-m-d') === $fecha;
     }
 }

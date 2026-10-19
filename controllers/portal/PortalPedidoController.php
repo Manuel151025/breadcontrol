@@ -42,6 +42,16 @@ class PortalPedidoController extends PortalControllerBase {
         $error_msg   = $_SESSION['flash_err'] ?? '';
         unset($_SESSION['flash_ok'], $_SESSION['flash_err']);
 
+        // Avisos que llegan como código en la URL desde otras pantallas. Se
+        // traducen aquí y nunca se pinta el texto de la URL tal cual.
+        $avisos_ok  = ['cancelado' => 'Pedido cancelado.'];
+        $avisos_err = [
+            'csrf'                => 'La página llevaba mucho tiempo abierta y, por seguridad, la acción no se hizo. Inténtalo de nuevo.',
+            'pago_no_autorizado'  => 'Ese pago no corresponde a tu cuenta.',
+        ];
+        $success_msg = $success_msg ?: ($avisos_ok[get_texto('msg')] ?? '');
+        $error_msg   = $error_msg   ?: ($avisos_err[get_texto('error')] ?? '');
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
                 $error_msg = 'Token de seguridad inválido o expirado. Por favor, intente de nuevo.';
@@ -63,22 +73,26 @@ class PortalPedidoController extends PortalControllerBase {
                         $ids = [(int)$_POST['aprobar_aprendiz_id']];
                     }
 
-                    $fecha_entrega = $_POST['fecha_entrega'] ?? '';
-                    $hora_entrega = $_POST['hora_entrega'] ?? '';
-                    
+                    $fecha_entrega = trim(post_texto('fecha_entrega'));
+                    $hora_entrega  = trim(post_texto('hora_entrega'));
+
                     $datetime_entrega = $fecha_entrega . ' ' . $hora_entrega . ':00';
                     $ahora_str = date('Y-m-d H:i:s');
-                    
+
                     if (empty($ids)) {
                         $error_msg = 'Debes seleccionar al menos un pedido para aprobar.';
-                    } elseif (empty($fecha_entrega) || empty($hora_entrega)) {
+                    } elseif ($fecha_entrega === '' || $hora_entrega === '') {
                         $error_msg = 'Debes seleccionar una fecha y hora de entrega.';
+                    } elseif (!ReglasPortal::fechaValida($fecha_entrega)) {
+                        $error_msg = 'La fecha de entrega no es válida. Elígela en el calendario.';
                     } elseif (!ReglasPortal::horarioEntregaValido($hora_entrega)) {
                         $error_msg = 'El horario de entrega de la panadería es de 7:00 AM a 8:00 PM.';
                     } elseif ($fecha_entrega < date('Y-m-d')) {
                         $error_msg = 'La fecha de entrega no puede ser en el pasado.';
                     } elseif ($datetime_entrega <= $ahora_str) {
                         $error_msg = 'La fecha y hora de entrega no pueden ser en el pasado.';
+                    } elseif ($fecha_entrega > date('Y-m-d', (int) strtotime('+3 months'))) {
+                        $error_msg = 'La fecha de entrega no puede ser mayor a 3 meses.';
                     } else {
                         try {
                             $n = $this->model->aprobarPedidosInstructorLote($ids, $cliente_id, $datetime_entrega);
@@ -89,7 +103,7 @@ class PortalPedidoController extends PortalControllerBase {
                             $resumen_fin = $this->model->getInstructorStats($cliente_id);
                             $aprendices = $this->model->getAprendicesResumen($cliente_id);
                         } catch (Exception $e) {
-                            $error_msg = $e->getMessage();
+                            $error_msg = mensaje_para_usuario($e);
                         }
                     }
                 } elseif (isset($_POST['rechazar_aprendiz_id']) || isset($_POST['rechazar_lote_ids'])) {
@@ -112,13 +126,19 @@ class PortalPedidoController extends PortalControllerBase {
                             $resumen_fin = $this->model->getInstructorStats($cliente_id);
                             $aprendices = $this->model->getAprendicesResumen($cliente_id);
                         } catch (Exception $e) {
-                            $error_msg = $e->getMessage();
+                            $error_msg = mensaje_para_usuario($e);
                         }
                     }
                 } elseif (isset($_POST['actualizar_cupo_aprendiz_id'])) {
                     $id_apr = (int)$_POST['actualizar_cupo_aprendiz_id'];
-                    $nuevo_cupo = (float)($_POST['cupo_semanal'] ?? 0);
+                    $cupo_txt   = trim(post_texto('cupo_semanal'));
+                    $nuevo_cupo = (float) $cupo_txt;
                     try {
+                        // Un campo vacío o con letras valía 0 y dejaba al aprendiz
+                        // sin cupo sin que nadie lo hubiera decidido.
+                        if (!is_numeric($cupo_txt)) {
+                            throw new Exception('Escribe el cupo semanal en números, por ejemplo 20000.');
+                        }
                         // Validar que el aprendiz pertenezca a este instructor
                         $stmt_v = $this->pdo->prepare("SELECT COUNT(*) FROM cliente WHERE id_cliente = ? AND id_instructor = ? AND es_aprendiz = 1");
                     $stmt_v->execute([$id_apr, $cliente_id]);
@@ -139,10 +159,20 @@ class PortalPedidoController extends PortalControllerBase {
                     $resumen_fin = $this->model->getInstructorStats($cliente_id);
                     $aprendices = $this->model->getAprendicesResumen($cliente_id);
                 } catch (Exception $e) {
-                    $error_msg = $e->getMessage();
+                    $error_msg = mensaje_para_usuario($e);
                 }
             }
         }
+
+            // Post-Redirect-Get: el resultado viaja en la sesión y se vuelve a
+            // pedir la página por GET. Sin esto, F5 reenviaba la aprobación o el
+            // rechazo y el instructor veía «ya fueron procesados» sin haber hecho
+            // nada mal. Se conservan los filtros que tuviera la URL.
+            $_SESSION['flash_ok']  = $success_msg;
+            $_SESSION['flash_err'] = $error_msg;
+            $qs = is_string($_SERVER['QUERY_STRING'] ?? null) ? $_SERVER['QUERY_STRING'] : '';
+            header('Location: dashboard.php' . ($qs !== '' ? '?' . $qs : ''));
+            exit;
     }
 
         // Datos Nequi / Wompi para el instructor
@@ -219,6 +249,7 @@ class PortalPedidoController extends PortalControllerBase {
 
         $pedido = $this->model->getPedido($id_pedido, $cliente_id);
         if (!$pedido) {
+            $_SESSION['flash_err'] = 'No encontramos ese pedido, o no pertenece a tu cuenta.';
             header('Location: dashboard.php');
             exit;
         }
@@ -247,6 +278,8 @@ class PortalPedidoController extends PortalControllerBase {
         }
 
         [$puede_editar, $puede_cancelar] = $this->accionesPermitidas($pedido, $cliente_id, $es_aprendiz, $pago_activo);
+
+        $aviso_error = self::avisoErrorDetalle();
 
         $metodos_legibles = [
             'NEQUI' => 'Nequi', 'BANCOLOMBIA' => 'Bancolombia',
@@ -329,7 +362,7 @@ class PortalPedidoController extends PortalControllerBase {
             header('Content-Type: application/json');
             try {
                 $all = $this->model->getProductosActivos();
-                echo json_encode($all);
+                echo json_encode($all, JSON_HEX_TAG | JSON_HEX_AMP);
             } catch (Exception $e) { 
                 echo json_encode([]); 
             }
@@ -340,9 +373,9 @@ class PortalPedidoController extends PortalControllerBase {
         if (isset($_GET['ajax_variedades'])) {
             header('Content-Type: application/json');
             try {
-                $id_cat = (int)$_GET['id_cat'];
+                $id_cat = (int) get_texto('id_cat');
                 $vars = $this->model->getVariedadesPorCategoria($id_cat);
-                echo json_encode($vars);
+                echo json_encode($vars, JSON_HEX_TAG | JSON_HEX_AMP);
             } catch (Exception $e) {
                 echo json_encode([]);
             }
@@ -357,16 +390,14 @@ class PortalPedidoController extends PortalControllerBase {
             if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
                 $error = 'Token de seguridad inválido o expirado. Por favor, intente de nuevo.';
             } else {
-                $fecha_entrega = $_POST['fecha_entrega'] ?? '';
-                $hora_entrega = $_POST['hora_entrega'] ?? '';
-                $cart_json = $_POST['carrito_json'] ?? '[]';
-                $bonif_json = $_POST['bonif_json'] ?? '[]';
-                $edit_id = (int)($_POST['edit_id'] ?? 0);
-                
-                $cart = json_decode($cart_json, true);
-                $bonif_items = json_decode($bonif_json, true);
+                $fecha_entrega = trim(post_texto('fecha_entrega'));
+                $hora_entrega  = trim(post_texto('hora_entrega'));
+                $edit_id = (int) post_texto('edit_id');
 
-                $pedido_para = $_POST['pedido_para'] ?? 'adso';
+                $cart        = json_lista_productos(post_texto('carrito_json'));
+                $bonif_items = json_lista_productos(post_texto('bonif_json'));
+
+                $pedido_para = post_texto('pedido_para') ?: 'adso';
                 $es_adso = ($es_aprendiz && $pedido_para === 'adso');
 
                 if ($es_adso) {
@@ -376,17 +407,33 @@ class PortalPedidoController extends PortalControllerBase {
                 }
                 $ahora_str = date('Y-m-d H:i:s');
 
-                if (!$es_adso && (empty($fecha_entrega) || empty($hora_entrega))) {
+                // Envío único: cada formulario lleva un token propio. Si llega otra
+                // vez —doble clic en «Enviar», o F5 sobre «¡Pedido Confirmado!», que
+                // reenvía el POST— se muestra el mismo resultado sin crear un pedido
+                // repetido. Antes cada reenvío creaba otro pedido igual y consumía
+                // cupo del aprendiz.
+                $token_envio  = post_texto('token_envio');
+                $envios_hechos = is_array($_SESSION['pedido_envios'] ?? null) ? $_SESSION['pedido_envios'] : [];
+
+                if ($token_envio !== '' && isset($envios_hechos[$token_envio])) {
+                    $success = $edit_id > 0 ? "Pedido actualizado exitosamente." : "Pedido enviado exitosamente a la panadería.";
+                }
+                // Las comprobaciones de fecha valen también al editar. Antes se
+                // saltaban con edit_id > 0, y editar un pedido permitía moverlo a
+                // una fecha ya pasada.
+                elseif (!$es_adso && ($fecha_entrega === '' || $hora_entrega === '')) {
                     $error = 'Debes seleccionar una fecha y hora de entrega.';
+                } elseif (!$es_adso && !ReglasPortal::fechaValida($fecha_entrega)) {
+                    $error = 'La fecha de entrega no es válida. Elígela en el calendario.';
                 } elseif (!$es_adso && !ReglasPortal::horarioEntregaValido($hora_entrega)) {
                     $error = 'El horario de entrega de la panadería es de 7:00 AM a 8:00 PM.';
-                } elseif (!$es_adso && $fecha_entrega < $min_fecha && $edit_id == 0) {
+                } elseif (!$es_adso && $fecha_entrega < $min_fecha) {
                     if ($min_fecha > date('Y-m-d')) {
                         $error = 'Por la hora actual, la fecha de entrega debe ser a partir de mañana (' . date('d/m/Y', (int) strtotime($min_fecha)) . ').';
                     } else {
                         $error = 'La fecha de entrega no puede ser en el pasado.';
                     }
-                } elseif (!$es_adso && $datetime_entrega <= $ahora_str && $edit_id == 0) {
+                } elseif (!$es_adso && $datetime_entrega <= $ahora_str) {
                     $error = 'La fecha y hora de entrega no pueden ser en el pasado.';
                 } elseif (!$es_adso && $fecha_entrega > date('Y-m-d', strtotime('+3 months'))) {
                     $error = 'La fecha de entrega no puede ser mayor a 3 meses.';
@@ -395,8 +442,7 @@ class PortalPedidoController extends PortalControllerBase {
                 } else {
                     // Determinar el cliente destino (facturado) del pedido.
                     $id_cli_destino = $cliente_id;
-                    $pedido_para = $_POST['pedido_para'] ?? 'adso';
-                    if ($es_aprendiz && $pedido_para === 'adso') {
+                    if ($es_adso) {
                         if (!empty($cliente_info['id_instructor'])) {
                             $id_cli_destino = (int)$cliente_info['id_instructor'];
                         } else {
@@ -416,8 +462,14 @@ class PortalPedidoController extends PortalControllerBase {
                         try {
                             $id_ped_creado = $this->model->crearPedido($id_cli_destino, $cliente_id, $datetime_entrega, $cart, $bonif_items, $edit_id > 0 ? $edit_id : null);
                             $success = $edit_id > 0 ? "Pedido actualizado exitosamente." : "Pedido enviado exitosamente a la panadería.";
+                            if ($token_envio !== '') {
+                                // Se guardan los últimos 20: basta para cualquier reenvío
+                                // y la sesión no crece sin límite.
+                                $envios_hechos[$token_envio] = $id_ped_creado;
+                                $_SESSION['pedido_envios'] = array_slice($envios_hechos, -20, null, true);
+                            }
                         } catch (Exception $e) {
-                            $error = 'Hubo un error al procesar tu pedido: ' . $e->getMessage();
+                            $error = 'Hubo un error al procesar tu pedido: ' . mensaje_para_usuario($e);
                         }
                     }
                 }
@@ -536,16 +588,33 @@ class PortalPedidoController extends PortalControllerBase {
             $this->model->cancelarPedido($id_pedido, $cliente_id);
             header('Location: dashboard.php?msg=cancelado');
         } catch (Exception $e) {
-            $msg = $e->getMessage();
+            $msg = mensaje_para_usuario($e);
             if (strpos($msg, 'pago') !== false) {
                 header('Location: detalle_pedido.php?id=' . $id_pedido . '&error=pago_proceso');
             } elseif (strpos($msg, '48 horas') !== false) {
                 header('Location: detalle_pedido.php?id=' . $id_pedido . '&error=limite_tiempo');
             } else {
-                header('Location: detalle_pedido.php?id=' . $id_pedido . '&error=' . urlencode($msg));
+                // El motivo va por la sesión: la vista ya no pinta texto libre
+                // tomado de la URL (se podía fabricar un aviso falso con un enlace).
+                $_SESSION['flash_err'] = $msg;
+                header('Location: detalle_pedido.php?id=' . $id_pedido . '&error=otro');
             }
         }
         exit;
+    }
+
+    /**
+     * Motivo de un intento fallido sobre el pedido (ver cancelarPedido), que
+     * llega por la sesión cuando la URL trae ?error=. Solo se consume si la URL
+     * lo anuncia, para no gastar un aviso que iba dirigido al tablero.
+     */
+    private static function avisoErrorDetalle(): string {
+        if (!isset($_GET['error'])) {
+            return '';
+        }
+        $aviso = is_string($_SESSION['flash_err'] ?? null) ? $_SESSION['flash_err'] : '';
+        unset($_SESSION['flash_err']);
+        return $aviso !== '' ? $aviso : 'No se pudo completar la acción sobre este pedido.';
     }
 
     /**

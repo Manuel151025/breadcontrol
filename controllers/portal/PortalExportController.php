@@ -18,7 +18,11 @@ class PortalExportController extends PortalControllerBase {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
-                die("Error de seguridad: Token CSRF inválido.");
+                // Pasa al exportar desde una pestaña abierta hace horas: se vuelve
+                // al tablero con el aviso, no a una página en blanco con el error.
+                $_SESSION['flash_err'] = 'La página llevaba mucho tiempo abierta. Vuelve a seleccionar los pedidos y exporta de nuevo.';
+                header('Location: dashboard.php');
+                exit;
             }
         }
 

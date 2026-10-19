@@ -94,7 +94,7 @@
             </td>
             <td><input type="number" name="cantidad[]" class="inp-cant" min="0.001" step="0.001" value="<?= rtrim(rtrim(number_format((float)$ing['cant_mostrar'],4,'.',''),'0'),'.') ?>""></td>
             <td><span class="lbl-unidad"><?= $label ?></span></td>
-            <td style="text-align:center"><input type="checkbox" name="aplica_merma[<?= $idx ?>]" class="chk-merma" <?= $ing['aplica_merma']?'checked':'' ?>></td>
+            <td style="text-align:center"><input type="checkbox" aria-label="Aplica merma" name="aplica_merma[<?= $idx ?>]" class="chk-merma" <?= $ing['aplica_merma']?'checked':'' ?>></td>
             <td><input type="text" name="notas[]" class="inp-nota" placeholder="Notas…" value="<?= htmlspecialchars($ing['notas'] ?? '') ?>"></td>
             <td><button type="button" class="btn-del-row" onclick="eliminarFila(this)" aria-label="Eliminar"><i class="bi bi-trash3"></i></button></td>
           </tr>
@@ -152,7 +152,7 @@ function filaVacia($insumos, $usados = [], $idx = 0) {
       </td>
       <td><input type="number" name="cantidad[]" class="inp-cant" min="0.001" step="0.001" placeholder="0"></td>
       <td><span class="lbl-unidad">g</span></td>
-      <td style="text-align:center"><input type="checkbox" name="aplica_merma[]" class="chk-merma"></td>
+      <td style="text-align:center"><input type="checkbox" aria-label="Aplica merma" name="aplica_merma[]" class="chk-merma"></td>
       <td><input type="text" name="notas[]" class="inp-nota" placeholder="Notas…"></td>
       <td><button type="button" class="btn-del-row" onclick="eliminarFila(this)" aria-label="Eliminar"><i class="bi bi-trash3"></i></button></td>
     </tr>
@@ -167,8 +167,9 @@ const insumosData = <?= json_encode(array_map(fn($i) => [
     'nombre' => $i['nombre'],
     'unidad' => $i['unidad_medida'],
     'harina' => (bool)$i['es_harina'],
-], $todos_insumos)) ?>;
+], $todos_insumos), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 let contadorFilas = <?= count($ingredientes) ?>;
 </script>
+<script src="<?= APP_URL ?>/assets/js/utils.js?v=<?= APP_VERSION ?>"></script>
 <script src="<?= APP_URL ?>/assets/js/recetas_editar.js?v=<?= APP_VERSION ?>"></script>
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

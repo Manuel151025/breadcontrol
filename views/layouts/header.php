@@ -40,7 +40,7 @@ function navActive(string $path): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= $page_title ?? 'BreadControl' ?> — BreadControl</title>
+  <title><?= htmlspecialchars($page_title ?? 'BreadControl', ENT_QUOTES, 'UTF-8') ?> — BreadControl</title>
   <link rel="icon" type="image/png" sizes="32x32" href="<?= APP_URL ?>/assets/img/favicon-32.png">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/fuentes.css?v=<?= APP_VERSION ?>">
   <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/bootstrap-icons.css?v=<?= APP_VERSION ?>">

@@ -87,6 +87,10 @@
                     <input type="hidden" name="carrito_json" id="carrito-json" value="[]">
                     <input type="hidden" name="bonif_json" id="bonif-json" value="[]">
                     <input type="hidden" name="edit_id" value="<?= $ped_edit['id_pedido'] ?? 0 ?>">
+                    <input type="hidden" name="token_envio" value="<?= bin2hex(random_bytes(16)) ?>">
+                    <?php /* El botón de enviar se desactiva al pulsarlo, y un botón
+                       desactivado no viaja en el formulario: la orden va aparte. */ ?>
+                    <input type="hidden" name="guardar_pedido" value="1">
                     
                     <?php if ($es_aprendiz): ?>
                     <div class="ap-toggle-wrap">

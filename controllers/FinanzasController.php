@@ -7,8 +7,35 @@ require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 class FinanzasController {
     private FinanzasModel $model;
 
+    /** Rango más largo que admiten los reportes, en días (dos años). */
+    private const RANGO_MAXIMO_DIAS = 731;
+
     public function __construct(PDO $pdo) {
         $this->model = new FinanzasModel($pdo);
+    }
+
+    /**
+     * Rango de fechas pedido por la URL, saneado.
+     *
+     * Las pantallas recorren el rango día a día para el gráfico. Antes bastaba la
+     * forma AAAA-MM-DD, así que «0000-00-00» pasaba: el recorrido hasta hoy
+     * agotaba la memoria del servidor y la página moría con un error fatal. Ahora
+     * cada fecha tiene que ser real, un rango al revés se ordena y uno más largo
+     * de dos años se acorta desde el final.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private static function rangoFechas(string $desde, string $hasta): array {
+        $desde = fecha_valida($desde) ? $desde : date('Y-m-01');
+        $hasta = fecha_valida($hasta) ? $hasta : date('Y-m-d');
+        if ($desde > $hasta) {
+            [$desde, $hasta] = [$hasta, $desde];
+        }
+        $minimo = date('Y-m-d', (int) strtotime($hasta . ' -' . self::RANGO_MAXIMO_DIAS . ' days'));
+        if ($desde < $minimo) {
+            $desde = $minimo;
+        }
+        return [$desde, $hasta];
     }
 
     /**
@@ -20,11 +47,10 @@ class FinanzasController {
 
         // ── Filtros ────────────────────────────────────────────────────────────────
         $modo   = in_array($_GET['modo'] ?? 'mes', ['mes','semana','rango']) ? ($_GET['modo'] ?? 'mes') : 'mes';
-        $anio   = (int)($_GET['anio']   ?? date('Y'));
+        $anio   = max(2000, min(2100, (int)($_GET['anio'] ?? date('Y'))));
         $mes    = max(1, min(12, (int)($_GET['mes'] ?? date('m'))));
         $semana = max(1, min(53, (int)($_GET['semana'] ?? date('W'))));
-        $desde  = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['desde'] ?? '') ? $_GET['desde'] : date('Y-m-01');
-        $hasta  = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['hasta'] ?? '') ? $_GET['hasta'] : date('Y-m-d');
+        [$desde, $hasta] = self::rangoFechas(get_texto('desde'), get_texto('hasta'));
 
         if ($modo === 'mes') {
             $desde          = "$anio-" . str_pad((string) $mes, 2, '0', STR_PAD_LEFT) . "-01";
@@ -38,7 +64,7 @@ class FinanzasController {
             $hasta          = $dto->format('Y-m-d');
             $titulo_periodo = "Sem. $semana · " . date('d/m', (int) strtotime($desde)) . " – " . date('d/m/Y', (int) strtotime($hasta));
         } else {
-            $titulo_periodo = date('d/m/Y', strtotime($desde)) . " – " . date('d/m/Y', strtotime($hasta));
+            $titulo_periodo = date('d/m/Y', (int) strtotime($desde)) . " – " . date('d/m/Y', (int) strtotime($hasta));
         }
 
         // Fetch totals
@@ -58,8 +84,8 @@ class FinanzasController {
         $compras_dia = $this->model->getComprasPorDia($desde, $hasta);
 
         $dias_chart = [];
-        $cur = strtotime($desde);
-        $fin = strtotime($hasta);
+        $cur = (int) strtotime($desde);
+        $fin = (int) strtotime($hasta);
         while ($cur <= $fin) {
             $f = date('Y-m-d', $cur);
             $dias_chart[] = [
@@ -68,7 +94,7 @@ class FinanzasController {
                 'v'   => (float)($ventas_dia[$f]  ?? 0),
                 'c'   => (float)($compras_dia[$f] ?? 0),
             ];
-            $cur = strtotime('+1 day', $cur);
+            $cur = (int) strtotime('+1 day', $cur);
         }
         $chart_max = max(array_merge(array_column($dias_chart, 'v'), array_column($dias_chart, 'c'), [1]));
 
@@ -85,9 +111,9 @@ class FinanzasController {
         $gastos_cat = $this->model->getGastosPorCategoria($desde, $hasta);
 
         // Comparativo período anterior
-        $dias_periodo = max(1, (strtotime($hasta) - strtotime($desde)) / 86400 + 1);
-        $desde_ant    = date('Y-m-d', strtotime($desde) - $dias_periodo * 86400);
-        $hasta_ant    = date('Y-m-d', strtotime($desde) - 86400);
+        $dias_periodo = max(1, ((int) strtotime($hasta) - (int) strtotime($desde)) / 86400 + 1);
+        $desde_ant    = date('Y-m-d', (int) ((int) strtotime($desde) - $dias_periodo * 86400));
+        $hasta_ant    = date('Y-m-d', (int) strtotime($desde) - 86400);
 
         $ingresos_ant = $this->model->getIngresos($desde_ant, $hasta_ant);
         $compras_ant  = $this->model->getComprasTotal($desde_ant, $hasta_ant);
@@ -127,8 +153,7 @@ class FinanzasController {
         requerirPropietario();
         $user = usuarioActual();
 
-        $desde = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['desde'] ?? '') ? $_GET['desde'] : date('Y-m-01');
-        $hasta = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['hasta'] ?? '') ? $_GET['hasta'] : date('Y-m-d');
+        [$desde, $hasta] = self::rangoFechas(get_texto('desde'), get_texto('hasta'));
 
         // Totales
         $ingresos = $this->model->getIngresos($desde, $hasta);
@@ -156,16 +181,16 @@ class FinanzasController {
 
         // Días del período para gráfico
         $dias_chart = [];
-        $cur = strtotime($desde);
-        while ($cur <= strtotime($hasta)) {
+        $cur = (int) strtotime($desde);
+        while ($cur <= (int) strtotime($hasta)) {
             $f = date('Y-m-d',$cur);
             $dias_chart[] = ['lbl'=>date('d/m',$cur),'v'=>(float)($ventas_dia[$f]??0),'f'=>$f];
-            $cur = strtotime('+1 day',$cur);
+            $cur = (int) strtotime('+1 day', $cur);
         }
         $chart_max = max(array_column($dias_chart,'v')?:[1]);
 
         $logo_path = APP_URL . '/assets/img/logo.png';
-        $titulo_periodo = date('d \d\e F Y', strtotime($desde)) . ' — ' . date('d \d\e F Y', strtotime($hasta));
+        $titulo_periodo = date('d \d\e F Y', (int) strtotime($desde)) . ' — ' . date('d \d\e F Y', (int) strtotime($hasta));
 
         // Cargar vista
         require_once __DIR__ . '/../views/finanzas/exportar_pdf.php';

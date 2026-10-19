@@ -621,10 +621,14 @@ class PortalAuthController extends PortalControllerBase {
             if (!validar_token_csrf($_POST['csrf_token'] ?? '')) {
                 $error = 'Token de seguridad inválido o expirado. Por favor, intente de nuevo.';
             } else {
-                $nombre = trim($_POST['nombre'] ?? '');
+                $nombre = trim(post_texto('nombre'));
 
                 if (empty($nombre)) {
                     $error = 'El nombre no puede estar vacío.';
+                } elseif (!texto_cabe($nombre, 100)) {
+                    // Sin este límite la base de datos rechazaba el nombre y la
+                    // pantalla terminaba en «Ocurrió un error inesperado».
+                    $error = 'El nombre no puede superar los 100 caracteres.';
                 } else {
                     // Se completa el perfil (nombre). El vínculo aprendiz-instructor se hace
                     // por código: campo opcional aquí para quien entró con Google y no pasó

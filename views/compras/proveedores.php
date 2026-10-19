@@ -264,7 +264,7 @@
                 <a href="?editar=<?= $p['id_proveedor'] ?>" class="btn-act btn-edit" title="Editar">
                   <i class="bi bi-pencil"></i>
                 </a>
-                <form method="POST" style="display:contents;" onsubmit="return confirm('¿Desactivar a <?= htmlspecialchars($p['nombre'] ?? '') ?>?')">
+                <form method="POST" style="display:contents;" onsubmit="return confirm(<?= js_attr('¿Desactivar a ' . ($p['nombre'] ?? '') . '?') ?>)">
                   <input type="hidden" name="csrf_token" value="<?= generar_token_csrf() ?>">
                   <input type="hidden" name="desactivar" value="<?= $p['id_proveedor'] ?>">
                   <button type="submit" class="btn-act btn-del" title="Desactivar" aria-label="Desactivar">

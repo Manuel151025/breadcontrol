@@ -67,7 +67,7 @@ function renderCards(lista, usados, idActual, filtro = '') {
         const lbl = getLabelUnidad(ins.unidad);
         card.innerHTML = `
             <div class="ins-card-ico">${getIco(ins.nombre)}</div>
-            <div class="ins-card-nombre">${ins.nombre}</div>
+            <div class="ins-card-nombre">${escHtml(ins.nombre)}</div>
             <div class="ins-card-meta">
                 <span class="ins-card-tag und">${lbl}</span>
                 ${ins.harina ? '<span class="ins-card-tag har">🌾 harina</span>' : ''}
@@ -101,7 +101,7 @@ function seleccionarInsumo(ins) {
     btn.className = 'ing-picker-btn seleccionado';
     btn.innerHTML = `
         <i class="bi bi-bag-fill picker-ico" style="color:var(--c3)"></i>
-        <span class="picker-nombre">${ins.nombre}</span>
+        <span class="picker-nombre">${escHtml(ins.nombre)}</span>
         ${ins.harina ? '<span class="picker-tag tag-harina">🌾 harina</span>' : ''}
         <span class="picker-tag tag-unidad">${lbl}</span>
         <i class="bi bi-chevron-down" style="font-size:.65rem;opacity:.4;margin-left:auto"></i>`;
@@ -147,7 +147,7 @@ function agregarFila() {
         </td>
         <td><input type="number" name="cantidad[]" class="inp-cant" min="0.001" step="0.001" placeholder="0"></td>
         <td><span class="lbl-unidad">g</span></td>
-        <td style="text-align:center"><input type="checkbox" name="aplica_merma[]" class="chk-merma"></td>
+        <td style="text-align:center"><input type="checkbox" aria-label="Aplica merma" name="aplica_merma[]" class="chk-merma"></td>
         <td><input type="text" name="notas[]" class="inp-nota" placeholder="Notas…"></td>
         <td><button type="button" class="btn-del-row" onclick="eliminarFila(this)"><i class="bi bi-trash3"></i></button></td>`;
     document.getElementById('tbody-ing').appendChild(tr);
@@ -167,3 +167,21 @@ function actualizarCount() {
     const n = document.querySelectorAll('.fila-ing').length;
     document.getElementById('badge-count').textContent = n + ' ingrediente' + (n!==1?'s':'');
 }
+
+// Al enviar, cada casilla de merma toma el índice de su fila.
+//
+// id_insumo[], cantidad[] y notas[] se envían en todas las filas y el servidor
+// los empareja por posición. Una casilla sin marcar, en cambio, no se envía:
+// con aplica_merma[] sin índice (filas nuevas) o con el índice que tenía al
+// cargar la página (filas existentes, que se desfasa al borrar una), la merma
+// caía en el ingrediente equivocado y alteraba el costo y el consumo de harina.
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('form-receta');
+    if (!form) return;
+    form.addEventListener('submit', function () {
+        form.querySelectorAll('.fila-ing').forEach(function (tr, i) {
+            var chk = tr.querySelector('.chk-merma');
+            if (chk) chk.name = 'aplica_merma[' + i + ']';
+        });
+    });
+});

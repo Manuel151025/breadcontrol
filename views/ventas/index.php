@@ -249,7 +249,7 @@
             <table class="gt">
               <thead>
                 <tr>
-                  <th style="width:30px;"><input type="checkbox" id="chk-all"
+                  <th style="width:30px;"><input type="checkbox" aria-label="Seleccionar todas las ventas" id="chk-all"
                       onclick="document.querySelectorAll('.chk-export').forEach(c => c.checked = this.checked)"></th>
                   <th>Hora</th>
                   <th>Tipo</th>
@@ -268,7 +268,7 @@
                   $tt = $tt_map[$r['tipo_salida']] ?? $tt_map['venta'];
                   ?>
                   <tr>
-                    <td><input type="checkbox" name="exportar_ids[]" value="<?= $r['id_venta'] ?>" class="chk-export"
+                    <td><input type="checkbox" aria-label="Seleccionar esta venta" name="exportar_ids[]" value="<?= $r['id_venta'] ?>" class="chk-export"
                         checked></td>
                     <td style="color:var(--ink3);font-size:.75rem;white-space:nowrap">
                       <?= date('h:i a', strtotime($r['fecha_hora'])) ?></td>

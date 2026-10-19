@@ -41,6 +41,141 @@ function post_texto(string $clave): string {
     return is_string($valor) ? $valor : '';
 }
 
+/**
+ * True si el texto es una fecha de calendario real en formato AAAA-MM-DD,
+ * entre los años 2000 y 2100.
+ *
+ * Los filtros de fecha se validaban solo con la forma (`\d{4}-\d{2}-\d{2}`), y
+ * «2026-13-45» o «0000-00-00» la cumplen: las consultas no encontraban nada o,
+ * en finanzas, el recorrido día a día de 0000-00-00 a hoy agotaba la memoria
+ * del servidor. El margen de años deja fuera las fechas absurdas sin estorbar
+ * a ninguna real del negocio.
+ */
+function fecha_valida(string $fecha): bool {
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+        return false;
+    }
+    $d = DateTimeImmutable::createFromFormat('!Y-m-d', $fecha);
+    if ($d === false || $d->format('Y-m-d') !== $fecha) {
+        return false;
+    }
+    $anio = (int) $d->format('Y');
+    return $anio >= 2000 && $anio <= 2100;
+}
+
+/**
+ * Número de un campo del formulario, o null si no es un número finito dentro de
+ * [$min, $max].
+ *
+ * Acepta la coma decimal («2,5») porque es la que se teclea en Colombia. Un
+ * `(float)` directo convertía «abc» en 0, «1e309» en INF y «99999999999» en un
+ * valor que no cabe en la columna: la base de datos lo rechazaba y la persona
+ * solo veía «Error al guardar».
+ */
+function numero_en_rango(string $texto, float $min, float $max): ?float {
+    $texto = str_replace(',', '.', trim($texto));
+    if ($texto === '' || !is_numeric($texto)) {
+        return null;
+    }
+    $n = (float) $texto;
+    if (!is_finite($n) || $n < $min || $n > $max) {
+        return null;
+    }
+    return $n;
+}
+
+/**
+ * Valor listo para escribirlo como literal de JavaScript dentro de un atributo
+ * HTML (onclick, onsubmit…): `confirm(<?= js_attr('¿Borrar ' . $nombre . '?') ?>)`.
+ *
+ * Primero JSON (comillas, barras, saltos de línea y `<` escapados) y luego
+ * HTML. Al revés —htmlspecialchars y después addslashes— el navegador
+ * deshacía el &#039; antes de ejecutar el código, y un nombre con una comilla
+ * cerraba la cadena: «x');alert(1);//» ejecutaba lo que quisiera.
+ */
+function js_attr(string|int|float $valor): string {
+    $json = json_encode($valor, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+    return htmlspecialchars($json !== false ? $json : '""', ENT_QUOTES, 'UTF-8');
+}
+
+/**
+ * True si el texto cabe en una columna de $max caracteres.
+ */
+function texto_cabe(string $texto, int $max): bool {
+    return mb_strlen($texto, 'UTF-8') <= $max;
+}
+
+/**
+ * Decodifica el JSON de un carrito y devuelve solo sus elementos con forma de
+ * producto (arrays). Cualquier otra cosa —JSON roto, un número, un texto— cuenta
+ * como lista vacía.
+ *
+ * Los carritos viajan en un campo oculto que cualquiera puede reescribir; sin
+ * esta comprobación, `"5"` llegaba al modelo como entero y la pantalla
+ * terminaba en «Ocurrió un error inesperado».
+ *
+ * @return list<array<mixed>>
+ */
+function json_lista_productos(string $json): array {
+    $datos = json_decode($json !== '' ? $json : '[]', true);
+    if (!is_array($datos)) {
+        return [];
+    }
+    return array_values(array_filter($datos, 'is_array'));
+}
+
+/**
+ * Texto de una excepción apto para mostrarlo en pantalla.
+ *
+ * Los modelos avisan de las reglas de negocio lanzando `Exception` con un
+ * mensaje pensado para la persona («Límite de cupo semanal excedido…»), y esos
+ * se muestran tal cual. Un fallo de la base de datos o del propio PHP, en
+ * cambio, trae SQL, nombres de tablas y rutas del servidor: se registra en el
+ * log y en pantalla queda un aviso genérico.
+ */
+function mensaje_para_usuario(Throwable $e): string {
+    if ($e instanceof PDOException) {
+        log_error($e);
+        return mensaje_error_bd($e);
+    }
+    if ($e instanceof Error || get_class($e) !== Exception::class) {
+        log_error($e);
+        return 'No se pudo completar la operación por un problema interno (quedó registrado). Intenta de nuevo.';
+    }
+    return $e->getMessage();
+}
+
+/**
+ * Traduce los rechazos habituales de la base de datos a algo que la persona
+ * pueda corregir. Es la red de seguridad para lo que la validación del
+ * formulario no haya atajado antes; nunca incluye el texto original del error.
+ */
+function mensaje_error_bd(PDOException $e): string {
+    $sqlstate = (string) $e->getCode();
+    $driver   = $e->errorInfo[1] ?? 0;
+    $codigo   = is_numeric($driver) ? (int) $driver : 0;
+
+    return match (true) {
+        $sqlstate === '22001'                    => 'Uno de los textos es demasiado largo. Acórtalo e intenta de nuevo.',
+        $sqlstate === '22003'                    => 'Uno de los números es demasiado grande o no es válido.',
+        $sqlstate === '22007', $codigo === 1366  => 'Uno de los valores no tiene un formato válido.',
+        $codigo === 1062                         => 'Ya existe un registro con esos datos (por ejemplo, el mismo nombre).',
+        $codigo === 1452                         => 'Una de las opciones elegidas ya no existe. Recarga la página e intenta de nuevo.',
+        $codigo === 1451                         => 'No se puede eliminar porque tiene registros asociados.',
+        $codigo === 1265                         => 'Uno de los valores no es una opción válida.',
+        default => 'No se pudo completar la operación por un problema interno (quedó registrado). Intenta de nuevo.',
+    };
+}
+
+/**
+ * Valor de texto de un parámetro de la URL; cadena vacía si falta o no es texto.
+ * Es el equivalente de post_texto() para $_GET.
+ */
+function get_texto(string $clave): string {
+    $valor = $_GET[$clave] ?? '';
+    return is_string($valor) ? $valor : '';
+}
+
 // Redirigir con mensaje en sesión (nunca retorna: termina con exit)
 function redirigir(string $url, string $tipo = 'exito', string $mensaje = ''): never {
     if ($mensaje) {
@@ -185,7 +320,10 @@ function generarNumeroLote(string $prefijo): string {
 // Calcular porcentaje de variación entre dos precios
 function calcularVariacion(float $precioAnterior, float $precioNuevo): float {
     if ($precioAnterior == 0) return 0;
-    return round((($precioNuevo - $precioAnterior) / $precioAnterior) * 100, 2);
+    $variacion = round((($precioNuevo - $precioAnterior) / $precioAnterior) * 100, 2);
+    // compra.variacion_precio_pct es DECIMAL(7,2): una variación mayor (un
+    // precio anterior de $1 tecleado por error) hacía fallar la compra entera.
+    return max(-99999.99, min(99999.99, $variacion));
 }
 
 // ============================================================

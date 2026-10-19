@@ -195,7 +195,7 @@
                 <div style="display:flex;gap:.25rem;">
                 <?php if ($fecha_fil === $hoy): ?>
                 <button type="button" class="btn-act btn-edit" title="Editar"
-                  onclick="abrirEditGasto(<?= $g['id_gasto'] ?>, '<?= $g['categoria'] ?>', '<?= htmlspecialchars(addslashes($g['descripcion']),ENT_QUOTES) ?>', <?= (int)$g['valor'] ?>)">
+                  onclick="abrirEditGasto(<?= (int)$g['id_gasto'] ?>, <?= js_attr((string)$g['categoria']) ?>, <?= js_attr((string)$g['descripcion']) ?>, <?= (int)$g['valor'] ?>)">
                   <i class="bi bi-pencil"></i>
                 </button>
                 <form method="POST" style="display:contents;" onsubmit="return confirm('¿Eliminar este gasto?')">

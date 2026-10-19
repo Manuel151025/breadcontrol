@@ -100,7 +100,7 @@
                 <!-- Barra seleccionar todos + total -->
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.2rem;border-bottom:1px solid var(--border);background:#fffbf5;">
                     <label style="display:flex;align-items:center;gap:.5rem;font-size:.83rem;font-weight:700;color:var(--ink2);cursor:pointer;">
-                        <input type="checkbox" id="chk-all-<?= $idx ?>" checked onchange="toggleTodos(<?= $idx ?>)" style="width:16px;height:16px;accent-color:var(--c3);">
+                        <input type="checkbox" aria-label="Seleccionar todos los pedidos de esta tienda" id="chk-all-<?= $idx ?>" checked onchange="toggleTodos(<?= $idx ?>)" style="width:16px;height:16px;accent-color:var(--c3);">
                         Seleccionar todos (<?= count($cb['pedidos']) ?>)
                     </label>
                     <span style="font-size:.85rem;font-weight:800;color:#dc2626;" id="total-cobro-<?= $idx ?>">
@@ -112,7 +112,7 @@
                 <div style="padding:.8rem 1.2rem;display:flex;flex-direction:column;gap:.5rem;max-height:340px;overflow-y:auto;">
                 <?php foreach ($cb['pedidos'] as $ped): ?>
                 <label style="display:flex;align-items:center;gap:.75rem;padding:.7rem .85rem;border-radius:10px;border:1.5px solid var(--border);cursor:pointer;background:#fff;">
-                    <input type="checkbox" name="ids_pedidos[]"
+                    <input type="checkbox" aria-label="Incluir este pedido en el cobro" name="ids_pedidos[]"
                            value="<?= $ped['id_pedido'] ?>"
                            data-monto="<?= (float)$ped['total_estimado'] ?>"
                            checked
@@ -235,7 +235,7 @@
             <table class="gt">
             <thead>
                 <tr>
-                    <th style="width:30px;"><input type="checkbox" id="chk-all-ped" onclick="document.querySelectorAll('.chk-ped').forEach(c => c.checked = this.checked)"></th>
+                    <th style="width:30px;"><input type="checkbox" aria-label="Seleccionar todos los pedidos" id="chk-all-ped" onclick="document.querySelectorAll('.chk-ped').forEach(c => c.checked = this.checked)"></th>
                     <th>ID</th>
                     <th>Cliente / Tienda</th>
                     <th>Creado Por</th>
@@ -253,7 +253,7 @@
                 <?php endif; ?>
                 <?php foreach($pedidos as $p): ?>
                 <tr>
-                    <td data-label="Selección"><input type="checkbox" name="exportar_ids[]" value="<?= $p['id_pedido'] ?>" class="chk-ped"></td>
+                    <td data-label="Selección"><input type="checkbox" aria-label="Seleccionar este pedido" name="exportar_ids[]" value="<?= $p['id_pedido'] ?>" class="chk-ped"></td>
                     <td data-label="Pedido" style="font-weight:700; color:var(--ink2);">#<?= str_pad($p['id_pedido'], 4, '0', STR_PAD_LEFT) ?></td>
                     <td data-label="Cliente" style="font-weight:600; text-align: right;"><?= htmlspecialchars($p['cliente'] ?? '') ?> <span style="font-size:0.7rem; color:var(--ink3); display:block;"><?= $p['tipo_cliente'] ?></span></td>
                     <td data-label="Creado Por" style="font-size:0.8rem; color:var(--ink2);">

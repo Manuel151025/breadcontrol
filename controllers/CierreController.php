@@ -48,7 +48,7 @@ class CierreController {
                 );
                 $msg_ok = 'Cierre del día guardado correctamente.';
             } catch (Exception $e) {
-                $msg_err = 'Error al guardar: ' . $e->getMessage();
+                $msg_err = 'Error al guardar: ' . mensaje_para_usuario($e);
             }
         }
 

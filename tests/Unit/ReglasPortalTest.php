@@ -320,6 +320,34 @@ final class ReglasPortalTest extends TestCase
             'antes de abrir'   => ['06:59', false],
             'después de cerrar'=> ['20:01', false],
             'noche'            => ['22:00', false],
+            'minutos imposibles' => ['10:99', false],
+            'texto en la hora' => ['12:3x', false],
+            'sin minutos'      => ['10', false],
+            'vacía'            => ['', false],
+            'con segundos'     => ['10:00:00', false],
+        ];
+    }
+
+    #[DataProvider('provideFechas')]
+    public function testFechaValidaExigeUnaFechaDeCalendarioReal(string $fecha, bool $valida): void
+    {
+        $this->assertSame($valida, ReglasPortal::fechaValida($fecha));
+    }
+
+    public static function provideFechas(): array
+    {
+        return [
+            'normal'          => ['2026-10-20', true],
+            'bisiesto'        => ['2028-02-29', true],
+            'no bisiesto'     => ['2027-02-29', false],
+            'mes 13'          => ['2026-13-01', false],
+            'día 45'          => ['2026-10-45', false],
+            'ceros'           => ['0000-00-00', false],
+            'con hora'        => ['2026-10-20 10:00', false],
+            'otro formato'    => ['20/10/2026', false],
+            'texto'           => ['abc', false],
+            'vacía'           => ['', false],
+            'byte nulo'       => ["2026-10-20\0", false],
         ];
     }
 

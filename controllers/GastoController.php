@@ -6,10 +6,22 @@ require_once __DIR__ . '/../helpers/FinanzasHelper.php';
 require_once __DIR__ . '/../includes/funciones.php';
 
 class GastoController {
+    /** Tope de un gasto: frena una tecla de más sin estorbar a ningún gasto real. */
+    private const VALOR_MAXIMO = 100000000;
+
     private GastoModel $model;
-    
+
     public function __construct(PDO $pdo) {
         $this->model = new GastoModel($pdo);
+    }
+
+    /**
+     * Valor de un gasto. El campo es type="number" (el punto es decimal); se
+     * toleran «$» y espacios por si se pega un valor copiado. Null si no es un
+     * valor válido.
+     */
+    private static function valorGasto(string $texto): ?float {
+        return numero_en_rango(str_replace(['$', ' '], '', $texto), 1, self::VALOR_MAXIMO);
     }
     
     public function index(): void {
@@ -18,7 +30,9 @@ class GastoController {
         $user = usuarioActual();
         $hoy  = date('Y-m-d');
         
-        $msg_ok  = '';
+        // Resultado de un guardado recién hecho (Post-Redirect-Get, más abajo).
+        $msg_ok  = is_string($_SESSION['gastos_ok'] ?? null) ? $_SESSION['gastos_ok'] : '';
+        unset($_SESSION['gastos_ok']);
         $msg_err = '';
         if (($_GET['err'] ?? '') === 'csrf') {
             $msg_err = 'No se pudo completar la acción: token de seguridad inválido o expirado. Intenta de nuevo.';
@@ -26,13 +40,13 @@ class GastoController {
         
         // Guarda CSRF única para TODAS las acciones POST de esta pantalla.
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $fecha_post = preg_match('/^\d{4}-\d{2}-\d{2}$/', post_texto('fecha')) ? post_texto('fecha') : $hoy;
+            $fecha_post = fecha_valida(post_texto('fecha')) ? post_texto('fecha') : $hoy;
             requerir_csrf('index.php?fecha=' . $fecha_post . '&err=csrf');
         }
 
         // ── 1. Eliminar gasto (POST ?del=ID) ─────────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['del'])) {
-            $redir_fecha = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_POST['fecha'] ?? '') ? $_POST['fecha'] : $hoy;
+            $redir_fecha = fecha_valida(post_texto('fecha')) ? post_texto('fecha') : $hoy;
             $id_g = (int)$_POST['del'];
             try {
                 $this->model->eliminarGasto($id_g);
@@ -46,21 +60,29 @@ class GastoController {
         
         // ── 2. Guardar nuevo gasto (POST) ────────────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_gasto'])) {
-            $cat  = $_POST['categoria']  ?? '';
-            $desc = trim($_POST['descripcion'] ?? '');
-            $val  = (float)str_replace(['.', '$', ' '], '', $_POST['valor'] ?? 0);
-            
+            $cat  = post_texto('categoria');
+            $desc = trim(post_texto('descripcion'));
+            $val  = self::valorGasto(post_texto('valor'));
+
             if (!in_array($cat, ['compra', 'servicio', 'otro'])) {
                 $cat = '';
             }
-            
-            if (!$cat || !$desc || $val <= 0) {
+
+            if (!$cat || !$desc) {
                 $msg_err = 'Completa todos los campos correctamente.';
+            } elseif (!texto_cabe($desc, 255)) {
+                $msg_err = 'La descripción no puede superar los 255 caracteres.';
+            } elseif ($val === null) {
+                $msg_err = 'El valor debe ser un número mayor que 0 y de máximo $' . number_format(self::VALOR_MAXIMO, 0, ',', '.') . '.';
             } else {
                 try {
                     $result = $this->model->registrarGasto($user['id_usuario'], $cat, $desc, $val);
                     if ($result) {
-                        $msg_ok = 'Gasto registrado correctamente.';
+                        // Post-Redirect-Get: F5 sobre el aviso registraba el gasto
+                        // otra vez y descuadraba el cierre del día.
+                        $_SESSION['gastos_ok'] = 'Gasto registrado correctamente.';
+                        header('Location: index.php');
+                        exit;
                     } else {
                         $msg_err = 'Error al registrar el gasto.';
                     }
@@ -73,20 +95,26 @@ class GastoController {
         
         // ── 3. Editar gasto existente (POST) ─────────────────────────────────────
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_gasto'])) {
-            $id_g   = (int)$_POST['id_gasto'];
-            $cat_e  = $_POST['cat_edit'] ?? '';
-            $desc_e = trim($_POST['desc_edit'] ?? '');
-            $val_e  = (float)str_replace(['.', '$', ' '], '', $_POST['val_edit'] ?? 0);
-            
+            $id_g   = (int)($_POST['id_gasto'] ?? 0);
+            $cat_e  = post_texto('cat_edit');
+            $desc_e = trim(post_texto('desc_edit'));
+            $val_e  = self::valorGasto(post_texto('val_edit'));
+
             if (!in_array($cat_e, ['compra', 'servicio', 'otro'])) {
                 $cat_e = '';
             }
-            
-            if ($cat_e && $desc_e && $val_e > 0) {
+
+            if ($id_g <= 0) {
+                $msg_err = 'No se encontró el gasto a editar. Recarga la página.';
+            } elseif (!texto_cabe($desc_e, 255)) {
+                $msg_err = 'La descripción no puede superar los 255 caracteres.';
+            } elseif ($cat_e && $desc_e && $val_e !== null) {
                 try {
                     $result = $this->model->actualizarGasto($id_g, $cat_e, $desc_e, $val_e);
                     if ($result) {
-                        $msg_ok = 'Gasto actualizado correctamente.';
+                        $_SESSION['gastos_ok'] = 'Gasto actualizado correctamente.';
+                        header('Location: index.php');
+                        exit;
                     } else {
                         $msg_err = 'Error al actualizar el gasto.';
                     }
@@ -100,7 +128,7 @@ class GastoController {
         }
         
         // ── 4. Cargar datos para la vista ────────────────────────────────────────
-        $fecha_fil = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha'] ?? '') ? $_GET['fecha'] : $hoy;
+        $fecha_fil = fecha_valida(get_texto('fecha')) ? get_texto('fecha') : $hoy;
         
         // Obtener listado de gastos del día
         $gastos_dia = $this->model->getGastosPorFecha($fecha_fil);

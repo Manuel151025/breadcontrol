@@ -44,7 +44,9 @@
       <script>
       function toggleAlerta(){
         var url = 'index.php';
-        var busca = '<?= addslashes($busca) ?>';
+        // json_encode con JSON_HEX_*: addslashes no impedía cerrar el bloque
+        // con «</script>» y ejecutar lo que viniera detrás en ?q=.
+        var busca = <?= json_encode($busca, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
         var activo = <?= $filtro_alerta ? 'true' : 'false' ?>;
         if (activo) {
           if (busca) url += '?q=' + encodeURIComponent(busca);
@@ -145,7 +147,7 @@
         <table class="gt">
           <thead>
             <tr>
-              <th style="width:30px;"><input type="checkbox" id="sel-all" title="Seleccionar todos"></th>
+              <th style="width:30px;"><input type="checkbox" aria-label="Seleccionar todos los insumos" id="sel-all" title="Seleccionar todos"></th>
               <th>Insumo</th>
               <th>Unidad</th>
               <th>Stock actual</th>
@@ -166,7 +168,7 @@
             $valor_ins = $ins['stock_actual'] * $ins['precio_ultimo'];
           ?>
           <tr class="<?= $alerta ? 'alerta-row' : '' ?>">
-            <td><input type="checkbox" name="ids_eliminar[]" value="<?= $ins['id_insumo'] ?>" class="chk-ins"></td>
+            <td><input type="checkbox" aria-label="Seleccionar este insumo" name="ids_eliminar[]" value="<?= $ins['id_insumo'] ?>" class="chk-ins"></td>
             <td>
               <strong><?= htmlspecialchars($ins['nombre'] ?? '') ?></strong>
               <?php if ($ins['es_harina']): ?><span class="tag-harina">🌾 harina</span><?php endif; ?>

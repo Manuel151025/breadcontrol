@@ -346,12 +346,19 @@ trait PedidosPortalTrait {
                         'precio' => (float)$precio_real
                     ];
                 } else {
-                    throw new Exception("Producto del carrito no válido o inactivo.");
+                    throw new Exception("Uno de los panes de tu carrito ya no está disponible. Quítalo del carrito e intenta de nuevo.");
                 }
             }
             
             if (empty($cart_validado)) {
                 throw new Exception("El carrito no contiene productos válidos.");
+            }
+
+            // Solo el aprendiz tiene cupo semanal; sin este tope, un carrito
+            // manipulado con cientos de productos rebasaba la columna del total
+            // (DECIMAL(10,2)) y el pedido fallaba con un error de base de datos.
+            if ($total_dinero > ReglasPortal::TOTAL_MAXIMO_PEDIDO) {
+                throw new Exception("El pedido supera $" . number_format(ReglasPortal::TOTAL_MAXIMO_PEDIDO, 0, ',', '.') . " COP. Para un pedido así de grande, comunícate directamente con la panadería.");
             }
 
             // Validar cupo semanal de aprendiz. Se bloquea la fila del creador (FOR UPDATE)
@@ -490,7 +497,7 @@ trait PedidosPortalTrait {
                         if ($precio_real !== false) {
                             $total_bonif_cost += $cant * (float)$precio_real;
                         } else {
-                            throw new Exception("Variedad de bonificación no válida o inactiva.");
+                            throw new Exception("Uno de los panes elegidos como ñapa o bonificación ya no está disponible. Elige otro.");
                         }
                     }
                 }
@@ -518,7 +525,7 @@ trait PedidosPortalTrait {
                             $this->pdo->prepare("INSERT INTO pedido_cliente_detalle (id_pedido, id_variedad, cantidad, precio_unitario, napa, bonificacion) VALUES (?, ?, 0, ?, ?, ?)")
                                 ->execute([$id_pedido, $id_var, (float)$precio_real, $napa, $bonif]);
                         } else {
-                            throw new Exception("Variedad de bonificación no válida o inactiva.");
+                            throw new Exception("Uno de los panes elegidos como ñapa o bonificación ya no está disponible. Elige otro.");
                         }
                     }
                 }

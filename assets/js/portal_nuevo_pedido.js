@@ -60,11 +60,25 @@ var allVarieties  = [];
         loadCatalog(currentCatId);
     }
 
+    // Pide JSON al servidor. Si la sesión se cerró —en otra pestaña, o por
+    // tiempo— la respuesta es la página de acceso y no JSON: se recarga para
+    // que la persona llegue a iniciar sesión, en vez de quedarse mirando un
+    // «Cargando...» que nunca termina.
+    function pedirJson(url) {
+        return fetch(url).then(function (r) {
+            var tipo = r.headers.get('Content-Type') || '';
+            if (r.redirected || tipo.indexOf('application/json') === -1) {
+                window.location.reload();
+                return new Promise(function () {});
+            }
+            return r.json();
+        });
+    }
+
     function loadCatalog(catId) {
         var catalog = document.getElementById('prod-catalog');
         catalog.innerHTML = '<div style="text-align:center;padding:.5rem;font-size:.78rem;color:var(--ink3);">Cargando...</div>';
-        fetch('?ajax_variedades=1&id_cat=' + catId)
-            .then(r => r.json())
+        pedirJson('?ajax_variedades=1&id_cat=' + catId)
             .then(vars => {
                 catalogVars = vars;
                 if(vars.length===0) {
@@ -90,6 +104,9 @@ var allVarieties  = [];
                 });
                 html += '</div>';
                 catalog.innerHTML = html;
+            })
+            .catch(function () {
+                catalog.innerHTML = '<div style="text-align:center;padding:.6rem;font-size:.78rem;color:#c62828;">No se pudo cargar el catálogo. Revisa tu conexión y toca otra vez el precio.</div>';
             });
     }
 
@@ -211,12 +228,15 @@ var allVarieties  = [];
     }
 
     function loadAllVarieties() {
-        fetch('?ajax_all_variedades=1')
-            .then(r=>r.json())
+        pedirJson('?ajax_all_variedades=1')
             .then(vars => {
                 allVarieties = vars;
                 bonifLoaded = true;
                 renderBonifVars();
+            })
+            .catch(function () {
+                var box = document.getElementById('bonif-varieties');
+                if (box) box.innerHTML = '<div style="text-align:center;padding:.6rem;font-size:.78rem;color:#c62828;">No se pudo cargar la lista. Revisa tu conexión y recarga la página.</div>';
             });
     }
 
@@ -306,4 +326,26 @@ var allVarieties  = [];
                 }
             }, 100);
         }
+    });
+
+    // Un solo envío por formulario. El servidor ya descarta los repetidos (campo
+    // token_envio), pero así quien pulsa dos veces ve que el pedido va en camino
+    // en vez de pensar que no respondió y seguir pulsando.
+    document.addEventListener("DOMContentLoaded", function() {
+        var form = document.getElementById('form-pedido');
+        if (!form) return;
+        var enviado = false;
+        form.addEventListener('submit', function(ev) {
+            if (enviado) { ev.preventDefault(); return; }
+            enviado = true;
+            var btn = document.getElementById('btn-pedido');
+            if (btn) {
+                // Se desactiva después de este evento: si se hiciera aquí mismo,
+                // el navegador podría construir el envío ya sin el botón.
+                setTimeout(function() {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Enviando…';
+                }, 0);
+            }
+        });
     });

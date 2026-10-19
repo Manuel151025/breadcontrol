@@ -62,9 +62,13 @@ class PortalInstructorController extends PortalControllerBase {
                 }
             } elseif (isset($_POST['actualizar_cupo'])) {
                 $aid  = (int)($_POST['aprendiz_id'] ?? 0);
-                $cupo = (float)($_POST['cupo_semanal'] ?? 0);
+                $cupo_txt = trim(post_texto('cupo_semanal'));
+                $cupo = (float) $cupo_txt;
                 $error_cupo = ReglasPortal::validarCupoSemanal($cupo);
-                if ($error_cupo !== null) {
+                if (!is_numeric($cupo_txt)) {
+                    // Vacío o con letras valía 0: el aprendiz quedaba sin cupo.
+                    $msg_err = 'Escribe el cupo semanal en números, por ejemplo 20000.';
+                } elseif ($error_cupo !== null) {
                     $msg_err = $error_cupo;
                 } elseif ($this->model->actualizarCupoAprendizInstructor($cliente_id, $aid, $cupo)) {
                     $msg_ok = 'Cupo semanal actualizado.';

@@ -30,6 +30,13 @@ if (session_status() === PHP_SESSION_NONE) {
     // cerrando la fijación de sesión (un atacante que fuerce un ID conocido).
     ini_set('session.use_strict_mode', '1');
 
+    // La sesión dura en el servidor lo mismo que la cookie. Sin esto rige el
+    // valor por defecto de PHP, 24 minutos: el recolector borraba la sesión de
+    // quien dejaba un formulario abierto un rato, y al enviarlo recibía «token
+    // de seguridad inválido» o volvía a la pantalla de acceso, aunque la
+    // aplicación promete 8 horas (SESSION_DURACION).
+    ini_set('session.gc_maxlifetime', (string) SESSION_DURACION);
+
     session_set_cookie_params([
         'lifetime' => SESSION_DURACION,
         'path' => '/',
