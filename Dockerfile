@@ -1,5 +1,10 @@
-# Imagen de la aplicación: PHP 8.2 con Apache y soporte MySQL.
-FROM php:8.2-apache
+# Imagen de la aplicación: PHP 8.3 con Apache y soporte MySQL.
+#
+# 8.2 deja de recibir parches el 31 de diciembre de 2026 y corría con
+# PHP2Shell (CVE-2026-109618 y CVE-2026-109619, RCE sin autenticación,
+# corregidos en 8.3.36). 8.3 ya pasaba la matriz del CI desde septiembre.
+# Tras cada despliegue, `php -v` dentro del contenedor debe dar 8.3.36 o más.
+FROM php:8.3-apache
 
 RUN apt-get update && apt-get install -y \
     libzip-dev \
@@ -48,6 +53,10 @@ RUN mkdir -p /var/log/breadcontrol && chown www-data:www-data /var/log/breadcont
 # exacta de PHP (R-05 del informe tecnico). No sustituye a mantener PHP
 # actualizado: solo deja de regalar el dato a un escaneo automatizado.
 RUN echo "expose_php = Off" > /usr/local/etc/php/conf.d/ocultar-version.ini
+
+# El progreso de subida en sesión es la vía de PHP2Shell y de CVE-2026-115560,
+# que a 2026-10-25 todavía no tiene parche. La aplicación no lo usa.
+RUN echo "session.upload_progress.enabled = 0" > /usr/local/etc/php/conf.d/sin-upload-progress.ini
 
 RUN { \
         echo "opcache.enable=1"; \
