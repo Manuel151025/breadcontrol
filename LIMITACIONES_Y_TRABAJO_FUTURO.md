@@ -6,6 +6,8 @@ Este documento inventaria, con evidencia verificada contra el código y la base 
 
 El propósito de este anexo es dejar registro explícito de qué se sabe que falta, por qué se pospuso, y qué esfuerzo tomaría resolverlo — para que cualquier evaluador, instructor o desarrollador futuro entienda el estado real del sistema sin tener que descubrirlo de nuevo.
 
+> **2026-11-13 — Se retiró el Portal de Clientes.** BreadControl dejó de ser un proyecto académico del SENA y el portal donde los aprendices pedían pan a cuenta del instructor se eliminó con sus tablas (migración `2026-11-13_01_retirar_portal_clientes.sql`). Los puntos que trataban del portal se conservan como historia; los que seguían abiertos (26, 30 y 34) quedan cerrados porque su código ya no existe.
+
 **Los puntos resueltos NO se borran de este documento**: se marcan como resueltos con la evidencia de su corrección. Un anexo que solo enumera lo pendiente oculta la mitad de la historia, y quien lo lea dos veces necesita saber qué cambió entre una lectura y otra.
 
 ## Resumen
@@ -37,18 +39,18 @@ El propósito de este anexo es dejar registro explícito de qué se sabe que fal
 | 23 | Respaldos: probados, pero en el mismo servidor | Continuidad | Medio | 🟡 Parcial — falta copia externa |
 | 24 | El registro de errores se borra en cada despliegue | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
 | 25 | PHP 8.2 sin parches de seguridad desde 2027 | Mantenimiento | Bajo | 🟡 **Desriesgado** (2026-09-01) — 8.3 verificado y bloqueando en CI; falta cambiar el `Dockerfile` |
-| 26 | La fecha «sin definir» es un valor mágico (`1000-01-01`) | Diseño de datos | Bajo | ⬜ Abierto — M |
+| 26 | La fecha «sin definir» es un valor mágico (`1000-01-01`) | Diseño de datos | Bajo | ⚫ **Retirado con el portal** (2026-11-13) |
 | 27 | Controles con `<div onclick>` y contraste de color | Accesibilidad | Medio | 🟡 Parcial — medido con axe (2026-09-01); queda el contraste (17 combinaciones) |
 | 28 | El tablero del instructor no cuadraba consigo mismo | Integridad de datos | Medio | ✅ **Resuelto** (2026-08-15) |
 | 29 | No se sabía qué migraciones tenía aplicada una base | Operación | Medio | ✅ **Resuelto** (2026-08-20) |
-| 30 | Un pedido vencido se queda en «pendiente» para siempre | Ciclo de vida | Bajo | 🟡 **Parcial** (2026-09-01) — ya se puede cancelar; falta el estado |
+| 30 | Un pedido vencido se queda en «pendiente» para siempre | Ciclo de vida | Bajo | ⚫ **Retirado con el portal** (2026-11-13) |
 | 31 | Recuperación de acceso por PIN sin límite de intentos y con enumeración de cuentas | Seguridad | Crítico | ✅ **Resuelto** (2026-09-14) |
 | 32 | Un aprendiz podía sobrescribir el pedido de otro aprendiz | Seguridad | Alto | ✅ **Resuelto** (2026-09-14) |
 | 33 | Un pedido cancelado se podía aprobar desde un tablero abierto | Ciclo de vida | Bajo | ✅ **Resuelto** (2026-09-14) |
-| 34 | La hora de entrega se pide pero no se guarda | Ciclo de vida | Medio | ⬜ Abierto — S (migración y 3-4 consultas) |
+| 34 | La hora de entrega se pide pero no se guarda | Ciclo de vida | Medio | ⚫ **Retirado con el portal** (2026-11-13) |
 | 35 | Guardar una receta la dejaba sin ingredientes en producción | Integridad de datos | Alto | ✅ **Resuelto** (2026-09-22) |
 
-*Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar.*
+*Esfuerzo: S = &lt;2 días, M = 2-5 días, L = 5-10 días, XL = requiere decisión de producto antes de estimar. ⚫ = el punto dejó de aplicar porque se retiró la parte del sistema a la que pertenecía.*
 
 ---
 
@@ -518,7 +520,9 @@ Nada verifica todavía 8.4, que es la siguiente decisión: saltar a 8.3 (soporta
 
 ---
 
-### 26. ⬜ La fecha «sin definir» se representa con un valor mágico
+### 26. ⚫ La fecha «sin definir» se representa con un valor mágico — RETIRADO CON EL PORTAL (2026-11-13)
+
+> El valor mágico solo existía en `pedido_cliente.fecha_entrega`, tabla eliminada al retirar el portal. Se conserva el análisis como historia.
 
 **Descubierto el 2026-08-15**, a raíz de un fallo real que provocó (ver más abajo).
 
@@ -642,7 +646,9 @@ Las nueve anteriores se dan por aplicadas: lo están en todas las bases existent
 
 ## CICLO DE VIDA DE LOS PEDIDOS
 
-### 30. 🟡 Un pedido cuya fecha de entrega pasa sin atenderse se queda en «pendiente» para siempre — PARCIALMENTE RESUELTO (2026-09-01)
+### 30. ⚫ Un pedido cuya fecha de entrega pasa sin atenderse se queda en «pendiente» para siempre — RETIRADO CON EL PORTAL (2026-11-13)
+
+> Los pedidos del portal ya no existen. Se conserva el análisis como historia.
 
 **Descripción:** los estados de `pedido_cliente` (`pendiente`, `confirmado`, `rechazado`, `cancelado`) describen **decisiones humanas**. Ninguno describe «se acabó el plazo sin que nadie decidiera». No hay tarea programada ni transición automática: un pedido para el 3 de agosto que nadie confirma ni rechaza sigue en `pendiente` indefinidamente.
 
@@ -695,7 +701,9 @@ devolvió **cero filas** contra producción. Conviene ser preciso sobre qué pru
 
 ---
 
-### 34. ⬜ La hora de entrega se pide pero no se guarda
+### 34. ⚫ La hora de entrega se pide pero no se guarda — RETIRADO CON EL PORTAL (2026-11-13)
+
+> La hora de entrega solo la pedía el portal. Se conserva el análisis como historia.
 
 **Descubierto el 2026-09-14** al comprobar en base de datos el pedido que la prueba de navegador aprobó para las 9:00.
 

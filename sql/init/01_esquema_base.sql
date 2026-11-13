@@ -118,48 +118,9 @@ CREATE TABLE `cliente` (
   `telefono` varchar(20) DEFAULT NULL,
   `activo` tinyint(1) NOT NULL DEFAULT 1,
   `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp(),
-  `usuario` varchar(50) DEFAULT NULL,
-  `contrasena_hash` varchar(255) DEFAULT NULL,
-  `es_aprendiz` tinyint(1) NOT NULL DEFAULT 0,
-  `cupo_semanal` decimal(10,2) NOT NULL DEFAULT 20000.00,
-  `id_instructor` int(11) DEFAULT NULL,
-  `email` varchar(150) DEFAULT NULL,
-  `foto_url` varchar(255) DEFAULT NULL,
-  `google_id` varchar(100) DEFAULT NULL,
   `notas` varchar(255) DEFAULT NULL,
-  `es_beneficiaria` tinyint(1) NOT NULL DEFAULT 0,
-  `pin_recuperacion` varchar(255) DEFAULT NULL,
-  `codigo_recuperacion` varchar(255) DEFAULT NULL,
-  `codigo_expira` datetime DEFAULT NULL,
-  `fecha_aprendiz` datetime DEFAULT NULL,
-  PRIMARY KEY (`id_cliente`),
-  UNIQUE KEY `google_id` (`google_id`),
-  UNIQUE KEY `usuario` (`usuario`),
-  UNIQUE KEY `uq_cliente_email` (`email`)
+  PRIMARY KEY (`id_cliente`)
 ) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Clientes fijos (tiendas) y mostrador';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `codigo_aprendiz`
---
-
-DROP TABLE IF EXISTS `codigo_aprendiz`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `codigo_aprendiz` (
-  `id_codigo` int(11) NOT NULL AUTO_INCREMENT,
-  `id_instructor` int(11) NOT NULL,
-  `codigo` varchar(16) NOT NULL,
-  `fecha_expira` datetime DEFAULT NULL,
-  `usos_maximos` int(11) DEFAULT NULL,
-  `usos_actuales` int(11) NOT NULL DEFAULT 0,
-  `activo` tinyint(1) NOT NULL DEFAULT 1,
-  `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id_codigo`),
-  UNIQUE KEY `uq_codigo_aprendiz` (`codigo`),
-  KEY `id_instructor` (`id_instructor`),
-  CONSTRAINT `fk_codigo_instructor` FOREIGN KEY (`id_instructor`) REFERENCES `cliente` (`id_cliente`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -203,12 +164,7 @@ CREATE TABLE `configuracion` (
   `pct_merma_harina` decimal(5,2) NOT NULL DEFAULT 6.00 COMMENT 'Porcentaje de merma aplicado a la harina',
   `alerta_variacion_precio` decimal(5,2) NOT NULL DEFAULT 5.00 COMMENT 'Variación % de precio que dispara alerta',
   `base_minima_caja` decimal(12,2) NOT NULL DEFAULT 0.00 COMMENT 'Saldo mínimo de caja recomendado',
-  `nequi_link_pago` varchar(255) DEFAULT NULL,
-  `nequi_titular` varchar(100) DEFAULT NULL,
-  `wompi_habilitado` tinyint(1) NOT NULL DEFAULT 0,
-  `wompi_confirmar_auto` tinyint(1) NOT NULL DEFAULT 0,
   `fecha_actualizacion` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `id_cliente_adso` int(11) DEFAULT NULL,
   PRIMARY KEY (`id_config`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Parámetros globales del negocio — solo una fila';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -316,7 +272,7 @@ DROP TABLE IF EXISTS `intento_login`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `intento_login` (
   `id_intento` int(11) NOT NULL AUTO_INCREMENT,
-  `ambito` enum('admin','portal') NOT NULL,
+  `ambito` enum('admin') NOT NULL,
   `identificador` varchar(150) NOT NULL COMMENT 'Nombre de usuario tecleado en el intento',
   `ip` varchar(45) DEFAULT NULL COMMENT 'IPv4 o IPv6 de origen',
   `fecha` datetime NOT NULL DEFAULT current_timestamp(),
@@ -348,103 +304,6 @@ CREATE TABLE `lote` (
   KEY `idx_lote_insumo_estado` (`id_insumo`,`estado`,`fecha_ingreso`) COMMENT 'Clave para algoritmo FIFO',
   CONSTRAINT `fk_lote_insumo` FOREIGN KEY (`id_insumo`) REFERENCES `insumo` (`id_insumo`)
 ) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Lotes de insumos ordenados por fecha para FIFO';
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `pago_abono`
---
-
-DROP TABLE IF EXISTS `pago_abono`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `pago_abono` (
-  `id_abono` int(11) NOT NULL AUTO_INCREMENT,
-  `id_pago` int(11) NOT NULL,
-  `monto` decimal(10,2) NOT NULL,
-  `metodo_pago` varchar(50) NOT NULL,
-  `nota` varchar(255) DEFAULT NULL,
-  `fecha_abono` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id_abono`),
-  KEY `id_pago` (`id_pago`),
-  CONSTRAINT `fk_abono_pago` FOREIGN KEY (`id_pago`) REFERENCES `pago_pedido` (`id_pago`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `pago_pedido`
---
-
-DROP TABLE IF EXISTS `pago_pedido`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `pago_pedido` (
-  `id_pago` int(11) NOT NULL AUTO_INCREMENT,
-  `id_pedido` int(11) DEFAULT NULL,
-  `referencia` varchar(100) DEFAULT NULL,
-  `wompi_link_id` varchar(100) DEFAULT NULL,
-  `wompi_link_url` varchar(255) DEFAULT NULL,
-  `monto` decimal(10,2) NOT NULL,
-  `monto_centavos` int(11) NOT NULL,
-  `estado` varchar(20) NOT NULL DEFAULT 'PENDING',
-  `fecha_expiracion` datetime DEFAULT NULL,
-  `fecha_pago` datetime DEFAULT NULL,
-  `nota` varchar(255) DEFAULT NULL,
-  `metodo_pago` varchar(50) DEFAULT NULL,
-  `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id_pago`),
-  KEY `id_pedido` (`id_pedido`),
-  CONSTRAINT `fk_pago_pedido` FOREIGN KEY (`id_pedido`) REFERENCES `pedido_cliente` (`id_pedido`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `pedido_cliente`
---
-
-DROP TABLE IF EXISTS `pedido_cliente`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `pedido_cliente` (
-  `id_pedido` int(11) NOT NULL AUTO_INCREMENT,
-  `id_cliente` int(11) NOT NULL,
-  `id_creador` int(11) DEFAULT NULL,
-  `fecha_entrega` date NOT NULL,
-  `fecha_solicitud` datetime NOT NULL DEFAULT current_timestamp(),
-  `total_estimado` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `aprobado_instructor` tinyint(1) NOT NULL DEFAULT 0,
-  `estado` varchar(20) NOT NULL DEFAULT 'pendiente',
-  `estado_pago` varchar(20) NOT NULL DEFAULT 'no_aplica',
-  `id_pago_activo` int(11) DEFAULT NULL,
-  `mensaje_propietario` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id_pedido`),
-  KEY `id_cliente` (`id_cliente`),
-  KEY `id_creador` (`id_creador`),
-  CONSTRAINT `fk_ped_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`),
-  CONSTRAINT `fk_ped_creador` FOREIGN KEY (`id_creador`) REFERENCES `cliente` (`id_cliente`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `pedido_cliente_detalle`
---
-
-DROP TABLE IF EXISTS `pedido_cliente_detalle`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `pedido_cliente_detalle` (
-  `id_detalle` int(11) NOT NULL AUTO_INCREMENT,
-  `id_pedido` int(11) NOT NULL,
-  `id_variedad` int(11) NOT NULL,
-  `cantidad` int(11) NOT NULL,
-  `precio_unitario` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `napa` tinyint(1) NOT NULL DEFAULT 0,
-  `bonificacion` tinyint(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id_detalle`),
-  KEY `id_pedido` (`id_pedido`),
-  KEY `id_variedad` (`id_variedad`),
-  CONSTRAINT `fk_det_pedido` FOREIGN KEY (`id_pedido`) REFERENCES `pedido_cliente` (`id_pedido`) ON DELETE CASCADE,
-  CONSTRAINT `fk_det_variedad` FOREIGN KEY (`id_variedad`) REFERENCES `variedad_pan` (`id_variedad`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

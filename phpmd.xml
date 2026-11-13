@@ -22,7 +22,7 @@
 
          Aqui estan los 105 hallazgos reales: 45 de complejidad ciclomatica,
          31 de NPath, 20 de metodos demasiado largos y 9 de clases demasiado
-         complejas. Se concentran en los controladores del portal y de ventas,
+         complejas. Se concentraban en los controladores del portal (ya retirado) y de ventas,
          que es exactamente donde el codigo pesa mas.
          ══════════════════════════════════════════════════════════════ -->
     <rule ref="rulesets/codesize.xml/CyclomaticComplexity" />

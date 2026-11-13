@@ -37,17 +37,8 @@ services:
       #
       # Se monta UN solo script: sql/init/01_esquema_base.sql, el esquema real
       # versionado (generado con mysqldump --no-data de la base de produccion).
-      # Ya trae las 14 columnas reales de `cliente` (login del portal, Google
-      # OAuth, aprendiz/cupo) y todas las tablas del flujo de pedidos.
-      #
-      # NO se monta sql/init/02_extensiones_flujo.sql: ese script parte del dump
-      # antiguo y anade esas mismas columnas/tablas con ALTER TABLE ADD COLUMN y
-      # CREATE TABLE sin IF NOT EXISTS, asi que sobre el 01 fallaria por duplicado
-      # y el contenedor abortaria la inicializacion. Sigue siendo util solo para
-      # una base creada con el dump viejo.
-      #
-      # Tampoco se usa sql/panaderia_bd.sql: crea `cliente` con solo 6 columnas y
-      # deja el portal roto en un despliegue limpio.
+      # Es el unico script de estructura: los antiguos (el dump inicial y las
+      # extensiones del portal de clientes) se retiraron con el portal.
       - ./sql/init/01_esquema_base.sql:/docker-entrypoint-initdb.d/01_base.sql
 
 volumes:

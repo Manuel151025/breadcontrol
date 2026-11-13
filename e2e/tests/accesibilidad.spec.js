@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
-const { CUENTAS, entrarBackOffice, entrarPortal } = require('./ayudas');
+const { CUENTAS, entrarBackOffice } = require('./ayudas');
 
 /**
  * Accesibilidad automatizada (axe-core) sobre las pantallas que ya recorre la
@@ -62,8 +62,6 @@ test.describe('Accesibilidad', () => {
     for (const [pantalla, ruta] of [
       ['portada',          '/'],
       ['acceso',           '/login.php'],
-      ['portal · acceso',  '/portal/index.php'],
-      ['portal · registro','/portal/registro.php'],
     ]) {
       await page.goto(ruta);
       await revisar(page, pantalla);
@@ -76,17 +74,6 @@ test.describe('Accesibilidad', () => {
       ['tablero',       '/modules/tablero/index.php'],
       ['punto de venta','/modules/ventas/index.php'],
       ['cierre de caja','/modules/cierre/index.php'],
-    ]) {
-      await page.goto(ruta);
-      await revisar(page, pantalla);
-    }
-  });
-
-  test('las pantallas del portal no tienen violaciones nuevas', async ({ page }) => {
-    await entrarPortal(page, CUENTAS.cliente);
-    for (const [pantalla, ruta] of [
-      ['portal · tablero',      '/portal/dashboard.php'],
-      ['portal · nuevo pedido', '/portal/nuevo_pedido.php'],
     ]) {
       await page.goto(ruta);
       await revisar(page, pantalla);

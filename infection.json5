@@ -11,7 +11,7 @@
     //  Se limita a helpers/ y models/ A PROPOSITO:
     //
     //  - Ahi vive la logica de negocio que de verdad importa —FIFO de lotes,
-    //    cuadre de caja, saldos del instructor, reglas del portal— y es donde
+    //    cuadre de caja, costeo de producción— y es donde
     //    una condicion mal puesta hace perder dinero en vez de romper una
     //    pantalla.
     //  - Es lo unico con cobertura suficiente para que el resultado signifique

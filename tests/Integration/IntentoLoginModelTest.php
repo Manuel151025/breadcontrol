@@ -45,27 +45,15 @@ final class IntentoLoginModelTest extends BaseDatosTestCase
         );
     }
 
-    public function testElBloqueoNoCruzaAmbitos(): void
-    {
-        // Un mismo nombre de usuario puede existir en el back-office y en el
-        // portal: agotar los intentos en uno no debe cerrar el otro.
-        for ($i = 0; $i < Seguridad::LOGIN_MAX_INTENTOS; $i++) {
-            $this->model->registrarFallo(IntentoLoginModel::AMBITO_ADMIN, $this->usuario, null);
-        }
-
-        $this->assertTrue($this->model->estaBloqueado(IntentoLoginModel::AMBITO_ADMIN, $this->usuario, null));
-        $this->assertFalse($this->model->estaBloqueado(IntentoLoginModel::AMBITO_PORTAL, $this->usuario, null));
-    }
-
     public function testUnInicioCorrectoLimpiaLosIntentosPrevios(): void
     {
         for ($i = 0; $i < Seguridad::LOGIN_MAX_INTENTOS; $i++) {
-            $this->model->registrarFallo(IntentoLoginModel::AMBITO_PORTAL, $this->usuario, null);
+            $this->model->registrarFallo(IntentoLoginModel::AMBITO_ADMIN, $this->usuario, null);
         }
-        $this->assertTrue($this->model->estaBloqueado(IntentoLoginModel::AMBITO_PORTAL, $this->usuario, null));
+        $this->assertTrue($this->model->estaBloqueado(IntentoLoginModel::AMBITO_ADMIN, $this->usuario, null));
 
-        $this->model->limpiar(IntentoLoginModel::AMBITO_PORTAL, $this->usuario);
-        $this->assertFalse($this->model->estaBloqueado(IntentoLoginModel::AMBITO_PORTAL, $this->usuario, null));
+        $this->model->limpiar(IntentoLoginModel::AMBITO_ADMIN, $this->usuario);
+        $this->assertFalse($this->model->estaBloqueado(IntentoLoginModel::AMBITO_ADMIN, $this->usuario, null));
     }
 
     public function testLosIntentosFueraDeLaVentanaNoCuentan(): void

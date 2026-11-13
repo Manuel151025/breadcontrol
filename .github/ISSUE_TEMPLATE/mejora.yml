@@ -24,9 +24,6 @@ body:
       label: Qué parte del sistema toca
       options:
         - Back-office (inventario, producción, ventas, compras, finanzas, cierre)
-        - Portal de clientes
-        - Flujo aprendiz e instructor
-        - Pagos
         - Documentación o pruebas
         - Otra
     validations:

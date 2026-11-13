@@ -142,15 +142,6 @@
     }
     .btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 30px hsla(27,72%,47%,.35);}
 
-    .btn-client{
-      width:100%;height:2.85rem;border:1px solid var(--honey);border-radius:2rem;
-      background:transparent;
-      color:var(--honey);font-family:inherit;font-size:.88rem;font-weight:700;
-      letter-spacing:.04em;cursor:pointer;transition:all .3s;
-      display:flex;align-items:center;justify-content:center;text-decoration:none;
-    }
-    .btn-client:hover{background:hsla(30,67%,65%,.1);transform:translateY(-2px);box-shadow:0 8px 30px hsla(30,67%,65%,.15);}
-
     /* ── LINKS ── */
     .link-pin{display:flex;align-items:center;gap:.35rem;color:var(--honey);font-size:.8rem;text-decoration:none;transition:all .2s;}
     .link-pin:hover{text-decoration:underline;}
@@ -311,10 +302,6 @@
     </div>
 
     <button type="submit" class="btn-login">Ingresar</button>
-
-    <a href="<?= APP_URL ?>/portal/index.php" class="btn-client">
-      <i class="bi bi-person-badge" style="margin-right: .5rem;"></i> Acceso Clientes
-    </a>
 
     <a href="<?= APP_URL ?>/recuperar_pin.php" class="link-pin">
       <i class="bi bi-key"></i> ¿Olvidaste tu contraseña?

@@ -37,12 +37,8 @@ const ENTRADA_LISTAS_POR_SCRIPT = [
     'modules/compras/proveedores.php'       => ['dias_visita'],
     'modules/produccion/nueva_produccion.php' => ['dist'],
     'modules/produccion/registrar.php'      => ['dist'],
-    'modules/pedidos_clientes/index.php'    => ['exportar_ids', 'ids_pedidos'],
-    'modules/pedidos_clientes/exportar.php' => ['exportar_ids'],
     'modules/ventas/exportar_excel.php'     => ['exportar_ids'],
     'modules/inventario/index.php'          => ['ids_eliminar'],
-    'portal/dashboard.php'                  => ['aprobar_lote_ids', 'rechazar_lote_ids', 'ids_aprobar'],
-    'portal/exportar_pedidos_dashboard.php' => ['ids'],
 ];
 
 /**

@@ -2,17 +2,17 @@
 const { test, expect } = require('@playwright/test');
 
 /**
- * Recuperación de acceso por PIN, en el back-office y en el portal.
+ * Recuperación de acceso por PIN al back-office.
  *
  * Esta prueba existe por una vulnerabilidad real. El paso que verifica el PIN no
  * tenía límite de intentos: un fallo solo decía «PIN incorrecto» y dejaba volver a
  * probar, sin tope ni caducidad. El PIN son 6 dígitos —un millón de combinaciones—
  * y al acertar se fija una contraseña nueva, así que era una vía directa para tomar
- * la cuenta del propietario o la de cualquier cliente, incluida la del instructor.
+ * la cuenta del propietario.
  * Y el primer paso ayudaba a elegir víctima: decía si la cuenta existía y qué método
  * de recuperación tenía.
  *
- * Cada portal usa cuentas propias para cada escenario (ver 95_semilla_e2e.sql): la
+ * Cada escenario usa una cuenta propia (ver 95_semilla_e2e.sql): la
  * de bloqueo queda bloqueada 15 minutos y no puede compartirse con la de
  * recuperación correcta sin que el resultado dependa del orden de las pruebas.
  *
@@ -51,16 +51,6 @@ const PORTALES = [
     campoNueva: '#p1',
     campoConfirma: '#p2',
     botonCambiar: 'button[name="cambiar_clave"]',
-  },
-  {
-    nombre: 'portal de clientes',
-    ruta: '/portal/recuperar_pass.php',
-    cuentaOk: 'e2e_cli_recupera_ok',
-    cuentaBloqueo: 'e2e_cli_recupera_bloqueo',
-    cuentaSinPin: 'e2e_cliente',
-    campoNueva: 'input[name="nueva"]',
-    campoConfirma: 'input[name="confirm"]',
-    botonCambiar: 'button[name="cambiar_pass"]',
   },
 ];
 

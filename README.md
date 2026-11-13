@@ -2,7 +2,7 @@
 
 **Sistema de Gestión Integral para Panaderías Artesanales**
 
-BreadControl es una aplicación web diseñada específicamente para digitalizar y optimizar la operación diaria de panaderías artesanales colombianas. Desde el control de inventario hasta el cierre de caja y el portal de pedidos para clientes, todo en un solo lugar.
+BreadControl es una aplicación web diseñada específicamente para digitalizar y optimizar la operación diaria de panaderías artesanales colombianas: inventario de ingredientes por lotes, recetas, producción, ventas y cierre de caja, todo en un solo lugar.
 
 > 🌐 **Demo en vivo:** [breadcontrol.manuelcardenas.online](https://breadcontrol.manuelcardenas.online)
 
@@ -44,9 +44,6 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 - **Tres tipos de salida:** Venta (genera ingreso), Bonificación (pan regalado), Consumo interno (empleados).
 - **Control de merma** del 6% automático para harina de trigo en las compras ingresadas.
 - **Cierre del día** con observaciones que aparecen como banner al día siguiente en el tablero principal.
-- **Portal del Cliente** con registro tradicional o Google OAuth (Google Login).
-- **Flujo Educativo Aprendiz-Instructor:** Control estricto de cupo semanal para aprendices y portal del instructor para aprobar solicitudes y consolidar pagos.
-- **Pagos con Nequi (link manual):** Consolidación de saldos de pedidos en un solo link de pago de Nequi Negocios; la panadería confirma el recibo manualmente desde el back-office.
 - **Finanzas** con gráficos, KPIs y exportación a PDF.
 - **Clima en tiempo real** integrado con la API de Open-Meteo.
 - **Responsive** — funciona en PC, tablet y celular de manera fluida.
@@ -67,9 +64,6 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 | 7 | **Finanzas** | Ingresos vs compras, utilidad bruta/neta, margen, gráficos mensuales/anuales, exportar PDF |
 | 8 | **Gastos** | Registro de gastos operativos diarios por categorías (servicios, compras, otros) |
 | 9 | **Cierre del día** | Cuadre de caja, observaciones para el tablero al día siguiente, historial de cierres |
-| 10 | **Portal del Cliente** | Registro con Google OAuth / tradicional, solicitud de pedidos y visualización de saldos |
-| 11 | **Flujo Educativo (Aprendiz-Instructor)** | Control de cupo semanal para aprendices, portal de instructor para aprobación de pedidos y cobro de cartera |
-| 12 | **Pagos con Nequi (manual)** | Consolidación de saldos en un solo link de pago de Nequi Negocios; el propietario confirma el recibo desde el back-office |
 
 **Módulos adicionales:**
 - **Perfil de usuario** — Datos personales, cambiar contraseña, configurar PIN de recuperación
@@ -91,8 +85,6 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 | **Gráficos** | Chart.js (finanzas), CSS bars (tablero) |
 | **Email** | PHPMailer 6.9 (SMTP SSL/TLS) |
 | **Clima** | API Open-Meteo |
-| **Pagos** | Nequi Negocios (link de pago estático; confirmación manual del propietario) |
-| **Autenticación externa** | Google API Client (OAuth 2.0) |
 | **Hosting** | VPS con Docker, desplegado con Dokploy desde la rama `main` |
 | **Dependencias** | Composer |
 | **Pruebas** | PHPUnit 11 (unitarias + integración), Infection (mutación), Playwright (extremo a extremo) |
@@ -107,26 +99,22 @@ BreadControl es una aplicación web diseñada específicamente para digitalizar 
 ## 🏗 Arquitectura
 
 > **Más diagramas** en [`docs/diagramas.md`](docs/diagramas.md): modelo
-> entidad-relación, ciclo de vida del pedido y del pago, y la secuencia
-> aprendiz → instructor → panadería.
+> entidad-relación e integración continua.
 
 ### Componentes y responsabilidades
 
 ```mermaid
 flowchart TD
-    BO["<b>modules/</b> · 11 módulos<br/>Puntos de entrada del back-office"]
-    PT["<b>portal/</b> · 18 páginas<br/>Puntos de entrada del portal"]
+    BO["<b>modules/</b> · 10 módulos<br/>Puntos de entrada del back-office"]
 
-    CBO["<b>controllers/</b> · 12 controladores<br/>Inventario · Producción · Ventas<br/>Compras · Finanzas · Cierre · …"]
-    CPT["<b>controllers/portal/</b> · 6 clases<br/>Base · Auth · Pedido<br/>Pago · Instructor · Export"]
+    CBO["<b>controllers/</b> · 11 controladores<br/>Inventario · Producción · Ventas<br/>Compras · Finanzas · Cierre · …"]
 
-    RP["<b>ReglasPortal</b><br/>crédito y ñapa · límite de 48 h<br/>cupo semanal · horario de entrega<br/>autoría del pedido"]
-    PH["<b>PedidoHelper</b><br/>total esperado y deuda"]
-    FH["<b>FinanzasHelper</b><br/>costo real de producción · utilidad<br/>ingresos del portal en reportes"]
+    RV["<b>ReglasVenta</b><br/>crédito de bonificación y ñapa"]
+    FC["<b>FormularioCompra</b><br/>validación de compras y proveedores"]
+    FH["<b>FinanzasHelper</b><br/>costo real de producción · utilidad"]
     SG["<b>Seguridad</b><br/>política de contraseña<br/>hashing del código de recuperación<br/>umbrales de bloqueo"]
 
-    MBO["<b>models/</b> · 12 modelos<br/>Consultas preparadas por entidad"]
-    MPT["<b>PortalClienteModel</b><br/>fachada de 5 traits:<br/>Cuenta · Catálogo · Pedidos<br/>Pagos · Instructor"]
+    MBO["<b>models/</b> · 11 modelos<br/>Consultas preparadas por entidad"]
     MIL["<b>IntentoLoginModel</b><br/>intentos fallidos de acceso"]
 
     SES["<b>includes/sesion.php</b><br/>sesión · guardián CSRF<br/>autorización · IP de origen"]
@@ -138,45 +126,34 @@ flowchart TD
     BD[("MySQL 8")]
 
     BO --> CBO
-    PT --> CPT
     CBO --> MBO
-    CPT --> MPT
-    CBO --> RP
+    CBO --> RV
+    CBO --> FC
     CBO --> FH
     CBO --> SG
-    CPT --> RP
-    CPT --> PH
-    CPT --> SG
     CBO --> MIL
-    CPT --> MIL
     MIL --> SG
-    MBO --> RP
     MBO --> FH
-    MPT --> RP
     MBO --> BD
-    MPT --> BD
     MIL --> BD
     CBO --> VW
-    CPT --> VW
     VW --> AS
     CBO -.-> SES
-    CPT -.-> SES
     MBO -.-> CFG
-    MPT -.-> CFG
 ```
 
-**Cómo se lee este diagrama:** las flechas continuas son dependencias de uso; las punteadas, servicios de infraestructura que atraviesan todas las capas. Los helpers (`ReglasPortal`, `FinanzasHelper`, `Seguridad`) son **funciones puras**: no tocan la base ni la sesión, y por eso se prueban directamente. `IntentoLoginModel` es la excepción deliberada dentro de la seguridad — necesita persistir los intentos, porque un contador en sesión lo esquiva quien borre su cookie.
+**Cómo se lee este diagrama:** las flechas continuas son dependencias de uso; las punteadas, servicios de infraestructura que atraviesan todas las capas. Los helpers (`ReglasVenta`, `FormularioCompra`, `FinanzasHelper`, `Seguridad`) son **funciones puras**: no tocan la base ni la sesión, y por eso se prueban directamente. `IntentoLoginModel` es la excepción deliberada dentro de la seguridad — necesita persistir los intentos, porque un contador en sesión lo esquiva quien borre su cookie.
 
 | Capa | Responsabilidad única | Lo que **no** puede hacer |
 |---|---|---|
-| **Puntos de entrada** (`modules/`, `portal/`) | Recibir la petición e instanciar su controlador | Contener lógica: son 10 líneas cada uno |
+| **Puntos de entrada** (`modules/`) | Recibir la petición e instanciar su controlador | Contener lógica: son 10 líneas cada uno |
 | **Controladores** | Validar la entrada, orquestar el flujo y elegir la vista | Consultar la base de datos directamente |
 | **Reglas de negocio** (`helpers/`) | Decidir según las reglas del negocio. Funciones **puras**: sin base de datos ni sesión | Leer o escribir datos |
 | **Modelos** (`models/`) | Único punto de acceso a la base, siempre con consultas preparadas | Imprimir HTML o redirigir |
 | **Vistas** (`views/`) | Presentar datos ya calculados y escaparlos con `htmlspecialchars` | Calcular reglas de negocio |
 | **Infraestructura** (`config/`, `includes/`) | Sesión, guardián CSRF, conexión, registro de errores y correo | Conocer reglas del dominio |
 
-**Por qué las reglas viven aparte:** `ReglasPortal` es la fuente única del crédito/ñapa, el límite de 48 horas, el cupo semanal y el horario de entrega; `Seguridad` lo es de la política de contraseña y del tratamiento de los códigos de recuperación. Antes esas reglas estaban duplicadas —hasta en cinco sitios en el caso del portal, y en cuatro mínimos de contraseña distintos— con copias que se desviaban entre sí. Al ser funciones puras se prueban directamente, sin base de datos: son las que sostienen buena parte de las 222 pruebas.
+**Por qué las reglas viven aparte:** `ReglasVenta` es la fuente única del crédito de bonificación y ñapa; `FormularioCompra`, de lo que se acepta al registrar una compra o un proveedor; `Seguridad`, de la política de contraseña y del tratamiento de los códigos de recuperación. Antes esas reglas estaban duplicadas —con cuatro mínimos de contraseña distintos, por ejemplo— y las copias se desviaban entre sí. Al ser funciones puras se prueban directamente, sin base de datos: son las que sostienen buena parte de las 193 pruebas.
 
 **Dónde vive la protección CSRF:** el guardián `requerir_csrf()` se invoca **una vez por método de controlador que procesa POST, antes de resolver qué acción se pidió**. Es una decisión de diseño, no un detalle: colocarlo dentro de cada rama `if (isset($_POST['accion']))` habría dejado la protección a merced de que quien añada una acción nueva se acuerde de repetirla.
 
@@ -187,14 +164,12 @@ flowchart LR
     NAV["Navegador"] <--> APP["PHP 8.2<br/>BreadControl"]
     APP <--> BD[("MySQL 8")]
     APP --> SG["SendGrid<br/>correo"]
-    APP --> GO["Google OAuth 2.0<br/>acceso de clientes"]
     APP --> OM["Open-Meteo<br/>clima"]
-    APP --> NQ["Nequi Negocios<br/>enlace de pago"]
     GH["GitHub Actions<br/>11 verificaciones"] -.->|"despliegue"| DK["Dokploy · VPS<br/>Docker"]
     DK -.-> APP
 ```
 
-**Patrón:** MVC modular. Cada módulo del back-office y cada página del portal entra por un archivo mínimo que delega en su controlador.
+**Patrón:** MVC modular. Cada módulo entra por un archivo mínimo que delega en su controlador.
 
 **Método de inventario:** FIFO (*First In, First Out*) — los lotes más antiguos se consumen primero, de forma transaccional y con costeo real por lote.
 
@@ -221,7 +196,7 @@ flowchart LR
 2. **Configurar la base de datos**
 
    Para una **base nueva** basta con el esquema versionado, un volcado sin datos
-   de la base de producción (29 tablas y 6 vistas):
+   de la base de producción (24 tablas y 6 vistas):
    ```bash
    mysql -u root panaderia_bd < sql/init/01_esquema_base.sql
    ```
@@ -229,10 +204,6 @@ flowchart LR
    **Con Docker:** `docker-compose.yml` monta ese mismo archivo en
    `docker-entrypoint-initdb.d`, y MySQL lo ejecuta al crear el contenedor con un
    volumen vacío.
-
-   > `sql/panaderia_bd.sql` y `sql/init/02_extensiones_flujo.sql` se conservan como
-   > historia, pero **no** sirven para crear una base: el primero crea `cliente`
-   > con 6 columnas y el segundo presupone ese volcado antiguo.
 
    Las semillas `sql/init/90_semilla_ci.sql` y `95_semilla_e2e.sql` son solo para
    el CI y las pruebas de navegador: crean cuentas con contraseña conocida. **Nunca
@@ -259,59 +230,22 @@ flowchart LR
    - `2026-08-06_01_seguridad_login_y_codigo.sql`
    - `2026-08-06_02_eliminar_id_tienda_destino.sql`
    - `2026-08-20_01_control_migraciones.sql` — crea la tabla `migracion`, que registra qué se aplicó
+   - `2026-11-13_01_retirar_portal_clientes.sql` — elimina las tablas y columnas del
+     antiguo portal de clientes. **Borra datos:** respaldo antes, y solo después de
+     desplegar el código sin portal (el detalle está en el propio archivo).
+
+   Las migraciones de julio y agosto pertenecen al portal de clientes, ya retirado; se
+   conservan porque son la historia de las bases existentes.
 
 3. **Configurar entorno y credenciales**
    - Crear un archivo `.env` en la raíz (usando `.env.example` como base) y completar:
      * `APP_ENV` (`local` o `production`) y `APP_URL`
      * `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
      * `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
-     * `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URL`
    - Las variables de entorno **reales** (del sistema, Docker o CI) tienen prioridad sobre `.env`.
-   - El link de pago de Nequi se configura desde la app (Configuración → Pagos), no por `.env`.
 
 4. **Acceder al sistema**
    - Abrir en el navegador: `https://tu-dominio.com/login.php`
-
----
-
-## ⚙️ Configuración inicial en un despliegue nuevo
-
-Además de crear el esquema, un despliegue nuevo necesita estos datos en la tabla
-`configuracion` y en `cliente`. **Sin ellos el flujo de pago y el de aprendices no
-avanzan** (aunque la app no se rompe: muestra los avisos de "no configurado").
-
-### Pago digital (Nequi) — requisito para cobrar pedidos del portal
-Se configura desde **Configuración → Pagos** en el back-office, o directo en la BD:
-
-- `configuracion.nequi_link_pago` — el enlace de pago de Nequi Negocios de la panadería
-  (algo como `https://checkout.nequi.wompi.co/l/VPOS_xxxxxxxx`).
-- `configuracion.wompi_habilitado = 1` — interruptor del pago digital.
-
-Si falta cualquiera de las dos, el portal muestra correctamente *"La panadería aún no ha
-habilitado los pagos digitales"* y **el pago no se puede generar** (no se crea el registro
-en `pago_pedido` ni se muestra el enlace).
-
-### Cuenta del instructor ADSO — requisito para el flujo aprendiz→instructor
-- `configuracion.id_cliente_adso` — el **id** del cliente que actúa como instructor
-  (en producción, `45`). El enrutamiento de los pedidos de aprendiz y la capacidad de
-  instructor se resuelven por este id, **nunca por nombre ni por tipo**. Si la clave falta
-  o apunta a una cuenta inexistente o inactiva, el portal falla con un mensaje claro (no en
-  silencio).
-- La **cuenta instructor debe existir, estar activa (`activo = 1`) y tener `usuario` +
-  `contrasena_hash`** para poder iniciar sesión en el portal y generar códigos.
-
-### Vinculación de aprendices — por código, no manual
-- Los aprendices **se vinculan canjeando el código** que genera el instructor desde la
-  pantalla **"Mis aprendices"** (al registrarse o luego desde su perfil). No hay asignación
-  manual de instructor: el código es la única vía.
-
-> **Nota sobre las columnas `wompi_*` — NO son código muerto, no borrarlas.**
-> `configuracion.wompi_habilitado` es el interruptor del pago digital, y
-> `pago_pedido.wompi_link_url` / `wompi_link_id` almacenan el **enlace de pago de Nequi
-> Negocios**, que está alojado en `checkout.nequi.wompi.co` (Nequi corre sobre la
-> infraestructura de Wompi/Bancolombia). Lo que se retiró fue la *integración por API +
-> webhook* de Wompi (que era código muerto); el almacenamiento del enlace estático de Nequi
-> sigue en uso.
 
 ---
 
@@ -329,36 +263,24 @@ BreadControl/
 │   ├── AuthController.php
 │   ├── CompraController.php
 │   ├── FinanzasController.php
-│   ├── portal/              # Controladores del portal por responsabilidad
-│   │   ├── PortalControllerBase.php      # Sesión, autorización y canje de código
-│   │   ├── PortalAuthController.php      # Login, Google OAuth, registro, perfil
-│   │   ├── PortalPedidoController.php    # Dashboard, detalle, crear/cancelar pedido
-│   │   ├── PortalPagoController.php      # Pago consolidado (Nequi)
-│   │   ├── PortalInstructorController.php# Grupo de aprendices y cupos
-│   │   └── PortalExportController.php    # Exportaciones (Excel/PDF)
 │   └── ...
 │
 ├── models/                  # Modelos de base de datos
 │   ├── AuthModel.php
 │   ├── InventarioModel.php
 │   ├── IntentoLoginModel.php    # Intentos fallidos de acceso (anti fuerza bruta)
-│   ├── PortalClienteModel.php   # Fachada única del portal (usa los traits)
-│   ├── portal/              # Traits del modelo del portal por responsabilidad
-│   │   ├── CuentaClienteTrait.php    # Registro, perfil, contraseña, Google
-│   │   ├── CatalogoPortalTrait.php   # Variedades, productos, categorías
-│   │   ├── PedidosPortalTrait.php    # Pedidos, reportes y exportaciones
-│   │   ├── PagosPortalTrait.php      # Pagos consolidados y abonos
-│   │   └── InstructorPortalTrait.php # Aprendices, códigos, cupos, aprobaciones
 │   └── ...
 │
 ├── helpers/                 # Lógica de negocio pura y reutilizable
-│   ├── ReglasPortal.php     # Reglas del portal (crédito, 48h, cupo, horario)
-│   ├── PedidoHelper.php     # Totales y deudas de pedidos
-│   ├── FinanzasHelper.php   # Costo de producción, utilidad e ingresos del portal
+│   ├── ReglasVenta.php      # Crédito de bonificación (tiendas) y ñapa (mostrador)
+│   ├── FormularioCompra.php # Validación de compras y proveedores
+│   ├── FinanzasHelper.php   # Costo real de producción y utilidad
+│   ├── ExportadorCsv.php    # Exportaciones a Excel
 │   └── Seguridad.php        # Política de contraseña, hashing del código, umbrales
 │
 ├── includes/
 │   ├── sesion.php           # Sesión, guardián CSRF, auto-logout, IP de origen
+│   ├── entrada.php          # Normaliza $_GET/$_POST antes de los controladores
 │   ├── funciones.php        # Helpers (formato, lote FIFO, stock dinámico)
 │   └── mailer.php           # Enlace SMTP con PHPMailer
 │
@@ -369,16 +291,9 @@ BreadControl/
 │   ├── ventas/              # Ventas rápidas y carrito detallado
 │   └── ...
 │
-├── portal/                  # Portal público de clientes, aprendices e instructores
-│   ├── index.php            # Login de portal y Google OAuth callback
-│   ├── dashboard.php        # Panel de pedidos del cliente
-│   ├── nuevo_pedido.php     # Carrito de compras y cupo semanal
-│   └── pagar_consolidado.php # Registro del pago y enlace de Nequi
-│
 ├── views/                   # Vistas HTML/CSS/JS organizadas por entidad
 │   ├── layouts/             # Cabecera, Navbar y Pie de página comunes
 │   ├── inventario/          # Plantillas de CRUD e historial
-│   ├── portal/              # Vistas de pedidos y abonos
 │   └── ...
 │
 ├── assets/
@@ -416,14 +331,13 @@ BreadControl/
 
 ## 🗃 Base de Datos
 
-### Tablas (29) y vistas (6)
+### Tablas (24) y vistas (6)
 
 Las relaciones están dibujadas en el [modelo entidad-relación](docs/diagramas.md#1-modelo-entidad-relación).
 
 | Tabla | Descripción |
 |-------|-------------|
-| `configuracion` | Parámetros globales (una sola fila): márgenes, merma, pago con Nequi y la cuenta del instructor ADSO |
-| `codigo_aprendiz` | Códigos de invitación que genera el instructor, con vigencia y límite de usos |
+| `configuracion` | Parámetros globales (una sola fila): márgenes, merma, stock de seguridad |
 | `intento_login` | Intentos fallidos de acceso y de recuperación, para el límite anti fuerza bruta |
 | `ajuste_inventario` | Ajustes manuales de stock con cantidad antes y después, y motivo |
 | `alerta` | Alertas generadas por los módulos (stock, precios) y su atención |
@@ -442,11 +356,7 @@ Las relaciones están dibujadas en el [modelo entidad-relación](docs/diagramas.
 | `variedad_pan` | Subproductos o variedades de pan con foto |
 | `venta` | Registro maestro de ventas (mostrador, tiendas, consumos internos) |
 | `venta_detalle` | Detalle estructurado de pedidos por variedad |
-| `cliente` | Registro de clientes (mostrador, tiendas, aprendices e instructores) |
-| `pedido_cliente` | Solicitudes de pedidos creadas por clientes/aprendices con estado de pedido/pago |
-| `pedido_cliente_detalle` | Detalle variedad por variedad de los pedidos de clientes |
-| `pago_pedido` | Registro del pago consolidado (link de Nequi) con estado, monto y expiración |
-| `pago_abono` | Abonos reales registrados a deudas de pedidos de clientes |
+| `cliente` | Clientes del punto de venta: tiendas que compran al por mayor y mostrador |
 | `proveedor` | Proveedores de insumos y datos de contacto |
 | `compra` | Registro de compras con lotes autogenerados |
 | `historial_precio` | Registro de variación de precios por insumo y proveedor |
@@ -460,13 +370,13 @@ Las relaciones están dibujadas en el [modelo entidad-relación](docs/diagramas.
 
 ## 🧪 Pruebas
 
-El proyecto usa **PHPUnit 11** con dos suites (222 pruebas, 421 aserciones), más **29 recorridos de navegador** con Playwright:
+El proyecto usa **PHPUnit 11** con dos suites (193 pruebas, 357 aserciones), más **18 recorridos de navegador** con Playwright:
 
 | Suite | Qué cubre | Requiere BD |
 |-------|-----------|-------------|
-| **Unitarias** | Reglas de negocio del portal ([ReglasPortal](helpers/ReglasPortal.php): crédito, 48 horas, cupo, horario y autoría del pedido), reglas de seguridad ([Seguridad](helpers/Seguridad.php): política de contraseña y hashing del código de recuperación), helpers de pedidos y finanzas, funciones de formato/sanitización, CSRF, sesión y contraseñas | No |
-| **Integración** | AuthModel (login, recuperación), PortalClienteModel (aprobación/rechazo en lote, incluidos pedidos ya cancelados), cuadre de la cartera del instructor, reporte por tienda, validación de stock de ventas y generación de lotes, límite de intentos de acceso e ingresos del portal en los reportes | Sí (MySQL) |
-| **Navegador** (`e2e/`) | Acceso, venta, cierre y navegación del back-office; acceso, registro y pedido del portal; flujo aprendiz → instructor → pago consolidado; recuperación de acceso con límite de intentos; accesibilidad con axe-core | Instancia levantada |
+| **Unitarias** | Reglas de venta ([ReglasVenta](helpers/ReglasVenta.php): crédito de bonificación y ñapa), validación de compras ([FormularioCompra](helpers/FormularioCompra.php)), reglas de seguridad ([Seguridad](helpers/Seguridad.php): política de contraseña y hashing del código de recuperación), normalización de la entrada, finanzas, funciones de formato/sanitización, CSRF, sesión y contraseñas | No |
+| **Integración** | AuthModel (login, recuperación), costeo FIFO de producción, registro de compras y lotes, ajustes de inventario, recetas, cierre de caja, validación de stock de ventas y límite de intentos de acceso | Sí (MySQL) |
+| **Navegador** (`e2e/`) | Acceso, venta, cierre y navegación del back-office; recuperación de acceso con límite de intentos; uso desordenado (F5, filas borradas a medias); accesibilidad con axe-core | Instancia levantada |
 
 ```bash
 composer install           # una sola vez
@@ -482,7 +392,7 @@ Recorridos de navegador (necesitan Node y una instancia levantada):
 
 ```bash
 cd e2e && npm ci && npx playwright install chromium
-npx playwright test        # 29 recorridos sobre back-office y portal
+npx playwright test        # 18 recorridos sobre el back-office
 ```
 
 La cobertura y la mutación necesitan un controlador de cobertura (PCOV o Xdebug).
@@ -514,7 +424,7 @@ verifica nada.
 | 7 | **Calidad de código** | PHPMD contra su línea base (complejidad, métodos largos, clases sobrecargadas) más el informe de PHPMetrics como artefacto |
 | 8 | **Auditoría de seguridad** | `composer audit`, Gitleaks sobre el **historial completo** y Semgrep (`p/php` + `p/owasp-top-ten`) comparando contra la rama base. Sin tokens |
 | 9 | **Cabeceras de seguridad** | Levanta la imagen real y verifica las correcciones R-01, R-03, R-04 y R-05 del informe técnico |
-| 10 | **Extremo a extremo** | 29 recorridos de Playwright contra una instancia efímera, sembrada con `95_semilla_e2e.sql`. Solo en PRs hacia `main` |
+| 10 | **Extremo a extremo** | 18 recorridos de Playwright contra una instancia efímera, sembrada con `95_semilla_e2e.sql`. Solo en PRs hacia `main` |
 | 11 | **Seguridad (Snyk)** | Dependencias y SAST. Requiere el secreto `SNYK_TOKEN`; si no está, el job se omite sin romper el CI. Solo bloquea ante hallazgos *high* |
 
 Además, el flujo [`cabeceras-produccion.yml`](.github/workflows/cabeceras-produccion.yml)
@@ -537,16 +447,12 @@ trabajo. El razonamiento de cada uno está en
   código de 6 dígitos enviado por correo también se guarda hasheado. El primer
   paso responde igual exista o no la cuenta, para no revelar cuáles existen.
 - **Freno a la fuerza bruta** en el inicio de sesión **y en la recuperación de
-  acceso**, en el back-office y en el portal: 5 intentos fallidos por cuenta y 20
-  por IP en 15 minutos (tabla `intento_login`), guardados en base de datos para
+  acceso**: 5 intentos fallidos por cuenta y 20 por IP en 15 minutos (tabla `intento_login`), guardados en base de datos para
   que borrar la cookie no reinicie el contador.
-- **Autorización por objeto** en el portal: cada pedido se consulta, cancela o paga
-  comprobando la cuenta en sesión. Solo quien creó un pedido puede editarlo y solo
-  la cuenta a la que se factura puede pagarlo.
 - **Consultas preparadas** (PDO bind parameters) con emulación de prepares desactivada.
 - **Prevención XSS** escapando todas las salidas del DOM mediante `htmlspecialchars()`.
 - **Prevención CSRF** con inyección y verificación de tokens en todas las peticiones
-  POST de mutación de datos, tanto en el portal como en el back-office. El guardián
+  POST de mutación de datos. El guardián
   (`requerir_csrf()`) se aplica una vez por método de controlador, **antes** de mirar
   qué acción se pidió, de modo que una rama nueva no puede quedar sin proteger.
 - **Cierre de sesión por inactividad**: 6 minutos en el navegador; en el servidor

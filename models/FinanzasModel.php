@@ -11,14 +11,12 @@ class FinanzasModel {
     }
 
     /**
-     * Ingresos del rango: POS más pedidos del portal ya cobrados (ver
-     * FinanzasHelper::ingresosPortalEnRango).
+     * Ingresos por ventas del rango.
      */
     public function getIngresos(string $desde, string $hasta): float {
         $stmt = $this->pdo->prepare("SELECT COALESCE(SUM(total_venta),0) FROM venta WHERE tipo_salida='venta' AND DATE(fecha_hora) BETWEEN :d AND :h");
         $stmt->execute([':d' => $desde, ':h' => $hasta]);
-        return (float)$stmt->fetchColumn()
-             + FinanzasHelper::ingresosPortalEnRango($this->pdo, $desde, $hasta);
+        return (float)$stmt->fetchColumn();
     }
 
     public function getComprasTotal(string $desde, string $hasta): float {

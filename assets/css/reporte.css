@@ -13,7 +13,7 @@
      repite en cada página. Sin esto, la segunda página de un reporte largo
      son números sin título de columna.
    - `break-inside: avoid` en bloques y filas: nadie parte un renglón ni deja
-     el nombre de un aprendiz al final de una página con su tabla en la
+     el título de un grupo al final de una página con su tabla en la
      siguiente.
    - Cabecera y pie con `position: fixed`: el navegador los repite en todas
      las páginas al imprimir, que es la única forma de tener encabezado

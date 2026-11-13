@@ -33,13 +33,6 @@
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/InventarioController.php" method="editarInsumo"/>
   <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/InventarioController.php" method="editarInsumo"/>
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/InventarioController.php" method="ajuste"/>
-  <violation rule="PHPMD\Rule\Design\WeightedMethodCount" file="controllers/PedidoClienteController.php"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/PedidoClienteController.php" method="index"/>
-  <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/PedidoClienteController.php" method="index"/>
-  <violation rule="PHPMD\Rule\Design\LongMethod" file="controllers/PedidoClienteController.php" method="index"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/PedidoClienteController.php" method="verPedido"/>
-  <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/PedidoClienteController.php" method="verPedido"/>
-  <violation rule="PHPMD\Rule\Design\LongMethod" file="controllers/PedidoClienteController.php" method="verPedido"/>
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/ProduccionController.php" method="nuevaProduccion"/>
   <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/ProduccionController.php" method="nuevaProduccion"/>
   <violation rule="PHPMD\Rule\Design\LongMethod" file="controllers/ProduccionController.php" method="nuevaProduccion"/>
@@ -60,30 +53,6 @@
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/VentaController.php" method="clientes"/>
   <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/VentaController.php" method="clientes"/>
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/VentaController.php" method="nuevaVenta"/>
-  <violation rule="PHPMD\Rule\Design\WeightedMethodCount" file="controllers/portal/PortalAuthController.php"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/portal/PortalAuthController.php" method="login"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/portal/PortalAuthController.php" method="googleCallback"/>
-  <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/portal/PortalAuthController.php" method="googleCallback"/>
-  <violation rule="PHPMD\Rule\Design\LongMethod" file="controllers/portal/PortalAuthController.php" method="googleCallback"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/portal/PortalAuthController.php" method="registro"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/portal/PortalAuthController.php" method="recuperarPass"/>
-  <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/portal/PortalAuthController.php" method="recuperarPass"/>
-  <violation rule="PHPMD\Rule\Design\LongMethod" file="controllers/portal/PortalAuthController.php" method="recuperarPass"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/portal/PortalAuthController.php" method="perfil"/>
-  <violation rule="PHPMD\Rule\Design\LongMethod" file="controllers/portal/PortalAuthController.php" method="perfil"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/portal/PortalAuthController.php" method="completarEmail"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/portal/PortalInstructorController.php" method="misAprendices"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/portal/PortalPagoController.php" method="pagarConsolidado"/>
-  <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/portal/PortalPagoController.php" method="pagarConsolidado"/>
-  <violation rule="PHPMD\Rule\Design\LongMethod" file="controllers/portal/PortalPagoController.php" method="pagarConsolidado"/>
-  <violation rule="PHPMD\Rule\Design\WeightedMethodCount" file="controllers/portal/PortalPedidoController.php"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/portal/PortalPedidoController.php" method="dashboard"/>
-  <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/portal/PortalPedidoController.php" method="dashboard"/>
-  <violation rule="PHPMD\Rule\Design\LongMethod" file="controllers/portal/PortalPedidoController.php" method="dashboard"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/portal/PortalPedidoController.php" method="detallePedido"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="controllers/portal/PortalPedidoController.php" method="nuevoPedido"/>
-  <violation rule="PHPMD\Rule\Design\NpathComplexity" file="controllers/portal/PortalPedidoController.php" method="nuevoPedido"/>
-  <violation rule="PHPMD\Rule\Design\LongMethod" file="controllers/portal/PortalPedidoController.php" method="nuevoPedido"/>
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="models/CompraModel.php" method="registrarCompra"/>
   <violation rule="PHPMD\Rule\Design\NpathComplexity" file="models/CompraModel.php" method="registrarCompra"/>
   <violation rule="PHPMD\Rule\Design\LongParameterList" file="models/CompraModel.php" method="guardarCompraYLote"/>
@@ -94,7 +63,6 @@
   <violation rule="PHPMD\Rule\Design\LongMethod" file="models/ProduccionModel.php" method="registrarProduccionConConsumos"/>
   <violation rule="PHPMD\Rule\Design\LongParameterList" file="models/ProduccionModel.php" method="registrarProduccionConConsumos"/>
   <violation rule="PHPMD\Rule\Design\TooManyPublicMethods" file="models/RecetaModel.php"/>
-  <violation rule="PHPMD\Rule\Design\TooManyPublicMethods" file="helpers/ReglasPortal.php"/>
   <violation rule="PHPMD\Rule\Design\WeightedMethodCount" file="models/VentaModel.php"/>
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="models/VentaModel.php" method="registrarPedidoDetallado"/>
   <violation rule="PHPMD\Rule\Design\NpathComplexity" file="models/VentaModel.php" method="registrarPedidoDetallado"/>
@@ -102,13 +70,4 @@
   <violation rule="PHPMD\Rule\CyclomaticComplexity" file="models/VentaModel.php" method="editarPedidoDetallado"/>
   <violation rule="PHPMD\Rule\Design\NpathComplexity" file="models/VentaModel.php" method="editarPedidoDetallado"/>
   <violation rule="PHPMD\Rule\Design\LongMethod" file="models/VentaModel.php" method="editarPedidoDetallado"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="models/portal/InstructorPortalTrait.php" method="calcularSaldoPendiente"/>
-  <violation rule="PHPMD\Rule\Design\NpathComplexity" file="models/portal/InstructorPortalTrait.php" method="calcularSaldoPendiente"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="models/portal/InstructorPortalTrait.php" method="canjearCodigoAprendiz"/>
-  <violation rule="PHPMD\Rule\Design\NpathComplexity" file="models/portal/InstructorPortalTrait.php" method="canjearCodigoAprendiz"/>
-  <violation rule="PHPMD\Rule\UnusedFormalParameter" file="models/portal/PagosPortalTrait.php"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="models/portal/PedidosPortalTrait.php" method="cancelarPedido"/>
-  <violation rule="PHPMD\Rule\CyclomaticComplexity" file="models/portal/PedidosPortalTrait.php" method="crearPedido"/>
-  <violation rule="PHPMD\Rule\Design\NpathComplexity" file="models/portal/PedidosPortalTrait.php" method="crearPedido"/>
-  <violation rule="PHPMD\Rule\Design\LongMethod" file="models/portal/PedidosPortalTrait.php" method="crearPedido"/>
 </phpmd-baseline>

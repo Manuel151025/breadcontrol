@@ -12,8 +12,8 @@ require_once __DIR__ . '/env.php';
 //  APP_ENV (del .env) es la fuente de verdad. Por seguridad, si NO está definido se
 //  asume 'production': jamás se exponen errores por defecto. En producción los errores
 //  van SOLO al archivo de log; en local se muestran en pantalla como en desarrollo.
-//  Este es el punto de arranque comun: config/app.php lo carga TODA página del portal
-//  y del back-office, asi que la configuracion aplica de forma global.
+//  Este es el punto de arranque comun: config/app.php lo carga TODA página del
+//  sistema, asi que la configuracion aplica de forma global.
 // ============================================================
 define('APP_ENV', strtolower(trim((string) get_env('APP_ENV', 'production'))));
 

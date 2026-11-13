@@ -65,7 +65,7 @@ eso ya lo dice el job de cobertura—. Lo que aporta la mutación es la calidad 
 las pruebas que existen.
 
 Se limita a `helpers/` y `models/`: ahí vive la lógica que hace perder dinero si
-falla (FIFO de lotes, cuadre de caja, saldos del instructor). Mutar
+falla (FIFO de lotes, cuadre de caja, costeo de producción). Mutar
 `controllers/`, al 0 % de cobertura, produciría mutantes vivos por definición.
 
 ### PHPMD: línea base, no umbral
@@ -114,9 +114,6 @@ Decirlo importa tanto como decir lo que sí:
   verificación automática los restaura (punto 23 del anexo de limitaciones).
 - **Accesibilidad.** Playwright está montado y `axe-core` encajaría sin
   esfuerzo, pero no se ha añadido (punto 27).
-- **El pago consolidado del portal**, que es el único recorrido de los
-  planificados que quedó fuera: necesita configuración de Nequi y un pedido
-  aprobado por instructor.
 - **Compatibilidad con PHP más allá de 8.3.** La compilación, las unitarias y
   las de integración corren sobre una matriz de **8.2 y 8.3**, y **ambas
   bloquean**: el código ya está verificado en las dos. Los otros ocho jobs

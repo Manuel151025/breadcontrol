@@ -58,21 +58,13 @@ VALUES (
     1
 );
 
--- ── Cliente del portal, con credenciales de acceso ──────────
-INSERT INTO cliente (nombre, tipo, telefono, activo, usuario, contrasena_hash, email)
-VALUES (
-    'Tienda de pruebas E2E',
-    'tienda',
-    '3000000000',
-    1,
-    'e2e_cliente',
-    '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti',
-    'e2e_cliente@ejemplo.test'
-);
+-- ── Tienda cliente del punto de venta ───────────────────────
+INSERT INTO cliente (nombre, tipo, telefono, activo)
+VALUES ('Tienda de pruebas E2E', 'tienda', '3000000000', 1);
 
--- ── Catalogo minimo para poder crear un pedido ──────────────
--- Sin al menos una categoria de precio y una variedad, la pantalla de nuevo
--- pedido no tiene nada que ofrecer y el recorrido no se puede completar.
+-- ── Catalogo minimo para poder vender ───────────────────────
+-- Sin al menos una categoria de precio y una variedad, el punto de venta no
+-- tiene nada que ofrecer y el recorrido no se puede completar.
 INSERT INTO categoria_precio (nombre, precio_unitario, activo)
 VALUES ('Categoria E2E', 1000.00, 1);
 
@@ -127,41 +119,11 @@ VALUES (
 
 -- ── Cuentas para probar la recuperación de acceso ────────────
 --
--- Una por escenario y por portal, a propósito: la prueba de bloqueo deja la
+-- Una por escenario, a propósito: la prueba de bloqueo deja la
 -- cuenta bloqueada 15 minutos, y si compartiera cuenta con la de recuperación
 -- correcta, el resultado dependería del orden en que corran las pruebas.
 --
--- PIN de recuperación de las cuatro:  246810
+-- PIN de recuperación de las dos:  246810
 INSERT INTO usuario (nombre_usuario, nombre_completo, contrasena_hash, pin_recuperacion, rol, activo) VALUES
     ('e2e_recupera_ok',      'Recuperación correcta E2E', '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti', '$2y$10$Ch9ko5izfPMT3/itGCKWqugSLethcEhQDscUA5vCaiqLb2h8yoL6S', 'propietario', 1),
     ('e2e_recupera_bloqueo', 'Recuperación bloqueada E2E', '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti', '$2y$10$Ch9ko5izfPMT3/itGCKWqugSLethcEhQDscUA5vCaiqLb2h8yoL6S', 'propietario', 1);
-
-INSERT INTO cliente (nombre, tipo, activo, usuario, contrasena_hash, pin_recuperacion, email) VALUES
-    ('Cliente recuperación correcta E2E', 'tienda', 1, 'e2e_cli_recupera_ok',      '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti', '$2y$10$Ch9ko5izfPMT3/itGCKWqugSLethcEhQDscUA5vCaiqLb2h8yoL6S', 'e2e_cli_rec_ok@ejemplo.test'),
-    ('Cliente recuperación bloqueada E2E', 'tienda', 1, 'e2e_cli_recupera_bloqueo', '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti', '$2y$10$Ch9ko5izfPMT3/itGCKWqugSLethcEhQDscUA5vCaiqLb2h8yoL6S', 'e2e_cli_rec_bloq@ejemplo.test');
-
--- ── Instructor ADSO y dos aprendices de su grupo ─────────────
---
--- El flujo para el que existe el portal: los aprendices piden pan a la cuenta
--- del instructor, el instructor aprueba los pedidos y los paga todos juntos.
--- Sin estas filas ninguna prueba puede recorrerlo.
---
--- La cuenta instructor se reconoce SOLO por configuracion.id_cliente_adso
--- (InstructorPortalTrait::esInstructorCapaz), nunca por el tipo de cliente. La
--- semilla del CI no crea la fila de configuracion, así que se crea aquí, con
--- un enlace de Nequi ficticio: la prueba comprueba que se muestra, nunca lo abre.
---
--- Contraseña de las tres cuentas: la misma de arriba.
-INSERT INTO cliente (nombre, tipo, activo, usuario, contrasena_hash, email)
-VALUES ('Instructor ADSO E2E', 'tienda', 1, 'e2e_instructor', '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti', 'e2e_instructor@ejemplo.test');
-
--- Variable y no subconsulta: MySQL no deja leer `cliente` dentro de un INSERT
--- sobre la misma tabla.
-SET @id_instructor = LAST_INSERT_ID();
-
-INSERT INTO cliente (nombre, tipo, activo, usuario, contrasena_hash, email, es_aprendiz, id_instructor, cupo_semanal, fecha_aprendiz) VALUES
-    ('Aprendiz A E2E', 'tienda', 1, 'e2e_aprendiz_a', '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti', 'e2e_aprendiz_a@ejemplo.test', 1, @id_instructor, 20000.00, NOW()),
-    ('Aprendiz B E2E', 'tienda', 1, 'e2e_aprendiz_b', '$2y$10$ehvMGOKmMTZycXhcH7fXmuWFmoAqJ1Rc2u0uL7SCUKq3IzrMiQ3ti', 'e2e_aprendiz_b@ejemplo.test', 1, @id_instructor, 20000.00, NOW());
-
-INSERT INTO configuracion (id_cliente_adso, nequi_link_pago, nequi_titular, wompi_habilitado)
-VALUES (@id_instructor, 'https://checkout.wompi.co/l/E2E_PRUEBA', 'Panadería de pruebas E2E', 1);

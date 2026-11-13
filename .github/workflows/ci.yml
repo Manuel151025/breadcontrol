@@ -504,11 +504,11 @@ jobs:
       - name: Instalar Semgrep
         run: pip install --quiet semgrep
 
-      # Sobre los hallazgos NUEVOS, no sobre todos. El repositorio arrastra 5
+      # Sobre los hallazgos NUEVOS, no sobre todos. El repositorio arrastra 4
       # hallazgos ERROR que se revisaron a mano y son falsos positivos:
       #
-      #   - 4 x echoed-request sobre `echo json_encode(...)` en endpoints AJAX
-      #     (ProduccionController, VentaController x2, PortalPedidoController).
+      #   - 3 x echoed-request sobre `echo json_encode(...)` en endpoints AJAX
+      #     (ProduccionController, VentaController x2).
       #     La regla asume salida HTML; aplicar htmlentities ahi CORROMPERIA el
       #     JSON que espera el navegador.
       #   - 1 x echoed-request sobre `<?= (int)($_POST['num_tandas'] ?? 1) ?>`

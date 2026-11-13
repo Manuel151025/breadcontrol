@@ -1,6 +1,6 @@
 {
     "name": "manuel151025/breadcontrol",
-    "description": "BreadControl — Sistema web de gestión para panaderías: inventario, recetas, producción, ventas, finanzas y portal de clientes.",
+    "description": "BreadControl — Sistema web de gestión para panaderías: inventario por lotes, recetas, producción, ventas y finanzas.",
     "type": "project",
     "license": "MIT",
     "keywords": [

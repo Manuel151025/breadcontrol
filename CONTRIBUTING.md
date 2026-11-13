@@ -78,7 +78,7 @@ Notas:
   `feat`, `fix`, `refactor`, `test`, `ci`, `docs`, `chore`.
   - Ejemplo: `fix: htmlspecialchars nunca recibe NULL en las vistas`
 - **Lógica de negocio:** las reglas puras van en `helpers/` (ver
-  `helpers/ReglasPortal.php`) con sus pruebas unitarias; el acceso a datos va en
+  `helpers/ReglasVenta.php`) con sus pruebas unitarias; el acceso a datos va en
   `models/`; las vistas no calculan reglas de negocio.
 - **Vistas:** el CSS y el JS de cada vista viven en `assets/css/` y `assets/js/`
   (no inline), siguiendo el patrón `<link>` en la primera línea de la vista.

@@ -39,9 +39,6 @@ body:
       options:
         - Propietario (back-office)
         - Empleado (back-office)
-        - Cliente del portal
-        - Aprendiz
-        - Instructor
         - Sin iniciar sesión
     validations:
       required: true

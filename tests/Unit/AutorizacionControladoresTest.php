@@ -4,7 +4,7 @@
 // Inventario ejecutable de la autorizacion de TODOS los controladores.
 //
 // Por que es una prueba estructural y no funcional: las guardas
-// (requerirPropietario, requerirLogin, requireCliente) terminan en `exit`, asi
+// (requerirPropietario, requerirLogin) terminan en `exit`, asi
 // que no se pueden invocar desde PHPUnit sin matar el proceso de pruebas. Lo
 // que si se puede fijar —y es lo que de verdad falla en la practica— es que
 // ningun endpoint nuevo nazca sin guarda. El riesgo real no es que una guarda
@@ -23,7 +23,7 @@ final class AutorizacionControladoresTest extends TestCase
      * Llamadas que cierran el acceso. `startSession()` NO esta aqui a
      * proposito: solo arranca la sesion, no comprueba quien la tiene.
      */
-    private const GUARDAS = ['requerirPropietario', 'requerirLogin', 'requireCliente'];
+    private const GUARDAS = ['requerirPropietario', 'requerirLogin'];
 
     /**
      * Endpoints deliberadamente accesibles sin sesion, con el motivo de cada
@@ -36,14 +36,6 @@ final class AutorizacionControladoresTest extends TestCase
         'AuthController::login'         => 'Formulario de acceso; exigir sesion para entrar seria circular.',
         'AuthController::recuperarPin'  => 'Recuperacion de acceso: por definicion, sin sesion.',
         'AuthController::logout'        => 'Cerrar sesion no puede exigir tenerla; sin ella no hace nada.',
-
-        'PortalAuthController::login'          => 'Acceso del portal de clientes.',
-        'PortalAuthController::googleCallback' => 'Retorno de Google OAuth: llega antes de haber sesion.',
-        'PortalAuthController::registro'       => 'Alta de cliente nuevo.',
-        'PortalAuthController::recuperarPass'  => 'Recuperacion de contrasena del portal.',
-        'PortalAuthController::completarEmail' => 'Comprueba $_SESSION[cliente_id] EN LINEA en vez de con '
-            . 'requireCliente(): esa guarda redirige a completar_email.php cuando falta el correo, '
-            . 'asi que usarla aqui crearia un bucle de redireccion infinito.',
     ];
 
     /**
@@ -85,8 +77,7 @@ final class AutorizacionControladoresTest extends TestCase
     {
         $solo_login = [];
         foreach (self::metodosPublicos() as $clave => $datos) {
-            if (in_array('requerirLogin', $datos['guardas'], true)
-                && !in_array('requireCliente', $datos['guardas'], true)) {
+            if (in_array('requerirLogin', $datos['guardas'], true)) {
                 $solo_login[] = $clave;
             }
         }
@@ -113,11 +104,14 @@ final class AutorizacionControladoresTest extends TestCase
             }
         }
 
-        // 30 metodos exigen propietario. El numero exacto importa menos que el
+        // 25 metodos exigen propietario. El numero exacto importa menos que el
         // hecho de que no baje sin querer: cada uno que salga de aqui es una
-        // pantalla de administracion que se abre a mas gente.
+        // pantalla de administracion que se abre a mas gente. (Eran 30; al
+        // retirar el portal de clientes salieron, a proposito, los pedidos de
+        // clientes —tres pantallas—, los pagos digitales y las tiendas
+        // beneficiarias.)
         $this->assertGreaterThanOrEqual(
-            30,
+            25,
             $solo_propietario,
             'Bajo el numero de endpoints que exigen propietario. Comprueba que sea intencionado.'
         );
@@ -143,7 +137,7 @@ final class AutorizacionControladoresTest extends TestCase
         // encontrar metodos —por un cambio de rutas o de sintaxis—, las otras
         // comprobaciones pasarian recorriendo una lista vacia y no verificarian
         // nada. Este es el fallo que las haria mentir en silencio.
-        $this->assertGreaterThan(40, count(self::metodosPublicos()));
+        $this->assertGreaterThan(25, count(self::metodosPublicos()));
     }
 
     /**
@@ -156,10 +150,7 @@ final class AutorizacionControladoresTest extends TestCase
     private static function metodosPublicos(): array
     {
         $raiz = dirname(__DIR__, 2);
-        $rutas = array_merge(
-            glob($raiz . '/controllers/*.php') ?: [],
-            glob($raiz . '/controllers/portal/*.php') ?: []
-        );
+        $rutas = glob($raiz . '/controllers/*.php') ?: [];
 
         $resultado = [];
         foreach ($rutas as $ruta) {

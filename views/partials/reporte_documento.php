@@ -9,9 +9,9 @@
 //
 // Uso:
 //   reporte_documento_inicio([
-//       'titulo'    => 'Reporte de Panes por Aprendiz',
-//       'subtitulo' => $nombre_tienda,
-//       'meta'      => ['Fecha de entrega' => $fecha, 'Pedido' => '#0024'],
+//       'titulo'    => 'Producción del día',
+//       'subtitulo' => $nombre_panaderia,
+//       'meta'      => ['Fecha' => $fecha, 'Tandas' => $total_tandas],
 //       'horizontal'=> false,   // opcional, para tablas anchas
 //   ]);
 //   ... contenido ...

@@ -6,8 +6,8 @@
 //  'unsafe-inline' en script-src, y eso deja abierta la via mas comun de XSS
 //  (punto 22 del anexo). Un atributo data-* no es codigo ejecutable.
 //
-//  Se mantiene el nombre global `appUrl` a proposito: ventas.js, produccion.js
-//  y portal_nuevo_pedido.js ya lo usan en decenas de sitios, y renombrarlo
+//  Se mantiene el nombre global `appUrl` a proposito: ventas.js y produccion.js
+//  ya lo usan en decenas de sitios, y renombrarlo
 //  ahora mezclaria dos cambios sin relacion en la misma revision.
 // ============================================================
 var appUrl = (document.body && document.body.dataset.appUrl) || '';

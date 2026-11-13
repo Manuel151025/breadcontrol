@@ -81,7 +81,6 @@ function navActive(string $path): string {
     <a href="<?= APP_URL ?>/modules/inventario/index.php" class="n-item <?= navActive('/inventario') ?>"><i class="bi bi-box-seam-fill"></i><span class="n-lbl">Inventario</span></a>
     <a href="<?= APP_URL ?>/modules/produccion/index.php" class="n-item <?= navActive('/produccion') ?>"><i class="bi bi-fire"></i><span class="n-lbl">Producción</span></a>
     <a href="<?= APP_URL ?>/modules/ventas/index.php"     class="n-item <?= navActive('/ventas') ?>"><i class="bi bi-bag-fill"></i><span class="n-lbl">Ventas</span></a>
-    <a href="<?= APP_URL ?>/modules/pedidos_clientes/index.php" class="n-item <?= navActive('/pedidos_clientes') ?>"><i class="bi bi-inbox-fill"></i><span class="n-lbl">Pedidos</span></a>
     <a href="<?= APP_URL ?>/modules/recetas/index.php"    class="n-item <?= navActive('/recetas') ?>"><i class="bi bi-journal-richtext"></i><span class="n-lbl">Recetas</span></a>
     <a href="<?= APP_URL ?>/modules/compras/index.php"    class="n-item <?= navActive('/compras') ?>"><i class="bi bi-cart-fill"></i><span class="n-lbl">Compras</span></a>
     <a href="<?= APP_URL ?>/modules/finanzas/index.php"   class="n-item <?= navActive('/finanzas') ?>"><i class="bi bi-cash-stack"></i><span class="n-lbl">Finanzas</span></a>

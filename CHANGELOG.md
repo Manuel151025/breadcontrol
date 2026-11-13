@@ -6,6 +6,37 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+### Retirado — Portal de Clientes
+
+BreadControl deja de ser un proyecto académico del SENA y pasa a ser el sistema
+de gestión de una panadería real. El **Portal de Clientes** —donde los aprendices
+pedían pan a cuenta del instructor, con códigos de invitación, cupo semanal,
+aprobación del instructor, pagos consolidados por Nequi y acceso con Google— se
+retira por completo. El back-office no cambia: inventario, compras, producción,
+recetas, ventas, gastos, cierre y finanzas siguen igual.
+
+- **Código:** `portal/`, sus controladores, modelos y vistas; los pedidos de
+  clientes del back-office; las pantallas de pagos digitales y de tiendas
+  beneficiarias (esa marca no tenía efecto fuera del portal); `ReglasPortal`,
+  `PedidoHelper` y `estados_pago.php`. El crédito de bonificación y ñapa, que
+  compartía con el punto de venta, pasa a `helpers/ReglasVenta.php`.
+- **Finanzas:** los reportes dejan de sumar los ingresos de pedidos del portal
+  (`FinanzasHelper::ingresosPortalEnRango`). Ventas, cierre, tablero y gastos
+  cuentan solo las ventas del punto de venta.
+- **Base de datos:** migración `2026-11-13_01_retirar_portal_clientes.sql`.
+  Elimina `pedido_cliente`, `pedido_cliente_detalle`, `pago_pedido`,
+  `pago_abono` y `codigo_aprendiz`; las columnas de acceso, Google, aprendiz y
+  cupo de `cliente`; las de Nequi y de la cuenta del instructor en
+  `configuracion`. Borra las cuentas que solo existían para el portal, pero
+  **conserva todo cliente con ventas registradas**. Requiere respaldo previo y
+  va **después** de desplegar el código.
+- **Seguridad:** la política de contenido ya no permite enviar formularios a
+  Google (`form-action 'self'`), y el límite de intentos de acceso tiene un solo
+  ámbito, el del back-office.
+- **Pruebas:** se retiran las del portal; quedan 193 en PHPUnit y 18 recorridos
+  de navegador. El baseline de PHPStan baja de 635 a 371 ocurrencias y el de
+  PHPMD, de 111 a 70 entradas.
+
 ### Corregido — uso desordenado y entradas manipuladas
 
 Se probó el sistema como lo prueban los compañeros de clase: un programa entró

@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { CUENTAS, entrarPortal, entrarBackOffice } = require('./ayudas');
+const { CUENTAS, entrarBackOffice } = require('./ayudas');
 
 /**
  * Lo que pasa cuando alguien usa la aplicación con prisa o sin cuidado: doble
@@ -9,12 +9,10 @@ const { CUENTAS, entrarPortal, entrarBackOffice } = require('./ayudas');
  * Cada caso corresponde a un fallo real encontrado al probar el sistema como lo
  * prueban los compañeros de clase, «tocando lo que no deben»:
  *
- *   1. F5 sobre «¡Pedido Confirmado!» (o un doble clic en Enviar) creaba otro
- *      pedido idéntico y consumía cupo del aprendiz.
- *   2. En la receta, la marca de «aplica merma» caía en el ingrediente
+ *   1. En la receta, la marca de «aplica merma» caía en el ingrediente
  *      equivocado: una casilla sin marcar no se envía, y las casillas sin
  *      índice se emparejaban por posición con los ingredientes.
- *   3. F5 sobre el aviso de una compra registrada la registraba otra vez:
+ *   2. F5 sobre el aviso de una compra registrada la registraba otra vez:
  *      otro lote, el stock y el gasto del mes duplicados.
  */
 
@@ -29,46 +27,7 @@ function letras(n) {
   return s;
 }
 
-/**
- * Cuántos pedidos lista el tablero del portal (cada uno muestra «#NNNN»).
- * @param {import('@playwright/test').Page} page
- */
-async function contarPedidos(page) {
-  await page.goto('/portal/dashboard.php');
-  const texto = await page.locator('body').innerText();
-  return (texto.match(/#\s?\d{4}/g) || []).length;
-}
-
 test.describe('Uso desordenado', () => {
-
-  test('doble clic y F5 al enviar un pedido crean un solo pedido', async ({ page }) => {
-    await entrarPortal(page, CUENTAS.cliente);
-    const antes = await contarPedidos(page);
-
-    await page.goto('/portal/nuevo_pedido.php');
-    await page.locator('.price-tab').first().click();
-    const tarjeta = page.locator('.prod-card').first();
-    await expect(tarjeta).toBeVisible();
-    await tarjeta.locator('.pc-action').click();
-    await tarjeta.locator('.pf-cant').fill('2');
-    await tarjeta.locator('.pf-add').click();
-    await expect(page.locator('#cart-count')).toHaveText('1');
-
-    let envios = 0;
-    page.on('request', (r) => {
-      if (r.method() === 'POST' && r.url().includes('nuevo_pedido.php')) envios++;
-    });
-
-    await page.locator('#btn-pedido').dblclick();
-    await expect(page.locator('.msg-success')).toBeVisible();
-    expect(envios, 'el doble clic no debe enviar el formulario dos veces').toBe(1);
-
-    // F5 sobre la pantalla de resultado reenvía el mismo formulario.
-    await page.reload();
-    await expect(page.locator('.msg-success')).toBeVisible();
-
-    expect(await contarPedidos(page)).toBe(antes + 1);
-  });
 
   test('la merma de la receta queda en el ingrediente que se marcó', async ({ page }) => {
     await entrarBackOffice(page, CUENTAS.propietario);

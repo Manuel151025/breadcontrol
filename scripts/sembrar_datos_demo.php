@@ -105,7 +105,7 @@ $insumos     = filas($pdo, "SELECT id_insumo, nombre, unidad_medida, es_harina F
 $proveedores = filas($pdo, "SELECT id_proveedor FROM proveedor WHERE activo = 1");
 $productos   = filas($pdo, "SELECT id_producto, nombre FROM producto WHERE activo = 1");
 $categorias  = filas($pdo, "SELECT id_categoria, precio_unitario FROM categoria_precio ORDER BY precio_unitario");
-$tiendas     = filas($pdo, "SELECT id_cliente FROM cliente WHERE tipo = 'tienda' AND activo = 1 AND es_aprendiz = 0 LIMIT 12");
+$tiendas     = filas($pdo, "SELECT id_cliente FROM cliente WHERE tipo = 'tienda' AND activo = 1 LIMIT 12");
 
 foreach ([['insumos', $insumos], ['proveedores', $proveedores], ['productos', $productos], ['categorías de precio', $categorias]] as [$que, $lista]) {
     if ($lista === []) {

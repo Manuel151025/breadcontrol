@@ -8,7 +8,7 @@
   <?php // Metadatos públicos (R-10 del informe técnico). Sin ellos, compartir el
         // enlace por WhatsApp, correo o redes muestra solo la URL desnuda, y los
         // buscadores no tienen de dónde sacar una descripción. ?>
-  <meta name="description" content="BreadControl: sistema de gestión para panaderías. Inventario FIFO con costeo real por lote, producción por recetas, ventas, cierre de caja y portal de pedidos para clientes y aprendices.">
+  <meta name="description" content="BreadControl: sistema de gestión para panaderías. Inventario FIFO con costeo real por lote, producción por recetas, ventas y cierre de caja.">
   <link rel="canonical" href="<?= APP_URL ?>/">
 
   <meta property="og:type" content="website">
@@ -284,7 +284,7 @@
     <div class="section-header reveal">
       <h2 class="section-h2">Acerca del <span class="text-gradient-warm">Sistema</span></h2>
       <p class="section-p">Nace de una necesidad real: la panadería familiar llevaba todos sus registros en cuadernos. No se conocía el costo real de producción, los insumos se agotaban sin aviso y la utilidad era un misterio.</p>
-      <p class="section-p" style="margin-top:.8rem;font-size:.85rem">Desarrollado por <span class="dev">Manuel Cardenas Suarez</span>, aprendiz SENA en Florencia, Caquetá. El núcleo operativo —inventario, producción, ventas y cierre— puede instalarse en el equipo de la panadería y funcionar sin costos mensuales. Algunas funciones opcionales, como el clima y el acceso con Google, sí requieren conexión a internet.</p>
+      <p class="section-p" style="margin-top:.8rem;font-size:.85rem">Desarrollado por <span class="dev">Manuel Cardenas Suarez</span> en Florencia, Caquetá. El núcleo operativo —inventario, producción, ventas y cierre— puede instalarse en el equipo de la panadería y funcionar sin costos mensuales. Algunas funciones opcionales, como el clima, sí requieren conexión a internet.</p>
     </div>
     <div class="about-grid">
       <div class="glass-card about-card reveal stagger">
@@ -378,9 +378,9 @@
   <div class="container footer-inner">
     <div class="footer-brand">
       <div class="footer-logo"><img src="<?= APP_URL ?>/assets/img/logo.png" alt="B"></div>
-      <span class="footer-txt">BreadControl · SENA 2026</span>
+      <span class="footer-txt">BreadControl · 2026</span>
     </div>
-    <p class="footer-right">Manuel Cardenas Suarez · Florencia, Caquetá · Tecnólogo ADSO</p>
+    <p class="footer-right">Manuel Cardenas Suarez · Florencia, Caquetá</p>
   </div>
 </footer>
 

@@ -14,7 +14,6 @@ Allow: /$
 
 # Acceso y operación interna
 Disallow: /login.php
-Disallow: /portal/
 Disallow: /modules/
 Disallow: /controllers/
 Disallow: /models/

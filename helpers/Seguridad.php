@@ -2,7 +2,7 @@
 // helpers/Seguridad.php
 
 /**
- * Reglas de seguridad transversales al back-office y al Portal de Clientes.
+ * Reglas de seguridad del acceso al sistema.
  *
  * Fuente única de tres cosas que antes estaban dispersas o resueltas de forma
  * distinta en cada pantalla:

@@ -5,7 +5,7 @@ require_once __DIR__ . '/../helpers/Seguridad.php';
 
 /**
  * Registro de intentos fallidos de inicio de sesión, para frenar la fuerza
- * bruta en el login administrativo y en el del Portal de Clientes.
+ * bruta en el login administrativo y en la recuperación de acceso.
  *
  * Se persiste en base de datos (no en sesión) a propósito: un atacante controla
  * su propia cookie, así que un contador en `$_SESSION` se esquiva descartándola.
@@ -13,8 +13,7 @@ require_once __DIR__ . '/../helpers/Seguridad.php';
  */
 class IntentoLoginModel {
 
-    public const AMBITO_ADMIN  = 'admin';
-    public const AMBITO_PORTAL = 'portal';
+    public const AMBITO_ADMIN = 'admin';
 
     private PDO $pdo;
 

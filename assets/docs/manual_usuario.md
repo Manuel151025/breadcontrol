@@ -1,6 +1,6 @@
 # 🍞 Manual de Usuario — BreadControl
 
-Bienvenido al manual oficial de usuario de **BreadControl**, el sistema de gestión integral diseñado para panaderías artesanales. Esta guía está dividida en dos secciones principales: una para el **Propietario (Administración)** y otra para los **Clientes (Portal de Pedidos)**.
+Bienvenido al manual oficial de usuario de **BreadControl**, el sistema de gestión integral diseñado para panaderías artesanales. Esta guía explica cómo administrar la panadería desde el sistema.
 
 ---
 
@@ -45,35 +45,3 @@ BreadControl cuenta con dos modalidades para registrar ingresos en la panadería
 Al finalizar la jornada laboral, debes realizar obligatoriamente el cierre de caja.
 * **Efectivo y Cierre**: Ingresa el dinero en efectivo físico presente en caja para que el sistema calcule si hay sobrantes o faltantes comparados con el registro digital.
 * **Observaciones para el Siguiente Día**: Escribe notas críticas sobre stock, pedidos especiales, o pendientes de mantenimiento. Estas aparecerán automáticamente en el Dashboard del propietario al día siguiente.
-
----
-
-# 👥 Sección 2: Manual de Usuario para el Cliente
-
-Esta sección detalla cómo los clientes registrados (Tiendas, Mostrador o Aprendices del SENA) pueden usar el portal web de BreadControl para hacer pedidos, pagar y gestionar sus saldos.
-
-## 1. Crear y Editar Pedidos
-Los clientes pueden armar sus pedidos de panadería desde cualquier dispositivo móvil o computador.
-* **Armar Pedido**: Accede a **Armar Pedido** desde el portal. Selecciona una pestaña de precio ($500, $1.000, $2.000, etc.) y toca sobre las fotos de los panes para agregarlos al carrito.
-* **Seleccionar Fecha de Entrega**: Selecciona la fecha en la que deseas recibir el pan. No puedes programar entregas en el pasado ni a un plazo mayor a 3 meses.
-* **Límite de Modificación/Cancelación (Regla de las 48 Horas)**: Para garantizar que la panadería planifique las compras de insumos y hornee a tiempo, **solo se permite editar o cancelar un pedido si faltan más de 48 horas para su entrega**. Si el plazo es menor, el pedido quedará bloqueado y deberás comunicarte con la panadería.
-
-## 2. Portal de Clientes SENA (Aprendices)
-Los aprendices del SENA tienen un flujo especial diseñado para sus prácticas de comercialización:
-* **Toggles de Cuenta (Destinatario)**: Al armar el pedido, el aprendiz puede alternar con botones interactivos para quién va dirigido el pedido:
-  * **Cuenta ADSO (Tienda ADSO)**: El pedido se cargará a la cuenta colectiva del instructor ADSO. Estos pedidos se validan a la tasa de bonificación del **20% (Tienda)**.
-  * **Mi cuenta (Personal)**: El pedido es para consumo propio del aprendiz y se cargará a su cuenta personal con la tasa de **10% (Mostrador/Ñapa)**.
-* **Sincronización de Tasas**: Las pantallas y validadores de la bonificación de regalo se adaptan automáticamente en tiempo real al destinatario seleccionado.
-
-## 3. Bonificaciones y Ñapas de Regalo
-Por tus compras detalladas, el sistema te otorga crédito para llevar pan gratis.
-* **Crédito Disponible**: A medida que agregas productos al carrito, verás un panel azul o naranja que te indica cuánto dinero acumulaste de crédito de regalo.
-* **Selección del Pan de Regalo**: Escoge qué panes deseas llevar gratis utilizando tu crédito disponible.
-* **Seguridad y Validación**: El sistema valida el costo real de los panes de regalo en el servidor. Si intentas alterar el JSON del navegador para pedir panes más caros o exceder tu saldo, el pedido será rechazado con un error por motivos de seguridad.
-
-## 4. Pagos Digitales con Nequi
-BreadControl permite pagar tus pedidos pendientes usando el link de pago de Nequi Negocios (que también acepta Bancolombia, PSE o tarjeta) que configura la panadería.
-* **Habilitar Pago Consolidado**: Si tienes varios pedidos pendientes de pago, puedes agruparlos en una sola transacción desde el menú de pagos. El sistema calcula el total pendiente, deja registrado el pago y muestra un botón de **Pagar ahora**.
-* **Completar la Transacción**: Al tocar "Pagar ahora" se abre el link de pago de Nequi de la panadería. Digita el monto exacto que te indica la pantalla y paga con Nequi, Bancolombia, PSE o tarjeta.
-* **Confirmación del Pago**: El pago **lo confirma manualmente la panadería** una vez verifica que el dinero llegó — por eso puede tardar unos minutos en reflejarse como pagado en tu portal. Si no ves el cambio de inmediato, no te preocupes, no significa que el pago falló.
-* **Reintentar Pagos**: Si algo sale mal durante el pago, puedes volver a tu portal y generar el pago consolidado de nuevo sin problema.

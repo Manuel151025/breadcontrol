@@ -53,8 +53,6 @@ verificado con pruebas:
   qué acción se pidió.
 - Consultas preparadas en todos los accesos a la base, sin emulación.
 - Salidas escapadas con `htmlspecialchars`.
-- Autorización por objeto en el portal: cada pedido se comprueba contra la cuenta
-  en sesión antes de mostrarlo, editarlo, cancelarlo o pagarlo.
 - Cookie de sesión con `HttpOnly`, `SameSite=Lax` y `Secure` fuera del entorno
   local; el identificador se regenera al iniciar sesión.
 - En cada cambio: `composer audit`, Gitleaks sobre todo el historial y Semgrep
